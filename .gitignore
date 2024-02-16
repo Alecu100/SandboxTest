@@ -1,0 +1,14 @@
+.vs/VSWorkspaceState.json
+*.wsuo
+*.bin
+*.vsidx
+SandboxTest/.vs/SandboxTest/DesignTimeBuild/.dtbcache.v2
+SandboxTest/.vs/SandboxTest/v17/.futdcache.v2
+SandboxTest/.vs/SandboxTest/v17/.suo
+SandboxTest/SandboxTest.ApplicationInstanceHost/obj/
+SandboxTest/SandboxTest.Playwright/obj/
+SandboxTest/SandboxTest.Runners.Host/obj/
+SandboxTest/SandboxTest.Runners.WebApplication/obj/
+SandboxTest/SandboxTest.Runners.WireMock/obj/
+SandboxTest/SandboxTest.TestAdapter/obj/
+SandboxTest/SandboxTest/obj/

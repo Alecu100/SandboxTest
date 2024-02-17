@@ -16,5 +16,12 @@
         /// </summary>
         /// <returns></returns>
         Task BuildAsync(IApplicationInstance applicationInstance);
+
+        /// <summary>
+        /// Resets the current application controller to the reused for another scenario.
+        /// </summary>
+        /// <param name="applicationInstance"></param>
+        /// <returns></returns>
+        Task ResetAsync(ApplicationInstance applicationInstance);
     }
 }

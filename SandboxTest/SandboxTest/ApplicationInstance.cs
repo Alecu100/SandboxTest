@@ -109,5 +109,20 @@
             }
             await _runner.StopAsync();
         }
+
+        public async Task ResetAsync()
+        {
+            if (_runner == null)
+            {
+                throw new InvalidOperationException("Application instance has no assigned runner.");
+            }
+            await _runner.ResetAsync();
+            foreach (var controller in _controllers)
+            {
+                await controller.ResetAsync(this);
+            }
+            _currentStepIndex = 0;
+            _steps.Clear();
+        }
     }
 }

@@ -12,3 +12,12 @@ SandboxTest/SandboxTest.Runners.WebApplication/obj/
 SandboxTest/SandboxTest.Runners.WireMock/obj/
 SandboxTest/SandboxTest.TestAdapter/obj/
 SandboxTest/SandboxTest/obj/
+SandboxTest/SandboxTest.ApplicationInstanceHost/bin/
+SandboxTest/SandboxTest.Sample/bin/
+SandboxTest/SandboxTest.Sample/obj/
+SandboxTest/SandboxTest.Runners.Host/bin/
+SandboxTest/SandboxTest.Playwright/bin/
+SandboxTest/SandboxTest.TestAdapter/bin/
+SandboxTest/SandboxTest.Runners.WireMock/bin/
+SandboxTest/SandboxTest/bin/
+SandboxTest/.vs/SandboxTest/v17/

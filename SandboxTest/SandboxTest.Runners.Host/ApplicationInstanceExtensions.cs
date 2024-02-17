@@ -24,5 +24,17 @@ namespace SandboxTest.Runners.Host
             hostBuilderApplicationRunner.OnConfigureRunSandbox(configureRunSandboxFunc);
             return applicationInstance;
         }
+
+        public static ApplicationInstance ConfigureReset(this ApplicationInstance applicationInstance, 
+            Func<IHost, Task>? resetFunc)
+        {
+            var hostBuilderApplicationRunner = applicationInstance.Runner as HostBuilderApplicationRunner;
+            if (hostBuilderApplicationRunner == null)
+            {
+                throw new InvalidOperationException("Invalid application runner configured on application instance, expected HostBuilderApplicationRunner");
+            }
+            hostBuilderApplicationRunner.OnConfigureReset(resetFunc);
+            return applicationInstance;
+        }
     }
 }

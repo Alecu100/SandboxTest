@@ -11,6 +11,7 @@ namespace SandboxTest.Runners.Host
         private Func<string[], Task<IHostBuilder>> _hostBuilderFunc;
         private Func<IHostBuilder, Task>? _configureBuildSandboxFunc;
         private Func<IHost, Task>? _configureRunSandboxFunc;
+        private Func<IHost, Task>? _resetFunc;
 
         public IHost Host => _host ?? throw new InvalidOperationException("Host is not built.");
         public IHostBuilder HostBuilder => _hostBuilder ?? throw new InvalidOperationException("HostBuilder is not set up.");
@@ -85,6 +86,15 @@ namespace SandboxTest.Runners.Host
             _configureRunSandboxFunc = configureRunFunc;
         }
 
+        /// <summary>
+        /// Provides a way to clean up an IHost before starting another scenario from the same scenarion container.
+        /// </summary>
+        /// <param name="resetFunc"></param>
+        public void OnConfigureReset(Func<IHost, Task>? resetFunc)
+        {
+            _resetFunc = resetFunc;
+        }
+
         public async Task RunAsync()
         {
             if (_host == null)
@@ -101,6 +111,18 @@ namespace SandboxTest.Runners.Host
                 throw new InvalidOperationException("Host not built and is not running.");
             }
             await _host.StopAsync();
+        }
+
+        public async Task ResetAsync()
+        {
+            if (_host == null)
+            {
+                throw new InvalidOperationException("Host not built and is not running.");
+            }
+            if (_resetFunc != null)
+            {
+                await _resetFunc(_host);
+            }
         }
     }
 }

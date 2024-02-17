@@ -12,5 +12,11 @@ namespace SandboxTest
     public interface IApplicationInstance: IApplicationControllerContainer, IApplicationRunnerContainer, IScenarioStepContainer
     {
         string Id { get; }
+
+        /// <summary>
+        /// Resets the instance of the application so that it can be reused for another test scenario.
+        /// </summary>
+        /// <returns></returns>
+        Task ResetAsync();
     }
 }

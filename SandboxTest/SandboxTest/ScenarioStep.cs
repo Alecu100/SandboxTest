@@ -39,8 +39,13 @@
         /// </summary>
         /// <param name="parentStep"></param>
         /// <returns></returns>
-        public ScenarioStep WithParentStep(ScenarioStep parentStep)
+        public ScenarioStep AfterStep(ScenarioStep parentStep)
         {
+            if (_configuredActions.Count > 0)
+            {
+                throw new Exception("Step already contains controller invocations, please add previous steps before doing any controller invocations.");
+            }
+
             _configuredParentSteps.Add(parentStep.Id);
             return this;
         }

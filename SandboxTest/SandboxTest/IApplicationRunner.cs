@@ -41,5 +41,11 @@ namespace SandboxTest
         /// </summary>
         /// <returns></returns>
         Task StopAsync();
+
+        /// <summary>
+        /// Resets the current runner.
+        /// </summary>
+        /// <returns></returns>
+        Task ResetAsync();
     }
 }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace SandboxTest.TestAdapter
 {
+    [DefaultExecutorUri("executor://sandboxtest.testadapter")]
     public class SandboxTestExecuter : ITestExecutor
     {
         public void Cancel()

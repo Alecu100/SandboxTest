@@ -16,5 +16,12 @@
         /// <param name="onScenarioRanAsyncCallback">The callback to call when a scenarion finishes running</param>
         /// <returns></returns>
         void OnScenarionRan(Func<ScenarioRunResult, Task> onScenarioRanAsyncCallback);
+
+        /// <summary>
+        /// Scans an assembly for scenarios and returns a list of all the scenarios found.
+        /// </summary>
+        /// <param name="assemblyPath"></param>
+        /// <returns></returns>
+        IEnumerable<ScenarioParameters> ScanForScenarios(string assemblyPath);
     }
 }

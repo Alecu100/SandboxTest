@@ -1,9 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
+using SandboxTest.Engine;
 using System.Diagnostics;
-using System.Reflection;
-using System.Runtime.Loader;
 
 namespace SandboxTest.TestAdapter
 {
@@ -16,6 +15,24 @@ namespace SandboxTest.TestAdapter
             {
                 Debugger.Launch();
             }
+
+            var mainTestEngine = new MainTestEngine();
+
+            foreach (var source in sources) 
+            {
+                var scenarions = mainTestEngine.ScanForScenarios(source);
+                foreach (var scenario in scenarions) 
+                {
+                    discoverySink.SendTestCase(ConvertScenarioParametersToTestCase(scenario, source));
+                }
+            }
+        }
+
+
+        private TestCase ConvertScenarioParametersToTestCase(ScenarioParameters scenarioParameters, string source) 
+        {
+            var testCase = new TestCase($"{scenarioParameters.ScenarioContainerFullyQualifiedName}.{scenarioParameters.ScenarioMethodName}", new Uri("executor://sandboxtest.testadapter"), source);
+            return testCase;
         }
     }
 }

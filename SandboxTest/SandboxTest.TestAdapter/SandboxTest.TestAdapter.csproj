@@ -10,4 +10,8 @@
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="17.9.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SandboxTest.Engine\SandboxTest.Engine.csproj" />
+  </ItemGroup>
+
 </Project>

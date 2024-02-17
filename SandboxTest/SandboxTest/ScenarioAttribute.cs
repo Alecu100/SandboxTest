@@ -1,21 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SandboxTest
+﻿namespace SandboxTest
 {
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class ScenarioAttribute : Attribute
     {
         /// <summary>
-        /// The name of the scenario
+        /// The description of the scenario
         /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// The category of the scenario
-        /// </summary>
-        public string Category {  get; set; }
+        public string? Description { get; set; }
     }
 }

@@ -1,9 +1,10 @@
 ﻿namespace SandboxTest.Sample
 {
+    [ScenarioSuite]
     public class SampleTestScenarionContainer
     {
         [Scenario]
-        public void TestScenarionMethod()
+        public void TestScenarioMethod()
         {
 
         }

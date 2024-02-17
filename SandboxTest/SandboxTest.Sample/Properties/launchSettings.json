@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SandboxTest.Sample": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

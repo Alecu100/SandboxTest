@@ -25,6 +25,16 @@
         /// Creates a new instance of a scenario step.
         /// </summary>
         /// <param name="applicationInstance"></param>
+        /// <param name="name"></param>
+        public ScenarioStep(IApplicationInstance applicationInstance, string name)
+            : this(applicationInstance, new ScenarioStepId(applicationInstance.Id, name))
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of a scenario step.
+        /// </summary>
+        /// <param name="applicationInstance"></param>
         /// <param name="id"></param>
         public ScenarioStep(IApplicationInstance applicationInstance, ScenarioStepId id)
         {

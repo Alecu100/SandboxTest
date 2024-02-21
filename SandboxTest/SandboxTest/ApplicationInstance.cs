@@ -81,6 +81,13 @@
             return scenarioStep;
         }
 
+        public virtual ScenarioStep AddNamedStep(string name)
+        {
+            var scenarioStep = new ScenarioStep(this, name);
+            _currentStepIndex++;
+            return scenarioStep;
+        }
+
         public virtual async Task Start(string[] args)
         {
             if (_runner == null)

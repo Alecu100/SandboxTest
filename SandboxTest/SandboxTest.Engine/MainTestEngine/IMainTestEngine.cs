@@ -1,4 +1,4 @@
-﻿namespace SandboxTest.Engine
+﻿namespace SandboxTest.Engine.MainTestEngine
 {
     public interface IMainTestEngine
     {

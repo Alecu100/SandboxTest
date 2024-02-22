@@ -1,6 +1,8 @@
-﻿using SandboxTest.Engine.Utils;
+﻿using Newtonsoft.Json;
+using SandboxTest.Engine.Operations;
+using SandboxTest.Engine.Utils;
 using System.IO.Pipes;
-using System.Text.Json;
+using System.Text;
 
 namespace SandboxTest.Engine.MainTestEngine
 {
@@ -28,12 +30,34 @@ namespace SandboxTest.Engine.MainTestEngine
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Executes a specific step for an application instance.
+        /// </summary>
+        /// <param name="scenarioStepId"></param>
+        /// <returns></returns>
         public async Task<OperationResult?> ExecuteStepAsync(ScenarioStepId scenarioStepId)
         {
-            var pipe = await _instancePipeStream.Value;
-            await JsonSerializer.SerializeAsync(pipe, scenarioStepId);
-            var stepExecutionResult = await JsonSerializer.DeserializeAsync<OperationResult>(pipe);
-            return stepExecutionResult;
+            var operation = new RunScenarioStepOperation(scenarioStepId);
+            return await ExecuteOperationAsync(operation);
+        }
+
+        private async Task<OperationResult?> ExecuteOperationAsync(RunScenarioStepOperation operation)
+        {
+            var pipeStream = await _instancePipeStream.Value;
+            var json = JsonConvert.SerializeObject(operation, PipeUtils.PipeJsonSerializerSettings);
+            await pipeStream.WriteAsync(Encoding.UTF8.GetBytes(json));
+            int bytesRead;
+            var offset = 0;
+            do
+            {
+                bytesRead = await pipeStream.ReadAsync(_instancePipeStreamBuffer, offset, _instancePipeStreamBuffer.Length - offset);
+                offset += bytesRead;
+
+
+            }
+            while (bytesRead > 0);
+            var operationResult = JsonConvert.DeserializeObject<OperationResult>(Encoding.UTF8.GetString(_instancePipeStreamBuffer, 0, offset));
+            return operationResult;
         }
     }
 }

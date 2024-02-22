@@ -1,4 +1,6 @@
-﻿namespace SandboxTest.Engine.Utils
+﻿using Newtonsoft.Json;
+
+namespace SandboxTest.Engine.Utils
 {
     /// <summary>
     /// Utility methods for pipe interactions.
@@ -15,5 +17,10 @@
         {
             return $"application-instance-id-{applicationInstance.Id}-run-id-{runId}";
         }
+
+        public static readonly JsonSerializerSettings PipeJsonSerializerSettings = new JsonSerializerSettings
+        {
+            TypeNameHandling = TypeNameHandling.All
+        };
     }
 }

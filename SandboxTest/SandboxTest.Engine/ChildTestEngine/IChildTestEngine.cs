@@ -1,4 +1,6 @@
-﻿namespace SandboxTest.Engine.ChildTestEngine
+﻿using SandboxTest.Engine.Operations;
+
+namespace SandboxTest.Engine.ChildTestEngine
 {
     public interface IChildTestEngine
     {

@@ -3,14 +3,14 @@
     /// <summary>
     /// An operation that represents running a step for an application instance.
     /// </summary>
-    public class RunStepOperation : Operation
+    public class RunScenarioStepOperation : Operation
     {
         /// <summary>
-        /// Creates a new instance of the <see cref="RunStepOperation"/> setting the proper type name of the operation
+        /// Creates a new instance of the <see cref="RunScenarioStepOperation"/> setting the proper type name of the operation
         /// </summary>
-        public RunStepOperation(ScenarioStepId scenarioStepId)
+        public RunScenarioStepOperation(ScenarioStepId scenarioStepId)
         {
-            TypeName = nameof(RunStepOperation);
+            TypeName = nameof(RunScenarioStepOperation);
             StepId = scenarioStepId;
         }
 

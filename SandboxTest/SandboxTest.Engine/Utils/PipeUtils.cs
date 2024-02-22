@@ -18,6 +18,9 @@ namespace SandboxTest.Engine.Utils
             return $"application-instance-id-{applicationInstance.Id}-run-id-{runId}";
         }
 
+        /// <summary>
+        /// The default settings for serializing json objects in the json pipes.
+        /// </summary>
         public static readonly JsonSerializerSettings PipeJsonSerializerSettings = new JsonSerializerSettings
         {
             TypeNameHandling = TypeNameHandling.All

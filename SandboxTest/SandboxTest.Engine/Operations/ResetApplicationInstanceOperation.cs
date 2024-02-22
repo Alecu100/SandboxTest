@@ -3,14 +3,14 @@
     /// <summary>
     /// An operation that represents reseting an application instance after a scenario is ran.
     /// </summary>
-    public class ResetInstanceOperation : Operation
+    public class ResetApplicationInstanceOperation : Operation
     {
         /// <summary>
-        /// Create a new instance of <see cref="ResetInstanceOperation"/>
+        /// Create a new instance of <see cref="ResetApplicationInstanceOperation"/>
         /// </summary>
-        public ResetInstanceOperation(string applicationInstanceId) 
+        public ResetApplicationInstanceOperation(string applicationInstanceId) 
         {
-            TypeName = nameof(ResetInstanceOperation);
+            TypeName = nameof(ResetApplicationInstanceOperation);
             InstanceId = applicationInstanceId;
         }
 

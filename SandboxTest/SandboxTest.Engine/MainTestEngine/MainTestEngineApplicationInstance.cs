@@ -19,7 +19,7 @@ namespace SandboxTest.Engine.MainTestEngine
             _applicationInstance = instance;
             _instancePipeStream = new Lazy<Task<NamedPipeClientStream>>(async () =>
             {
-                var pipe = new NamedPipeClientStream(".", PipeUtils.GetChildApplicationInstanceHostPipeName(_runId, _applicationInstance), PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
+                var pipe = new NamedPipeClientStream(".", PipeUtils.GetChildApplicationInstanceHostPipeName(_runId, _applicationInstance.Id), PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
                 await pipe.ConnectAsync();
                 return pipe;
             }); 
@@ -41,7 +41,29 @@ namespace SandboxTest.Engine.MainTestEngine
             return await ExecuteOperationAsync(operation);
         }
 
-        private async Task<OperationResult?> ExecuteOperationAsync(RunScenarioStepOperation operation)
+        /// <summary>
+        /// Resets an application instance and all the executed steps, preparing it to run a new scenario.
+        /// </summary>
+        /// <param name="applicationInstanceId"></param>
+        /// <returns></returns>
+        public async Task<OperationResult?> ResetInstanceAsync(string applicationInstanceId)
+        {
+            var operation = new ResetApplicationInstanceOperation(applicationInstanceId);
+            return await ExecuteOperationAsync(operation);
+        }
+
+        /// <summary>
+        /// Loads a scenarion to be able to run it, initializing all the steps.
+        /// </summary>
+        /// <param name="scenarionName"></param>
+        /// <returns></returns>
+        public async Task<OperationResult?> LoadScenarionAsync(string scenarionName)
+        {
+            var operation = new LoadScenarionOperation(scenarionName);
+            return await ExecuteOperationAsync(operation);
+        }
+
+        private async Task<OperationResult?> ExecuteOperationAsync(Operation operation)
         {
             var pipeStream = await _instancePipeStream.Value;
             var json = JsonConvert.SerializeObject(operation, PipeUtils.PipeJsonSerializerSettings);

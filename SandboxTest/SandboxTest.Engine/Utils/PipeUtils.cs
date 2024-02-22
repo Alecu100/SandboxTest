@@ -13,9 +13,9 @@ namespace SandboxTest.Engine.Utils
         /// <param name="runId"></param>
         /// <param name="applicationInstance"></param>
         /// <returns></returns>
-        public static string GetChildApplicationInstanceHostPipeName(Guid runId, IApplicationInstance applicationInstance)
+        public static string GetChildApplicationInstanceHostPipeName(Guid runId, string applicationInstanceId)
         {
-            return $"application-instance-id-{applicationInstance.Id}-run-id-{runId}";
+            return $"application-instance-id-{applicationInstanceId}-run-id-{runId}";
         }
 
         /// <summary>

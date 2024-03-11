@@ -4,58 +4,149 @@ namespace SandboxTest.Engine.MainTestEngine
 {
     public class MainTestEngine : IMainTestEngine
     {
-        public virtual void OnScenarionRan(Func<ScenarioRunResult, Task> onScenarioRanAsyncCallback)
+        protected List<IScenarioSuiteTestEngine> _runningScenarioSuiteTestEngines;
+        protected CancellationTokenSource? _cancellationTokenSource;
+
+        public MainTestEngine()
         {
-            throw new NotImplementedException();
+            _runningScenarioSuiteTestEngines = new List<IScenarioSuiteTestEngine>();
         }
 
-        public virtual Task RunScenariosAsync(string assemblyPath, IEnumerable<ScenarioParameters> scenarioRunParameters)
+        public virtual async Task RunScenariosAsync(IEnumerable<Scenario> scenarios, IMainTestEngineRunContext runContext)
         {
-            throw new NotImplementedException();
-        }
+            _cancellationTokenSource = new CancellationTokenSource();
+            _runningScenarioSuiteTestEngines.Clear();
 
-        public virtual IEnumerable<ScenarioParameters> ScanForScenarios(string assemblyPath)
-        {
-            var foundScenarioParameters = new List<ScenarioParameters>();
-            var scenariosAssemblyLoadContext = new ScenariosAssemblyLoadContext(assemblyPath);
-            var scenariosAssembly = scenariosAssemblyLoadContext.LoadFromAssemblyPath(assemblyPath);
-
-            foreach (var assemblyType in scenariosAssembly.GetTypes())
+            var scenarioSuitesAssemblies = scenarios.GroupBy(scenario => new
             {
-                if (assemblyType.FullName == null)
+                scenario.ScenarioSourceAssembly,
+            });
+
+            if (_cancellationTokenSource.IsCancellationRequested)
+            {
+                return;
+            }
+
+            var scenariosRunningTasks = new List<Task>();
+            var assemblyLoadContexts = new List<ScenariosAssemblyLoadContext>();
+            foreach (var scenarioSuitesAssembly in scenarioSuitesAssemblies)
+            {
+                var scenariosAssemblyLoadContext = new ScenariosAssemblyLoadContext(scenarioSuitesAssembly.Key.ScenarioSourceAssembly);
+                var scenariosAssembly = scenariosAssemblyLoadContext.LoadFromAssemblyPath(scenarioSuitesAssembly.Key.ScenarioSourceAssembly);
+                assemblyLoadContexts.Add(scenariosAssemblyLoadContext);
+                var scenarioSuites = scenarioSuitesAssembly.GroupBy(x => new { x.ScenarioSuitTypeFullName });
+                foreach (var scenarioSuite in scenarioSuites) 
                 {
-                    continue;
-                }
-                var scenarioSuiteAttribute = assemblyType.CustomAttributes.FirstOrDefault(attribute => attribute.AttributeType.AssemblyQualifiedName == typeof(ScenarioSuiteAttribute).AssemblyQualifiedName);
-                if (scenarioSuiteAttribute == null)
-                {
-                    continue;
-                }
-                string? scenarioSuiteName = null;
-                if (scenarioSuiteAttribute.NamedArguments.Any(arg => arg.MemberName == nameof(ScenarioSuiteAttribute.Name)))
-                {
-                    scenarioSuiteName = (string?)scenarioSuiteAttribute.NamedArguments.FirstOrDefault(arg => arg.MemberName == nameof(ScenarioSuiteAttribute.Name)).TypedValue.Value;
-                }
-                var methodInfos = assemblyType.GetMethods(BindingFlags.Public | BindingFlags.Instance);
-                foreach (var methodInfo in methodInfos)
-                {
-                    var scenarioAttribute = methodInfo.CustomAttributes.FirstOrDefault(attribute => attribute.AttributeType.AssemblyQualifiedName == typeof(ScenarioAttribute).AssemblyQualifiedName);
-                    if (scenarioAttribute == null)
-                    {
-                        continue;
-                    }
-                    string? scenarioDescription = null;
-                    if (scenarioAttribute.NamedArguments.Any(arg => arg.MemberName == nameof(ScenarioAttribute.Description)))
-                    {
-                        scenarioSuiteName = (string?)scenarioSuiteAttribute.NamedArguments.FirstOrDefault(arg => arg.MemberName == nameof(ScenarioAttribute.Description)).TypedValue.Value;
-                    }
-                    var scenarioParameters = new ScenarioParameters(assemblyType.FullName, methodInfo.Name, scenarioDescription, scenarioSuiteName);
-                    foundScenarioParameters.Add(scenarioParameters);
+                    scenariosRunningTasks.Add(RunScenarioSuite(scenariosAssembly, scenarioSuite.Key.ScenarioSuitTypeFullName, scenarioSuite, runContext));
                 }
             }
-            scenariosAssemblyLoadContext.Unload();
+            await Task.WhenAll(scenariosRunningTasks);
 
-            return foundScenarioParameters;
+            foreach (var assemblyLoadContext in assemblyLoadContexts)
+            {
+                assemblyLoadContext.Unload();
+            }
+        }
+
+        protected virtual async Task RunScenarioSuite(Assembly scenariosAssembly, string scenarioSourceFullTypeName, IEnumerable<Scenario> scenarios, IMainTestEngineRunContext runContext)
+        {
+            if (_cancellationTokenSource == null || _cancellationTokenSource.IsCancellationRequested || !scenarios.Any())
+            {
+                return;
+            }
+
+            var assemblyScenarioSuiteType = scenariosAssembly.GetType(scenarioSourceFullTypeName, false);
+            if (assemblyScenarioSuiteType == null) 
+            {
+                foreach (var scenario in scenarios)
+                {
+                    var scenarioNotFoundResult = new ScenarioRunResult(ScenarioRunResultType.NotFound, scenario, DateTimeOffset.UtcNow, TimeSpan.Zero, $"Could not find scenario suite type {scenarioSourceFullTypeName}");
+                    await runContext.OnScenarioRanAsync(scenarioNotFoundResult);
+                }
+                return;
+            }
+
+            var scenarioMethods = new List<MethodInfo>();
+            foreach (var scenario in scenarios)
+            {
+                var methodInfo = assemblyScenarioSuiteType.GetMethod(scenario.ScenarioMethodName, BindingFlags.Instance | BindingFlags.Public);
+                if (methodInfo == null)
+                {
+                    var scenarioNotFoundResult = new ScenarioRunResult(ScenarioRunResultType.NotFound, scenario, DateTimeOffset.UtcNow, TimeSpan.Zero, $"Could not find scenario method {scenario.ScenarioMethodName}");
+                    await runContext.OnScenarioRanAsync(scenarioNotFoundResult);
+                    continue;
+                }
+                scenarioMethods.Add(methodInfo);
+            }
+
+            var scenarioSuiteTestEngine = new ScenarioSuiteTestEngine();
+            scenarioSuiteTestEngine.OnScenarioRunning(runContext.OnScenarioRunningAsync);
+            scenarioSuiteTestEngine.OnScenarionRan(runContext.OnScenarioRanAsync);
+            _runningScenarioSuiteTestEngines.Add(scenarioSuiteTestEngine);
+
+            await scenarioSuiteTestEngine.LoadScenarioSuiteAsync(assemblyScenarioSuiteType, _cancellationTokenSource.Token);
+            if (_cancellationTokenSource.IsCancellationRequested)
+            {
+                return;
+            }
+            await scenarioSuiteTestEngine.RunScenariosAsync(scenarioMethods, _cancellationTokenSource.Token);
+            await scenarioSuiteTestEngine.CloseApplicationInstancesAsync();
+        }
+
+        public virtual async Task ScanForScenariosAsync(IEnumerable<string> assemblyPaths, IMainTestEngineScanContext scanContext)
+        {
+            var scanningTasks = new List<Task>();
+
+            foreach (var assemblyPath in assemblyPaths) 
+            {
+                scanningTasks.Add(Task.Run(() =>
+                {
+                    var scenariosAssemblyLoadContext = new ScenariosAssemblyLoadContext(assemblyPath);
+                    var scenariosAssembly = scenariosAssemblyLoadContext.LoadFromAssemblyPath(assemblyPath);
+
+                    foreach (var assemblyType in scenariosAssembly.GetTypes())
+                    {
+                        if (assemblyType.FullName == null)
+                        {
+                            continue;
+                        }
+                        var scenarioSuiteAttribute = assemblyType.GetCustomAttribute<ScenarioSuiteAttribute>();
+                        if (scenarioSuiteAttribute == null)
+                        {
+                            continue;
+                        }
+
+                        var methodInfos = assemblyType.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+                        foreach (var methodInfo in methodInfos)
+                        {
+                            var scenarioAttribute = methodInfo.GetCustomAttribute<ScenarioAttribute>();
+                            if (scenarioAttribute == null)
+                            {
+                                continue;
+                            }
+                            var scenarioParameters = new Scenario(scenariosAssembly, assemblyType, methodInfo, scenarioSuiteAttribute, scenarioAttribute);
+                            scanContext.OnScenarioFound(scenarioParameters);
+                        }
+                    }
+                    scenariosAssemblyLoadContext.Unload();
+                }));
+            }
+
+            await Task.WhenAll(scanningTasks);
+        }
+
+        public async Task StopRunningScenariosAsync()
+        {
+            _cancellationTokenSource?.Cancel();
+            if (_runningScenarioSuiteTestEngines == null || !_runningScenarioSuiteTestEngines.Any())
+            {
+                return;
+            }
+
+            foreach (var runningScenarioSuiteTestEngine in _runningScenarioSuiteTestEngines)
+            {
+                await runningScenarioSuiteTestEngine.CloseApplicationInstancesAsync();
+            }
         }
     }
 }

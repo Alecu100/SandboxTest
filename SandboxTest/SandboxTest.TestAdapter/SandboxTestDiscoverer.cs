@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using SandboxTest.Engine;
+using SandboxTest.Engine.MainTestEngine;
 using System.Diagnostics;
 
 namespace SandboxTest.TestAdapter
@@ -17,22 +18,9 @@ namespace SandboxTest.TestAdapter
             }
 
             var mainTestEngine = new MainTestEngine();
-
-            foreach (var source in sources) 
-            {
-                var scenarions = mainTestEngine.ScanForScenarios(source);
-                foreach (var scenario in scenarions) 
-                {
-                    discoverySink.SendTestCase(ConvertScenarioParametersToTestCase(scenario, source));
-                }
-            }
-        }
-
-
-        private TestCase ConvertScenarioParametersToTestCase(ScenarioParameters scenarioParameters, string source) 
-        {
-            var testCase = new TestCase($"{scenarioParameters.ScenarioContainerFullyQualifiedName}.{scenarioParameters.ScenarioMethodName}", new Uri("executor://sandboxtest.testadapter"), source);
-            return testCase;
+            var scenarioScanContext = new SandboxTestDiscovererScanContext(discoveryContext, logger, discoverySink);
+            _ = typeof(ScenarioAttribute);
+            mainTestEngine.ScanForScenariosAsync(sources, scenarioScanContext).Wait();
         }
     }
 }

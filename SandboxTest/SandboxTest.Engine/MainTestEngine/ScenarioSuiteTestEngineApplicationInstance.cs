@@ -6,14 +6,14 @@ using System.Text;
 
 namespace SandboxTest.Engine.MainTestEngine
 {
-    public class MainTestEngineApplicationInstance
+    public class ScenarioSuiteTestEngineApplicationInstance
     {
         private readonly Guid _runId;
         private readonly IApplicationInstance _applicationInstance;
         private Lazy<Task<NamedPipeClientStream>> _instancePipeStream;
         private byte[] _instancePipeStreamBuffer = new byte[2000];
 
-        public MainTestEngineApplicationInstance(Guid runId, IApplicationInstance instance)
+        public ScenarioSuiteTestEngineApplicationInstance(Guid runId, IApplicationInstance instance)
         {
             _runId = runId;
             _applicationInstance = instance;

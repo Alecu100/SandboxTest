@@ -14,6 +14,13 @@ namespace SandboxTest.Engine
 
         protected override Assembly? Load(AssemblyName name)
         {
+            var currentAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var foundExistingAssembly = currentAssemblies.FirstOrDefault(assembly => AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), name));
+            if (foundExistingAssembly != null) 
+            {
+                return foundExistingAssembly;
+            }
+
             string? assemblyPath = _resolver.ResolveAssemblyToPath(name);
             if (assemblyPath != null)
             {

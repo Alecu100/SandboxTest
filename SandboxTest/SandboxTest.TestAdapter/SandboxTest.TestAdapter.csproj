@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SandboxTest.ApplicationInstanceHost\SandboxTest.ApplicationInstanceHost.csproj" />
     <ProjectReference Include="..\SandboxTest.Engine\SandboxTest.Engine.csproj" />
   </ItemGroup>
 

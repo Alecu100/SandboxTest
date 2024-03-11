@@ -9,15 +9,15 @@
         /// Creates a new instance of <see cref="OperationResult"/>
         /// </summary>
         /// <param name="isSuccesful">Denotes if the operation was succefully ran.</param>
-        /// <param name="error">The error message in case the operation failed</param>
-        public OperationResult(bool isSuccesful, string? error)
+        /// <param name="errorMessage">The error message in case the operation failed</param>
+        public OperationResult(bool isSuccesful, string? errorMessage)
         {
-            Error = error;
+            ErrorMessage = errorMessage;
             IsSuccesful = isSuccesful;
         }
 
         public bool IsSuccesful { get; set; }
 
-        public string? Error { get; set; }
+        public string? ErrorMessage { get; set; }
     }
 }

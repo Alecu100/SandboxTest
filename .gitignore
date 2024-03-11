@@ -24,3 +24,5 @@ SandboxTest/.vs/SandboxTest/v17/
 SandboxTest/SandboxTest.Engine/obj/
 SandboxTest/.vs/
 SandboxTest/SandboxTest.Engine/bin/
+SandboxTest/SandboxTest.Engine.ApplicationRunner/bin/
+SandboxTest/SandboxTest.Engine.ApplicationRunner/obj/

@@ -1,31 +1,24 @@
 ﻿using SandboxTest.Engine.ChildTestEngine;
 using SandboxTest.Engine.Utils;
-using System;
-using System.Collections.Generic;
 using System.IO.Pipes;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace SandboxTest.ApplicationInstanceHost
+namespace SandboxTest.Engine.ApplicationRunner
 {
-    public class ApplicationInstanceHost
+    public class ApplicationInstanceRunner
     {
         private readonly IChildTestEngine _childTestEngine;
         private readonly Guid _runId;
         private NamedPipeServerStream? _pipeServerStream;
         private string _testSource;
         private string _scenarionSuitName;
-        private string _scenarionName;
         private string _applicationInstanceId;
 
-        public ApplicationInstanceHost(Guid runId, string applicationInstanceId, string testSource, string scenarionSuitName, string scenarionName) 
+        public ApplicationInstanceRunner(Guid runId, string applicationInstanceId, string testSource, string scenarionSuitName)
         {
             _runId = runId;
             _testSource = testSource;
             _scenarionSuitName = scenarionSuitName;
-            _scenarionName = scenarionName;
-            _childTestEngine = new ChildTestEngine();
+            _childTestEngine = new ChildTestEngine.ChildTestEngine();
             _applicationInstanceId = applicationInstanceId;
         }
 

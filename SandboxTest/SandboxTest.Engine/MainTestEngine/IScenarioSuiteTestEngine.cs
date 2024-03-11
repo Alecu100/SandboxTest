@@ -8,9 +8,10 @@ namespace SandboxTest.Engine.MainTestEngine
         /// Loads a scenario suit to execute the scenarios from it
         /// </summary>
         /// <param name="scenarioSuiteType"></param>
+        /// <param name="mainTestEngineRunContext"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task LoadScenarioSuiteAsync(Type scenarioSuiteType, CancellationToken cancellationToken);
+        Task LoadScenarioSuiteAsync(Type scenarioSuiteType, IMainTestEngineRunContext mainTestEngineRunContext, CancellationToken cancellationToken);
 
         /// <summary>
         /// Runs the scenario methods
@@ -19,19 +20,6 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task RunScenariosAsync(List<MethodInfo> scenarionMethods, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Sets a callback method to publish the details once a scenarion has been ran.
-        /// </summary>
-        /// <param name="onScenarioRanAsyncCallback">The callback to call when a scenarion finishes running</param>
-        /// <returns></returns>
-        void OnScenarionRan(Func<ScenarioRunResult, Task> onScenarioRanAsyncCallback);
-
-        /// <summary>
-        /// Sets a callback method to notify interested observers that a scenario has started to be ran.
-        /// </summary>
-        /// <param name="onScenarioRunningAsyncCallback"></param>
-        void OnScenarioRunning(Func<Scenario, Task> onScenarioRunningAsyncCallback);
 
         /// <summary>
         /// Closes all the opened application instances.

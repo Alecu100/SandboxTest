@@ -1,4 +1,4 @@
-﻿namespace SandboxTest.ApplicationInstanceHost
+﻿namespace SandboxTest.Engine.ApplicationRunner
 {
     internal class Program
     {

@@ -1,7 +1,7 @@
 ﻿namespace SandboxTest.Sample
 {
     [ScenarioSuite]
-    public class SampleTestScenarionContainer
+    public class SampleTestScenarioSuiteContainer
     {
         private readonly IApplicationInstance _applicationInstance1 = 
             new ApplicationInstance(Guid.NewGuid().ToString());

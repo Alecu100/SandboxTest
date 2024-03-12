@@ -122,8 +122,8 @@ namespace SandboxTest.Engine.MainTestEngine
                             {
                                 continue;
                             }
-                            var scenarioParameters = new Scenario(scenariosAssembly, assemblyType, methodInfo, scenarioSuiteAttribute, scenarioAttribute);
-                            scanContext.OnScenarioFound(scenarioParameters);
+                            var scenario = new Scenario(scenariosAssembly, assemblyType, methodInfo, scenarioSuiteAttribute, scenarioAttribute);
+                            scanContext.OnScenarioFound(scenario);
                         }
                     }
                     scenariosAssemblyLoadContext.Unload();

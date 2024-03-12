@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace SandboxTest.TestAdapter
 {
-    [DefaultExecutorUri("executor://sandboxtest.testadapter")]
+    [ExtensionUri("executor://sandboxtest.testadapter")]
     public class SandboxTestExecuter : ITestExecutor
     {
         private IMainTestEngine? _mainTestEngine;

@@ -10,13 +10,13 @@ namespace SandboxTest.TestAdapter
         private readonly IRunContext? _runContext;
         private readonly IFrameworkHandle? _frameworkHandle;
 
-        public SandboxTestExecuterRunContext(IRunContext? runContext, IFrameworkHandle? frameworkHandle)
+        public SandboxTestExecuterRunContext(IRunContext runContext, IFrameworkHandle frameworkHandle)
         {
             _runContext = runContext;
             _frameworkHandle = frameworkHandle;
         }
 
-        public bool IsBeingDebugged => throw new NotImplementedException();
+        public bool IsBeingDebugged { get => _runContext?.IsBeingDebugged ?? false; }
 
         public Task<Process> LaunchProcessAsync(string filePath, bool debug, string? workingDirectory, string? arguments, IDictionary<string, string?>? environmentVariables)
         {

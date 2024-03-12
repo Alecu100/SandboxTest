@@ -9,7 +9,7 @@ namespace SandboxTest.Engine.ChildTestEngine
         private ScenariosAssemblyLoadContext? _scenariosAssemblyLoadContext;
         private Assembly? _scenariosAssembly;
 
-        public virtual async Task LoadSuiteAsync(string sourceAssembly, string scenarionSuiteName)
+        public virtual Task LoadSuiteAsync(string sourceAssembly, string scenarionSuiteName)
         {
             var foundScenarioParameters = new List<Scenario>();
             _scenariosAssemblyLoadContext = new ScenariosAssemblyLoadContext(sourceAssembly);
@@ -49,6 +49,7 @@ namespace SandboxTest.Engine.ChildTestEngine
                 }
             }
 
+            return Task.CompletedTask;
         }
 
         public virtual Task<OperationResult> BuildScenarioAsync(string scenarioMethodName)

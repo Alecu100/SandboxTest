@@ -80,11 +80,9 @@ namespace SandboxTest.Engine.MainTestEngine
             }
 
             var scenarioSuiteTestEngine = new ScenarioSuiteTestEngine();
-            scenarioSuiteTestEngine.OnScenarioRunning(runContext.OnScenarioRunningAsync);
-            scenarioSuiteTestEngine.OnScenarionRan(runContext.OnScenarioRanAsync);
             _runningScenarioSuiteTestEngines.Add(scenarioSuiteTestEngine);
 
-            await scenarioSuiteTestEngine.LoadScenarioSuiteAsync(assemblyScenarioSuiteType, _cancellationTokenSource.Token);
+            await scenarioSuiteTestEngine.LoadScenarioSuiteAsync(assemblyScenarioSuiteType, runContext, _cancellationTokenSource.Token);
             if (_cancellationTokenSource.IsCancellationRequested)
             {
                 return;

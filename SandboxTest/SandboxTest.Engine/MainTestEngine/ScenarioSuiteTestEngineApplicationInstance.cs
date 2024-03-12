@@ -3,6 +3,7 @@ using SandboxTest.Engine.Operations;
 using SandboxTest.Engine.Utils;
 using System.Diagnostics;
 using System.IO.Pipes;
+using System.Reflection;
 using System.Text;
 
 namespace SandboxTest.Engine.MainTestEngine
@@ -12,15 +13,17 @@ namespace SandboxTest.Engine.MainTestEngine
         private readonly Guid _runId;
         private readonly IApplicationInstance _applicationInstance;
         private readonly IMainTestEngineRunContext _mainTestEngineRunContext;
+        private readonly Type _scenarioSuiteType;
         private Lazy<Task<NamedPipeClientStream>> _instancePipeStream;
         private byte[] _instancePipeStreamBuffer = new byte[10000];
         private Process? _applicationInstanceProcess;
 
-        public ScenarioSuiteTestEngineApplicationInstance(Guid runId, IApplicationInstance instance, IMainTestEngineRunContext mainTestEngineRunContext)
+        public ScenarioSuiteTestEngineApplicationInstance(Guid runId, IApplicationInstance instance, Type scenarioSuiteType, IMainTestEngineRunContext mainTestEngineRunContext)
         {
             _runId = runId;
             _applicationInstance = instance;
             _mainTestEngineRunContext = mainTestEngineRunContext;
+            _scenarioSuiteType = scenarioSuiteType;
             _instancePipeStream = new Lazy<Task<NamedPipeClientStream>>(async () =>
             {
                 var pipe = new NamedPipeClientStream(".", PipeUtils.GetChildApplicationInstanceHostPipeName(_runId, _applicationInstance.Id), PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
@@ -31,7 +34,12 @@ namespace SandboxTest.Engine.MainTestEngine
 
         public async Task StartInstanceAsync()
         {
-
+            var mainAssemblyPath = _scenarioSuiteType.Assembly.Location;
+            var assemblyName = Path.GetFileName(mainAssemblyPath);
+            var mainPath = Path.GetDirectoryName(mainAssemblyPath);
+            var applicationRunnerPath = $"{mainPath}\\SandboxTest.Engine.ApplicationRunner.exe";
+            var arguments = $"-mainPath=\"{mainPath}\"  -assemblyName=\"{assemblyName}\"  -scenarioSuiteType=\"{_scenarioSuiteType}\"  -runId=\"{_runId}\" ";
+            await _mainTestEngineRunContext.LaunchProcessAsync(applicationRunnerPath, _mainTestEngineRunContext.IsBeingDebugged, mainPath, arguments);
         }
 
         /// <summary>

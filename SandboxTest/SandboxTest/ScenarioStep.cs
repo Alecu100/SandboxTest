@@ -3,7 +3,7 @@
     public class ScenarioStep
     {
         private readonly ScenarioStepId _id;
-        private readonly List<Func<Task>> _configuredActions;
+        private readonly List<Func<ScenarioStepContext, Task>> _configuredActions;
         private readonly List<ScenarioStepId> _configuredParentSteps;
         private readonly IApplicationInstance _applicationInstance;
 
@@ -41,7 +41,7 @@
             _id = id;
             _applicationInstance = applicationInstance;
             _configuredParentSteps = new List<ScenarioStepId>();
-            _configuredActions = new List<Func<Task>>();
+            _configuredActions = new List<Func<ScenarioStepContext, Task>>();
         }
 
         /// <summary>
@@ -60,18 +60,18 @@
             return this;
         }
 
-        public ScenarioStep InvokeController<TController>(Func<TController, Task> invokeFunc, string? name = default) where TController: IApplicationController
+        public ScenarioStep InvokeController<TController>(Func<TController, ScenarioStepContext, Task> invokeFunc, string? name = default) where TController: IApplicationController
         {
             if (!_applicationInstance.Controllers.Any(controller => ((controller.Name == null && name == null) || (controller.Name != null && controller.Name.Equals(name))) &&
                 controller.GetType() == typeof(TController)))
             {
                 throw new InvalidOperationException($"Controller with name {name} and type {typeof(TController).Name} not found in the application instance with id {_applicationInstance.Id}");
             }
-            _configuredActions.Add(async () =>
+            _configuredActions.Add(async (ScenarioStepContext context) =>
             {
                 var applicationController = (TController)_applicationInstance.Controllers.First(controller => ((controller.Name == null && name == null) || (controller.Name != null && controller.Name.Equals(name))) &&
                     controller.GetType() == typeof(TController));
-                await invokeFunc(applicationController);
+                await invokeFunc(applicationController, context);
             });
             return this;
         }

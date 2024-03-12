@@ -7,6 +7,7 @@
         protected List<IApplicationController> _controllers;
         protected List<ScenarioStep> _steps;
         protected int _currentStepIndex;
+        protected IApplicationMessageSink? _messageSink;
 
         public ApplicationInstance(string id)
         {
@@ -40,6 +41,21 @@
         /// Returns the current step index used that will be assigned to the next step.
         /// </summary>
         public virtual int CurrentStepIndex { get => _currentStepIndex; }
+
+        /// <summary>
+        /// Returns the 
+        /// </summary>
+        public virtual IApplicationMessageSink MessageSink
+        {
+            get
+            {
+                if (_messageSink == null)
+                {
+                    _messageSink = new PipeApplicationMessageSink();
+                }
+                return _messageSink;
+            }
+        }
 
         /// <summary>
         /// Assigns a specific runner to the application instance.

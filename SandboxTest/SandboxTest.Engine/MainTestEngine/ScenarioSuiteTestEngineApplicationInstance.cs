@@ -14,8 +14,6 @@ namespace SandboxTest.Engine.MainTestEngine
         private readonly IApplicationInstance _applicationInstance;
         private readonly IMainTestEngineRunContext _mainTestEngineRunContext;
         private readonly Type _scenarioSuiteType;
-        private Lazy<Task<NamedPipeClientStream>> _instancePipeStream;
-        private byte[] _instancePipeStreamBuffer = new byte[10000];
         private Process? _applicationInstanceProcess;
 
         public ScenarioSuiteTestEngineApplicationInstance(Guid runId, IApplicationInstance instance, Type scenarioSuiteType, IMainTestEngineRunContext mainTestEngineRunContext)
@@ -23,13 +21,7 @@ namespace SandboxTest.Engine.MainTestEngine
             _runId = runId;
             _applicationInstance = instance;
             _mainTestEngineRunContext = mainTestEngineRunContext;
-            _scenarioSuiteType = scenarioSuiteType;
-            _instancePipeStream = new Lazy<Task<NamedPipeClientStream>>(async () =>
-            {
-                var pipe = new NamedPipeClientStream(".", PipeUtils.GetChildApplicationInstanceHostPipeName(_runId, _applicationInstance.Id), PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
-                await pipe.ConnectAsync();
-                return pipe;
-            }); 
+            _scenarioSuiteType = scenarioSuiteType; 
         }
 
         public async Task StartInstanceAsync()
@@ -40,6 +32,7 @@ namespace SandboxTest.Engine.MainTestEngine
             var applicationRunnerPath = $"{mainPath}\\SandboxTest.Engine.ApplicationRunner.exe";
             var arguments = $"-mainPath=\"{mainPath}\"  -assemblyName=\"{assemblyName}\"  -scenarioSuiteType=\"{_scenarioSuiteType}\"  -runId=\"{_runId}\" ";
             _applicationInstanceProcess = await _mainTestEngineRunContext.LaunchProcessAsync(applicationRunnerPath, _mainTestEngineRunContext.IsBeingDebugged, mainPath, arguments);
+            await _applicationInstance.MessageSink.StartAsync(_applicationInstance.Id, _runId, false);
         }
 
         /// <summary>
@@ -80,20 +73,10 @@ namespace SandboxTest.Engine.MainTestEngine
 
         private async Task<OperationResult?> ExecuteOperationAsync(Operation operation, CancellationToken cancellationToken)
         {
-            var pipeStream = await _instancePipeStream.Value;
             var json = JsonConvert.SerializeObject(operation, PipeUtils.PipeJsonSerializerSettings);
-            await pipeStream.WriteAsync(Encoding.UTF8.GetBytes(json), cancellationToken);
-            int bytesRead;
-            var offset = 0;
-            do
-            {
-                bytesRead = await pipeStream.ReadAsync(_instancePipeStreamBuffer, offset, _instancePipeStreamBuffer.Length - offset);
-                offset += bytesRead;
+            await _applicationInstance.MessageSink.SendMessageAsync(json);
 
-
-            }
-            while (bytesRead > 0);
-            var operationResult = JsonConvert.DeserializeObject<OperationResult>(Encoding.UTF8.GetString(_instancePipeStreamBuffer, 0, offset));
+            var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _applicationInstance.MessageSink.ReceiveMessageAsync());
             return operationResult;
         }
     }

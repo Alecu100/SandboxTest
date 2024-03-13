@@ -1,4 +1,6 @@
 ﻿using SandboxTest.Engine.ChildTestEngine;
+using static System.Net.Mime.MediaTypeNames;
+using System.ComponentModel;
 
 namespace SandboxTest.Engine.ApplicationRunner
 {
@@ -18,7 +20,7 @@ namespace SandboxTest.Engine.ApplicationRunner
             _runFinishedTaskCompletionSource = new TaskCompletionSource<int>();
         }
 
-        public Task InitializeAsync(string[] args)
+        public async Task InitializeAsync(string[] args)
         {
             try
             {
@@ -31,15 +33,16 @@ namespace SandboxTest.Engine.ApplicationRunner
                 {
                     throw new ArgumentException("All required arguments for application instance runner have not been provided");
                 }
+                await _childTestEngine.RunApplicationInstanceAsync($"{_mainPath}\\{_assemblySourceName}", _scenarioSuiteTypeFullName, _applicationInstanceId);
             }
             catch (Exception ex) 
             {
                 Console.WriteLine(ex.ToString());
                 _runFinishedTaskCompletionSource.SetResult(-1);
-                return Task.CompletedTask;
+                return;
             }
 
-            return Task.CompletedTask;
+            return;
         }
 
         public async Task<int> RunAsync()
@@ -54,8 +57,8 @@ namespace SandboxTest.Engine.ApplicationRunner
             {
                 return default;
             }
-            var argumentValue = argument.Substring(argument.IndexOf('=') + 1);
-            return (TValue)Convert.ChangeType(argumentValue, typeof(TValue));
+            var argumentValue = argument.Substring(argument.IndexOf('=') + 1).Trim().Trim('\"');
+            return (TValue?)TypeDescriptor.GetConverter(typeof(TValue)).ConvertFromInvariantString(argumentValue);
         }
     }
 }

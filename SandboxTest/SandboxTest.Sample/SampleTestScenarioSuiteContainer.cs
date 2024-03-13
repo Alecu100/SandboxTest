@@ -4,10 +4,10 @@
     public class SampleTestScenarioSuiteContainer
     {
         private readonly IApplicationInstance _applicationInstance1 = 
-            new ApplicationInstance(Guid.NewGuid().ToString());
+            new ApplicationInstance("Instance1");
 
         private readonly IApplicationInstance _applicationInstance2 =
-            new ApplicationInstance(Guid.NewGuid().ToString());
+            new ApplicationInstance("Instance2");
 
 
         [Scenario]

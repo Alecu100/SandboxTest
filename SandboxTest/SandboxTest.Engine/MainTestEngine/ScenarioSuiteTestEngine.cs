@@ -20,7 +20,7 @@ namespace SandboxTest.Engine.MainTestEngine
 
         public virtual Task CloseApplicationInstancesAsync()
         {
-            throw new NotImplementedException();
+            return Task.Delay(60000);
         }
 
         public virtual async Task LoadScenarioSuiteAsync(Type scenarioSuiteType, IMainTestEngineRunContext mainTestEngineRunContext, CancellationToken token)

@@ -131,7 +131,7 @@ namespace SandboxTest
         /// <param name="runId"></param>
         /// <param name="isApplicationInstance"></param>
         /// <returns></returns>
-        public Task ConnectAsync(string applicationId, Guid runId, bool isApplicationInstance)
+        public Task ConfigureAsync(string applicationId, Guid runId, bool isApplicationInstance)
         {
             if (!isApplicationInstance)
             {

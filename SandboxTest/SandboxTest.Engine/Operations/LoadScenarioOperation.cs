@@ -3,20 +3,20 @@
     /// <summary>
     /// 
     /// </summary>
-    public class LoadScenarionOperation : Operation
+    public class LoadScenarioOperation : Operation
     {
         /// <summary>
         /// Creates a new instance of <see cref="LoaderOptimization"/>
         /// </summary>
-        public LoadScenarionOperation(string scenarioName) 
+        public LoadScenarioOperation(string scenarioName) 
         {
-            TypeName = nameof(LoadScenarionOperation);
-            Name = scenarioName;
+            TypeName = nameof(LoadScenarioOperation);
+            ScenarioMethodName = scenarioName;
         }
 
         /// <summary>
         /// The name of the scenarion to load for this application instance.
         /// </summary>
-        public string Name { get; set; }
+        public string ScenarioMethodName { get; set; }
     }
 }

@@ -36,7 +36,7 @@ namespace SandboxTest.Engine.ApplicationRunner
                     throw new ArgumentException("All required arguments for application instance runner have not been provided");
                 }
                 await _childTestEngine.RunApplicationInstanceAsync($"{_mainPath}\\{_assemblySourceName}", _scenarioSuiteTypeFullName, _applicationInstanceId);
-                _ = HandleMessage();
+                _ = HandleMessages();
             }
             catch (Exception ex) 
             {
@@ -64,7 +64,7 @@ namespace SandboxTest.Engine.ApplicationRunner
             return (TValue?)TypeDescriptor.GetConverter(typeof(TValue)).ConvertFromInvariantString(argumentValue);
         }
 
-        private async Task HandleMessage()
+        private async Task HandleMessages()
         {
             if (_childTestEngine == null || _childTestEngine?.RunningInstance?.MessageSink == null || _applicationInstanceId == null)
             {
@@ -73,7 +73,7 @@ namespace SandboxTest.Engine.ApplicationRunner
             }
 
             var messageSink = _childTestEngine.RunningInstance.MessageSink;
-            await  messageSink.ConnectAsync(_applicationInstanceId, _runId, true);
+            await  messageSink.ConfigureAsync(_applicationInstanceId, _runId, true);
             while (!_runFinishedTaskCompletionSource.Task.IsCompleted)
             {
                 var messageJson = await messageSink.ReceiveMessageAsync();
@@ -81,11 +81,19 @@ namespace SandboxTest.Engine.ApplicationRunner
                 switch (message) 
                 {
                     case ReadyOperation: 
-                        await messageSink.SendMessageAsync(JsonConvert.SerializeObject(new OperationResult(true))); 
+                        await messageSink.SendMessageAsync(JsonConvert.SerializeObject(new OperationResult(true), JsonUtils.JsonSerializerSettings)); 
                         break;
                     case RunScenarioStepOperation runStepOperation:
                         var result = await _childTestEngine.RunStepAsync(runStepOperation.StepId, runStepOperation.StepContext);
-                        await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result));
+                        await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
+                        break;
+                    case ResetApplicationInstanceOperation:
+                        result = await _childTestEngine.ResetApplicationInstanceAsync();
+                        await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
+                        break;
+                    case LoadScenarioOperation loadScenarioOperation:
+                        result = await _childTestEngine.LoadScenarioAsync(loadScenarioOperation.ScenarioMethodName);
+                        await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
                         break;
                 }
             }

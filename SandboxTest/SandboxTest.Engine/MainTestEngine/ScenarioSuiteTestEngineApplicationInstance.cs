@@ -30,7 +30,7 @@ namespace SandboxTest.Engine.MainTestEngine
             var arguments = $"-{Constants.MainPathArgument}=\"{mainPath}\"  -{Constants.AssemblySourceNameArgument}=\"{assemblySourceName}\"  " +
                 $"-{Constants.ScenarioSuiteTypeFullNameArgument}=\"{_scenarioSuiteType.FullName}\"  -{Constants.RunIdArgument}=\"{_runId}\"  -{Constants.ApplicationInstanceIdArgument}=\"{_applicationInstance.Id}\"  ";
             _applicationInstanceProcess = await _mainTestEngineRunContext.LaunchProcessAsync(applicationRunnerPath, _mainTestEngineRunContext.IsBeingDebugged, mainPath, arguments);
-            await _applicationInstance.MessageSink.ConnectAsync(_applicationInstance.Id, _runId, false);
+            await _applicationInstance.MessageSink.ConfigureAsync(_applicationInstance.Id, _runId, false);
         }
 
         public async Task StopInstanceAsync()
@@ -80,7 +80,7 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <returns></returns>
         public async Task<OperationResult?> LoadScenarioAsync(string scenarioName, CancellationToken cancellationToken)
         {
-            var operation = new LoadScenarionOperation(scenarioName);
+            var operation = new LoadScenarioOperation(scenarioName);
             return await ExecuteOperationAsync(operation, cancellationToken);
         }
 

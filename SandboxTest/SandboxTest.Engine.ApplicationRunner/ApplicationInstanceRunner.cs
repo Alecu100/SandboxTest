@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using SandboxTest.Engine.ChildTestEngine;
 using SandboxTest.Engine.Operations;
+using SandboxTest.Engine.Utils;
 using System.ComponentModel;
 
 namespace SandboxTest.Engine.ApplicationRunner
@@ -76,7 +77,7 @@ namespace SandboxTest.Engine.ApplicationRunner
             while (!_runFinishedTaskCompletionSource.Task.IsCompleted)
             {
                 var messageJson = await messageSink.ReceiveMessageAsync();
-                var message = JsonConvert.DeserializeObject<Operation>(messageJson);
+                var message = JsonConvert.DeserializeObject<Operation>(messageJson, JsonUtils.JsonSerializerSettings);
                 switch (message) 
                 {
                     case ReadyOperation: 

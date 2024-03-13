@@ -21,6 +21,21 @@ namespace SandboxTest
         }
 
         /// <summary>
+        /// One guid is enough to separate messages.
+        /// </summary>
+        private const string MessageSeparator = "43897da7-376d-4d6e-8c77-f39f2d86e70c";
+
+        /// <summary>
+        /// The actual bytes of the Guid to separate messages and notify the end of a message.
+        /// </summary>
+        private static byte[] MessageSeparatorBytes;
+
+        static PipeApplicationMessageSink()
+        {
+            MessageSeparatorBytes = Guid.Parse(MessageSeparator).ToByteArray();
+        }
+
+        /// <summary>
         /// The default settings for serializing json objects in the json pipes.
         /// </summary>
         private static readonly JsonSerializerSettings PipeJsonSerializerSettings = new JsonSerializerSettings
@@ -59,9 +74,27 @@ namespace SandboxTest
             {
                 bytesRead = await pipeStream.ReadAsync(_instancePipeStreamBuffer, offset, _instancePipeStreamBuffer.Length - offset);
                 offset += bytesRead;
+                if (_instancePipeStreamBuffer.Length <= offset + 1)
+                {
+                    var newInstancePipeStreamBuffer = new byte[_instancePipeStreamBuffer.Length + 5000];
+                    _instancePipeStreamBuffer.CopyTo(newInstancePipeStreamBuffer, 0);
+                    _instancePipeStreamBuffer = newInstancePipeStreamBuffer;
+                }
+                if (offset > MessageSeparatorBytes.Length)
+                {
+                    var index = 0;
+                    while (index < MessageSeparatorBytes.Length && MessageSeparatorBytes[index] == _instancePipeStreamBuffer[offset - MessageSeparatorBytes.Length + index])
+                    {
+                        index++;
+                    }
+                    if (index == MessageSeparatorBytes.Length)
+                    {
+                        break;
+                    }
+                }
             }
             while (bytesRead > 0);
-            return Encoding.UTF8.GetString(_instancePipeStreamBuffer, 0, offset);
+            return Encoding.UTF8.GetString(_instancePipeStreamBuffer, 0, offset - MessageSeparatorBytes.Length);
         }
 
         /// <summary>
@@ -87,6 +120,8 @@ namespace SandboxTest
             }
  
             await pipeStream.WriteAsync(Encoding.UTF8.GetBytes(message));
+            await pipeStream.WriteAsync(MessageSeparatorBytes);
+            await pipeStream.FlushAsync();
         }
 
         /// <summary>

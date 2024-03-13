@@ -64,7 +64,7 @@
         /// <param name="applicationRunner"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual ApplicationInstance AssingRunner<TRunner>(TRunner applicationRunner) where TRunner : IApplicationRunner
+        public virtual ApplicationInstance UseRunner<TRunner>(TRunner applicationRunner) where TRunner : IApplicationRunner
         {
             if (_runner != null) 
             {
@@ -121,6 +121,7 @@
             {
                 await controller.ConfigureBuildAsync(this);
             }
+            await _runner.BuildAsync();
             foreach (var controller in _controllers)
             {
                 await controller.BuildAsync(this);

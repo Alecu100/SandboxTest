@@ -53,7 +53,7 @@ namespace SandboxTest.Runners.Host
             {
                 throw new InvalidOperationException("HostBuilder not found.");
             }
-            if (_configureBuildSandboxFunc != null && _hostBuilder != null)
+            if (_configureBuildSandboxFunc != null)
             {
                 await _configureBuildSandboxFunc(_hostBuilder);
             }

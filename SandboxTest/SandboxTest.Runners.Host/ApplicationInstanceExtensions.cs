@@ -4,9 +4,9 @@ namespace SandboxTest.Runners.Host
 {
     public static class ApplicationInstanceExtensions
     {
-        public static ApplicationInstance UseHostBuilderApplicationRunner(this ApplicationInstance applicationInstance, Func<string[], Task<IHostBuilder>> hostBuilderFunc)
+        public static ApplicationInstance UseHostApplicationRunner(this ApplicationInstance applicationInstance, Func<string[], Task<IHostBuilder>> hostBuilderFunc)
         {
-            applicationInstance.AssingRunner(new HostBuilderApplicationRunner(hostBuilderFunc));
+            applicationInstance.UseRunner(new HostBuilderApplicationRunner(hostBuilderFunc));
             return applicationInstance;
         }
 

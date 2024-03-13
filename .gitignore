@@ -26,3 +26,5 @@ SandboxTest/.vs/
 SandboxTest/SandboxTest.Engine/bin/
 SandboxTest/SandboxTest.Engine.ApplicationRunner/bin/
 SandboxTest/SandboxTest.Engine.ApplicationRunner/obj/
+SandboxTest/SandboxTest.Sample.Application1/bin/
+SandboxTest/SandboxTest.Sample.Application1/obj/

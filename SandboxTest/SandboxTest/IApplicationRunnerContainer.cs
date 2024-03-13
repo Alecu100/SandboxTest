@@ -10,6 +10,6 @@ namespace SandboxTest
     {
         IApplicationRunner? Runner { get; }
 
-        ApplicationInstance AssingRunner<TRunner>(TRunner applicationRunner) where TRunner : IApplicationRunner;
+        ApplicationInstance UseRunner<TRunner>(TRunner applicationRunner) where TRunner : IApplicationRunner;
     }
 }

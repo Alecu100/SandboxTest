@@ -30,7 +30,7 @@ namespace SandboxTest.Engine.MainTestEngine
             var arguments = $"-{Constants.MainPathArgument}=\"{mainPath}\"  -{Constants.AssemblySourceNameArgument}=\"{assemblySourceName}\"  " +
                 $"-{Constants.ScenarioSuiteTypeFullNameArgument}=\"{_scenarioSuiteType.FullName}\"  -{Constants.RunIdArgument}=\"{_runId}\"  -{Constants.ApplicationInstanceIdArgument}=\"{_applicationInstance.Id}\"  ";
             _applicationInstanceProcess = await _mainTestEngineRunContext.LaunchProcessAsync(applicationRunnerPath, _mainTestEngineRunContext.IsBeingDebugged, mainPath, arguments);
-            await _applicationInstance.MessageSink.StartAsync(_applicationInstance.Id, _runId, false);
+            await _applicationInstance.MessageSink.ConnectAsync(_applicationInstance.Id, _runId, false);
         }
 
         public async Task StopInstanceAsync()
@@ -60,9 +60,15 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <param name="applicationInstanceId"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<OperationResult?> ResetInstanceAsync(string applicationInstanceId, CancellationToken cancellationToken)
+        public async Task<OperationResult?> ResetInstanceAsync(CancellationToken cancellationToken)
         {
-            var operation = new ResetApplicationInstanceOperation(applicationInstanceId);
+            var operation = new ResetApplicationInstanceOperation(_applicationInstance.Id);
+            return await ExecuteOperationAsync(operation, cancellationToken);
+        }
+
+        public async Task<OperationResult?> ReadyInstanceAsync(CancellationToken cancellationToken)
+        {
+            var operation = new ReadyOperation(_applicationInstance.Id);
             return await ExecuteOperationAsync(operation, cancellationToken);
         }
 

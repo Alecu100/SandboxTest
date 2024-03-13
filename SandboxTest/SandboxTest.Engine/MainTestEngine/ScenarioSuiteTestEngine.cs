@@ -64,7 +64,7 @@ namespace SandboxTest.Engine.MainTestEngine
             var startApplicationInstancesTasks = new List<Task>();
             foreach ( var applicationInstancesMember in applicationInstancesMembers) 
             {
-                startApplicationInstancesTasks.Add(StartApplicationInstance(applicationInstancesMember));
+                startApplicationInstancesTasks.Add(StartApplicationInstance(applicationInstancesMember, token));
             }
             await Task.WhenAll(startApplicationInstancesTasks);
         }
@@ -113,7 +113,7 @@ namespace SandboxTest.Engine.MainTestEngine
             return applicationInstanceFields;
         }
 
-        protected virtual async Task StartApplicationInstance(FieldInfo applicationInstanceField)
+        protected virtual async Task StartApplicationInstance(FieldInfo applicationInstanceField, CancellationToken token)
         {
             if (_mainTestEngineRunContext == null || _scenarioSuiteType == null)
             {
@@ -130,6 +130,12 @@ namespace SandboxTest.Engine.MainTestEngine
 
             var scenarioSuiteTestEngineApplicationInstance = new ScenarioSuiteTestEngineApplicationInstance(_runId, applicationInstance, _scenarioSuiteType, _mainTestEngineRunContext);
             await scenarioSuiteTestEngineApplicationInstance.StartInstanceAsync();
+            var readyResult = await scenarioSuiteTestEngineApplicationInstance.ReadyInstanceAsync(token);
+            if (readyResult == null || readyResult.IsSuccesful == false)
+            {
+                _allTestsFailedResultType = ScenarioRunResultType.Failed;
+                _allTestsFailedResultErrorMessages.Add($"Failed to start application instanfce with id {applicationInstance.Id}");
+            }
         }
     }
 }

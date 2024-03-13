@@ -35,6 +35,7 @@ namespace SandboxTest.Engine.ApplicationRunner
                     throw new ArgumentException("All required arguments for application instance runner have not been provided");
                 }
                 await _childTestEngine.RunApplicationInstanceAsync($"{_mainPath}\\{_assemblySourceName}", _scenarioSuiteTypeFullName, _applicationInstanceId);
+                _ = HandleMessage();
             }
             catch (Exception ex) 
             {
@@ -64,13 +65,14 @@ namespace SandboxTest.Engine.ApplicationRunner
 
         private async Task HandleMessage()
         {
-            if (_childTestEngine == null || _childTestEngine?.RunningInstance?.MessageSink == null)
+            if (_childTestEngine == null || _childTestEngine?.RunningInstance?.MessageSink == null || _applicationInstanceId == null)
             {
                 _runFinishedTaskCompletionSource.SetResult(-1);
                 return;
             }
 
             var messageSink = _childTestEngine.RunningInstance.MessageSink;
+            await  messageSink.ConnectAsync(_applicationInstanceId, _runId, true);
             while (!_runFinishedTaskCompletionSource.Task.IsCompleted)
             {
                 var messageJson = await messageSink.ReceiveMessageAsync();

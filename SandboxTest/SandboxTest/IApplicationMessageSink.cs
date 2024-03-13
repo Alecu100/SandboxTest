@@ -11,7 +11,7 @@
         /// <param name="runId">A unique identifier that represents the current test run.</param>
         /// <param name="isApplicationInstance">Denotes if the sink is in the application instance or in the main scenario instance.</param>
         /// <returns></returns>
-        Task StartAsync(string applicationId, Guid runId, bool isApplicationInstance);
+        Task ConnectAsync(string applicationId, Guid runId, bool isApplicationInstance);
 
         /// <summary>
         /// Stops the application message sink

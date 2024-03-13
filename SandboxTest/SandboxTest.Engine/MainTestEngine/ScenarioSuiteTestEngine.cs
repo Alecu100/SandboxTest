@@ -18,9 +18,15 @@ namespace SandboxTest.Engine.MainTestEngine
             _allTestsFailedResultErrorMessages = new List<string>();
         }
 
-        public virtual Task CloseApplicationInstancesAsync()
+        public async virtual Task CloseApplicationInstancesAsync()
         {
-            return Task.Delay(60000);
+            var stopApplicationInstancesTasks = new List<Task>();
+            foreach (var applicationInstance in _applicationInstances)
+            {
+                stopApplicationInstancesTasks.Add(applicationInstance.StopInstanceAsync());
+            }
+            await Task.WhenAll(stopApplicationInstancesTasks);
+            await Task.Delay(60000);
         }
 
         public virtual async Task LoadScenarioSuiteAsync(Type scenarioSuiteType, IMainTestEngineRunContext mainTestEngineRunContext, CancellationToken token)

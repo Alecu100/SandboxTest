@@ -8,15 +8,21 @@
         /// <summary>
         /// Creates a new instance of the <see cref="RunScenarioStepOperation"/> setting the proper type name of the operation
         /// </summary>
-        public RunScenarioStepOperation(ScenarioStepId scenarioStepId)
+        public RunScenarioStepOperation(ScenarioStepId scenarioStepId, ScenarioStepContext stepContext)
         {
             TypeName = nameof(RunScenarioStepOperation);
             StepId = scenarioStepId;
+            StepContext = stepContext;
         }
 
         /// <summary>
         /// The step id that identifies the step to run.
         /// </summary>
         public ScenarioStepId StepId { get; set; }
+
+        /// <summary>
+        /// The step context used to pass data between steps. This
+        /// </summary>
+        public ScenarioStepContext StepContext { get; set; }
     }
 }

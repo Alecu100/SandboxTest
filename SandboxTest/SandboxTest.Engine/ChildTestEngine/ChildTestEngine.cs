@@ -89,14 +89,26 @@ namespace SandboxTest.Engine.ChildTestEngine
             }
         }
 
-        public virtual Task<OperationResult> RunStepAsync(int stepIndex, ScenarioStepContext stepContext)
+        public async virtual Task<OperationResult> RunStepAsync(ScenarioStepId stepId, ScenarioStepContext stepContext)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<OperationResult> RunStepAsync(string stepName, ScenarioStepContext stepContext)
-        {
-            throw new NotImplementedException();
+            if (_runningInstance == null)
+            {
+                return new RunScenarioStepOperationResult(false, stepContext, "No application instance running");
+            }
+            var step = _runningInstance.Steps.FirstOrDefault(step => step.Id.ApplicationInstanceId == _runningInstance.Id && ((step.Id.Name != null && stepId.Name == step.Id.Name) || (step.Id.StepIndex == stepId.StepIndex)));
+            if (step == null)
+            {
+                return new RunScenarioStepOperationResult(false, stepContext, "Step not found");
+            }
+            try
+            {
+                await step.RunAsync(stepContext);
+                return new RunScenarioStepOperationResult(true, stepContext);
+            }
+            catch (Exception ex)
+            {
+                return new RunScenarioStepOperationResult(false, stepContext, $"Error running step {ex}");
+            }
         }
 
         public Task<OperationResult> CloseApplicationInstanceAsync()

@@ -28,18 +28,10 @@ namespace SandboxTest.Engine.ChildTestEngine
         /// <summary>
         /// Runs a step for the current application instance.
         /// </summary>
-        /// <param name="stepIndex">The index of the step to run.</param>
+        /// <param name="stepId">The id of the step to run.</param>
         /// <param name="stepContext">The index of the step to run.</param>
         /// <returns></returns>
-        Task<OperationResult> RunStepAsync(int stepIndex, ScenarioStepContext stepContext);
-
-        /// <summary>
-        /// Runs a step for the current application instance.
-        /// </summary>
-        /// <param name="stepName">The name of the step to run</param>
-        /// <param name="stepContext">The name of the step to run</param>
-        /// <returns></returns>
-        Task<OperationResult> RunStepAsync(string stepName, ScenarioStepContext stepContext);
+        Task<OperationResult> RunStepAsync(ScenarioStepId stepId, ScenarioStepContext stepContext);
 
         /// <summary>
         /// Resets the current application instance preparing it to run another scenario.

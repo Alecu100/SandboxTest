@@ -60,6 +60,14 @@
             return this;
         }
 
+        public async Task RunAsync(ScenarioStepContext stepContext)
+        {
+            foreach (var configuredAction in _configuredActions)
+            {
+                await configuredAction(stepContext);
+            }
+        }
+
         public ScenarioStep InvokeController<TController>(Func<TController, ScenarioStepContext, Task> invokeFunc, string? name = default) where TController: IApplicationController
         {
             if (!_applicationInstance.Controllers.Any(controller => ((controller.Name == null && name == null) || (controller.Name != null && controller.Name.Equals(name))) &&

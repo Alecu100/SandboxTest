@@ -1,5 +1,6 @@
-﻿using SandboxTest.Engine.ChildTestEngine;
-using static System.Net.Mime.MediaTypeNames;
+﻿using Newtonsoft.Json;
+using SandboxTest.Engine.ChildTestEngine;
+using SandboxTest.Engine.Operations;
 using System.ComponentModel;
 
 namespace SandboxTest.Engine.ApplicationRunner
@@ -59,6 +60,32 @@ namespace SandboxTest.Engine.ApplicationRunner
             }
             var argumentValue = argument.Substring(argument.IndexOf('=') + 1).Trim().Trim('\"');
             return (TValue?)TypeDescriptor.GetConverter(typeof(TValue)).ConvertFromInvariantString(argumentValue);
+        }
+
+        private async Task HandleMessage()
+        {
+            if (_childTestEngine == null || _childTestEngine?.RunningInstance?.MessageSink == null)
+            {
+                _runFinishedTaskCompletionSource.SetResult(-1);
+                return;
+            }
+
+            var messageSink = _childTestEngine.RunningInstance.MessageSink;
+            while (!_runFinishedTaskCompletionSource.Task.IsCompleted)
+            {
+                var messageJson = await messageSink.ReceiveMessageAsync();
+                var message = JsonConvert.DeserializeObject<Operation>(messageJson);
+                switch (message) 
+                {
+                    case ReadyOperation: 
+                        await messageSink.SendMessageAsync(JsonConvert.SerializeObject(new OperationResult(true))); 
+                        break;
+                    case RunScenarioStepOperation runStepOperation:
+                        var result = await _childTestEngine.RunStepAsync(runStepOperation.StepId, runStepOperation.StepContext);
+                        await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result));
+                        break;
+                }
+            }
         }
     }
 }

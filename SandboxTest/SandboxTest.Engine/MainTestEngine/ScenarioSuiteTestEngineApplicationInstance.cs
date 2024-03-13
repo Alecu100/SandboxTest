@@ -33,15 +33,24 @@ namespace SandboxTest.Engine.MainTestEngine
             await _applicationInstance.MessageSink.StartAsync(_applicationInstance.Id, _runId, false);
         }
 
+        public async Task StopInstanceAsync()
+        {
+            if (_applicationInstanceProcess != null)
+            {
+                _applicationInstanceProcess.Kill(true);
+                await _applicationInstanceProcess.WaitForExitAsync();
+            }
+        }
+
         /// <summary>
         /// Executes a specific step for an application instance.
         /// </summary>
         /// <param name="scenarioStepId"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<OperationResult?> ExecuteStepAsync(ScenarioStepId scenarioStepId, CancellationToken cancellationToken)
+        public async Task<OperationResult?> ExecuteStepAsync(ScenarioStepId scenarioStepId, ScenarioStepContext stepContext, CancellationToken cancellationToken)
         {
-            var operation = new RunScenarioStepOperation(scenarioStepId);
+            var operation = new RunScenarioStepOperation(scenarioStepId, stepContext);
             return await ExecuteOperationAsync(operation, cancellationToken);
         }
 
@@ -71,7 +80,7 @@ namespace SandboxTest.Engine.MainTestEngine
 
         private async Task<OperationResult?> ExecuteOperationAsync(Operation operation, CancellationToken cancellationToken)
         {
-            var json = JsonConvert.SerializeObject(operation, PipeUtils.PipeJsonSerializerSettings);
+            var json = JsonConvert.SerializeObject(operation, JsonUtils.JsonSerializerSettings);
             await _applicationInstance.MessageSink.SendMessageAsync(json);
 
             var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _applicationInstance.MessageSink.ReceiveMessageAsync());

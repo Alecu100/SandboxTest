@@ -13,7 +13,7 @@
         /// <param name="stepContext"></param>
         /// <param name="isSuccesful"></param>
         /// <param name="errorMessage"></param>
-        public RunScenarioStepOperationResult(ScenarioStepContext stepContext, bool isSuccesful, string? errorMessage) : base(isSuccesful, errorMessage)
+        public RunScenarioStepOperationResult(bool isSuccesful, ScenarioStepContext stepContext, string? errorMessage = default) : base(isSuccesful, errorMessage)
         {
             TypeName = nameof(RunScenarioStepOperationResult);
             StepContext = stepContext;

@@ -104,7 +104,12 @@
             return scenarioStep;
         }
 
-        public virtual async Task Start(string[] args)
+        /// <summary>
+        /// Starts the current application instance, running all the required steps in order to run it.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public virtual async Task StartAsync()
         {
             if (_runner == null)
             {
@@ -124,6 +129,11 @@
             await _runner.RunAsync();
         }
 
+        /// <summary>
+        /// Stops the current application instance.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public virtual async Task StopAsync()
         {
             if (_runner == null)
@@ -133,6 +143,11 @@
             await _runner.StopAsync();
         }
 
+        /// <summary>
+        /// Resets the current application instance, removing all the configured steps for it.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public virtual async Task ResetAsync()
         {
             if (_runner == null)

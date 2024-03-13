@@ -1,30 +1,61 @@
 ﻿using SandboxTest.Engine.ChildTestEngine;
-using SandboxTest.Engine.Utils;
-using System.IO.Pipes;
 
 namespace SandboxTest.Engine.ApplicationRunner
 {
     public class ApplicationInstanceRunner
     {
+        private readonly TaskCompletionSource<int> _runFinishedTaskCompletionSource;
         private readonly IChildTestEngine _childTestEngine;
-        private readonly Guid _runId;
-        private NamedPipeServerStream? _pipeServerStream;
-        private string _testSource;
-        private string _scenarioSuitName;
-        private string _applicationInstanceId;
+        private Guid _runId;
+        private string? _mainPath;
+        private string? _assemblySourceName;
+        private string? _scenarioSuiteTypeFullName;
+        private string? _applicationInstanceId;
 
-        public ApplicationInstanceRunner(Guid runId, string applicationInstanceId, string testSource, string scenarioSuitName)
+        public ApplicationInstanceRunner()
         {
-            _runId = runId;
-            _testSource = testSource;
-            _scenarioSuitName = scenarioSuitName;
             _childTestEngine = new ChildTestEngine.ChildTestEngine();
-            _applicationInstanceId = applicationInstanceId;
+            _runFinishedTaskCompletionSource = new TaskCompletionSource<int>();
         }
 
-        public async Task InitializeAsync()
+        public Task InitializeAsync(string[] args)
         {
-            _pipeServerStream = new NamedPipeServerStream(PipeUtils.GetChildApplicationInstanceHostPipeName(_runId, _applicationInstanceId), PipeDirection.InOut, 3, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+            try
+            {
+                _runId = GetArgumentValue<Guid>(args, Constants.RunIdArgument);
+                _mainPath = GetArgumentValue<string>(args, Constants.MainPathArgument);
+                _applicationInstanceId = GetArgumentValue<string>(args, Constants.ApplicationInstanceIdArgument);
+                _assemblySourceName = GetArgumentValue<string>(args, Constants.AssemblySourceNameArgument);
+                _scenarioSuiteTypeFullName = GetArgumentValue<string>(args, Constants.ScenarioSuiteTypeFullNameArgument);
+                if (_runId == default || _mainPath == default || _applicationInstanceId == default || _assemblySourceName == default || _scenarioSuiteTypeFullName == default)
+                {
+                    throw new ArgumentException("All required arguments for application instance runner have not been provided");
+                }
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine(ex.ToString());
+                _runFinishedTaskCompletionSource.SetResult(-1);
+                return Task.CompletedTask;
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public async Task<int> RunAsync()
+        {
+            return await _runFinishedTaskCompletionSource.Task;
+        }
+
+        private TValue? GetArgumentValue<TValue>(string[] args, string name)
+        {
+            var argument = args.FirstOrDefault(arg => arg.StartsWith($"-{name}="));
+            if (argument == null)
+            {
+                return default;
+            }
+            var argumentValue = argument.Substring(argument.IndexOf('=') + 1);
+            return (TValue)Convert.ChangeType(argumentValue, typeof(TValue));
         }
     }
 }

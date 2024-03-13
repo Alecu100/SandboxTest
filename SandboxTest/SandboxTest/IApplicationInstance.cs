@@ -13,6 +13,20 @@
         IApplicationMessageSink MessageSink { get; }
 
         /// <summary>
+        /// Starts the current application instance, running all the required steps in order to run it.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        Task StartAsync();
+
+        /// <summary>
+        /// Stops the current application instance.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        Task StopAsync();
+
+        /// <summary>
         /// Resets the instance of the application so that it can be reused for another test scenario.
         /// </summary>
         /// <returns></returns>

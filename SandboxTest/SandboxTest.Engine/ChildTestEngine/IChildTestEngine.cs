@@ -4,12 +4,53 @@ namespace SandboxTest.Engine.ChildTestEngine
 {
     public interface IChildTestEngine
     {
-        Task<OperationResult> RunApplicationInstanceAsync(string assemblyPath, string scenarioContainerFullyQualifiedName, string applicationInstanceId);
+        /// <summary>
+        /// Gets the currently running application instace.
+        /// </summary>
+        IApplicationInstance? RunningInstance { get; }
 
-        Task<OperationResult> BuildScenarioAsync(string scenarioMethodName);
+        /// <summary>
+        /// Runs an application instance
+        /// </summary>
+        /// <param name="assemblyPath"></param>
+        /// <param name="scenarioContainerFullyQualifiedName"></param>
+        /// <param name="applicationInstanceId"></param>
+        /// <returns></returns>
+        Task<OperationResult> RunApplicationInstanceAsync(string sourceAssemblyNameFulPath, string scenarioSuiteTypeFullName, string applicationInstanceId);
 
-        Task<OperationResult> RunStep(int stepIndex);
+        /// <summary>
+        /// Loads a specific scenario adding the configured steps to the current application instance
+        /// </summary>
+        /// <param name="scenarioMethodName"></param>
+        /// <returns></returns>
+        Task<OperationResult> LoadScenarioAsync(string scenarioMethodName);
 
+        /// <summary>
+        /// Runs a step for the current application instance.
+        /// </summary>
+        /// <param name="stepIndex">The index of the step to run.</param>
+        /// <param name="stepContext">The index of the step to run.</param>
+        /// <returns></returns>
+        Task<OperationResult> RunStepAsync(int stepIndex, ScenarioStepContext stepContext);
+
+        /// <summary>
+        /// Runs a step for the current application instance.
+        /// </summary>
+        /// <param name="stepName">The name of the step to run</param>
+        /// <param name="stepContext">The name of the step to run</param>
+        /// <returns></returns>
+        Task<OperationResult> RunStepAsync(string stepName, ScenarioStepContext stepContext);
+
+        /// <summary>
+        /// Resets the current application instance preparing it to run another scenario.
+        /// </summary>
+        /// <returns></returns>
         Task<OperationResult> ResetApplicationInstanceAsync();
+
+        /// <summary>
+        /// Closes the current application instance.
+        /// </summary>
+        /// <returns></returns>
+        Task<OperationResult> CloseApplicationInstanceAsync();
     }
 }

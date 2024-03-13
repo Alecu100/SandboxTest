@@ -2,9 +2,6 @@
 using SandboxTest.Engine.Operations;
 using SandboxTest.Engine.Utils;
 using System.Diagnostics;
-using System.IO.Pipes;
-using System.Reflection;
-using System.Text;
 
 namespace SandboxTest.Engine.MainTestEngine
 {
@@ -27,10 +24,11 @@ namespace SandboxTest.Engine.MainTestEngine
         public async Task StartInstanceAsync()
         {
             var mainAssemblyPath = _scenarioSuiteType.Assembly.Location;
-            var assemblyName = Path.GetFileName(mainAssemblyPath);
+            var assemblySourceName = Path.GetFileName(mainAssemblyPath);
             var mainPath = Path.GetDirectoryName(mainAssemblyPath);
             var applicationRunnerPath = $"{mainPath}\\SandboxTest.Engine.ApplicationRunner.exe";
-            var arguments = $"-mainPath=\"{mainPath}\"  -assemblyName=\"{assemblyName}\"  -scenarioSuiteType=\"{_scenarioSuiteType}\"  -runId=\"{_runId}\" ";
+            var arguments = $"-{Constants.MainPathArgument}=\"{mainPath}\"  -{Constants.AssemblySourceNameArgument}=\"{assemblySourceName}\"  " +
+                $"-{Constants.ScenarioSuiteTypeFullNameArgument}=\"{_scenarioSuiteType.FullName}\"  -{Constants.RunIdArgument}=\"{_runId}\"  -{Constants.ApplicationInstanceIdArgument}=\"{_applicationInstance.Id}\"  ";
             _applicationInstanceProcess = await _mainTestEngineRunContext.LaunchProcessAsync(applicationRunnerPath, _mainTestEngineRunContext.IsBeingDebugged, mainPath, arguments);
             await _applicationInstance.MessageSink.StartAsync(_applicationInstance.Id, _runId, false);
         }

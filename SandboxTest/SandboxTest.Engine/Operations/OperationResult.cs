@@ -22,8 +22,14 @@
             TypeName = nameof(OperationResult);
         }
 
+        /// <summary>
+        /// Denotes if the operation was succesfully ran.
+        /// </summary>
         public bool IsSuccesful { get; set; }
 
+        /// <summary>
+        /// Provides the error message in case the operation was not successful.
+        /// </summary>
         public string? ErrorMessage { get; set; }
     }
 }

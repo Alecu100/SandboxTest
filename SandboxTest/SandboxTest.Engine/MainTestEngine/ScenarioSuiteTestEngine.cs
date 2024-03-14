@@ -12,10 +12,12 @@ namespace SandboxTest.Engine.MainTestEngine
         protected List<string> _allTestsFailedResultErrorMessages;
         protected Type? _scenarioSuiteType;
         protected object? _scenarioSuiteInstance;
+        protected Queue<List<ScenarioStep>> _stepsExecutionStages;
 
         public ScenarioSuiteTestEngine()
         {
             _applicationInstances = new List<ScenarioSuiteTestEngineApplicationInstance>();
+            _stepsExecutionStages = new Queue<List<ScenarioStep>>();
             _allTestsFailedResultErrorMessages = new List<string>();
         }
 
@@ -113,18 +115,6 @@ namespace SandboxTest.Engine.MainTestEngine
 
             try
             {
-                var result = scenarioMethod.Invoke(_scenarioSuiteInstance, null);
-                var resultTask = result as Task;
-                if (resultTask != null)
-                {
-                    await resultTask;
-                }
-
-                if (token.IsCancellationRequested)
-                {
-                    return;
-                }
-
                 var allAplicationInstancesTasks = new List<Task<OperationResult?>>();
                 foreach (var applicationInstance in _applicationInstances)
                 {
@@ -178,6 +168,20 @@ namespace SandboxTest.Engine.MainTestEngine
                         _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, string.Join(Environment.NewLine, _allTestsFailedResultErrorMessages)));
                     return;
                 }
+
+                var result = scenarioMethod.Invoke(_scenarioSuiteInstance, null);
+                var resultTask = result as Task;
+                if (resultTask != null)
+                {
+                    await resultTask;
+                }
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                _stepsExecutionStages.Clear();
+
 
             }
             catch (TaskCanceledException)

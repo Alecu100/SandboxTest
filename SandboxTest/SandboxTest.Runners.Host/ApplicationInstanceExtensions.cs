@@ -1,20 +1,21 @@
 ﻿using Microsoft.Extensions.Hosting;
+using SandboxTest.Hosting;
 
 namespace SandboxTest.Runners.Host
 {
     public static class ApplicationInstanceExtensions
     {
-        public static ApplicationInstance UseHostApplicationRunner(this ApplicationInstance applicationInstance, Func<string[], Task<IHostBuilder>> hostBuilderFunc)
+        public static IApplicationInstance UseHostApplicationRunner(this IApplicationInstance applicationInstance, Func<string[], Task<IHostBuilder>> hostBuilderFunc)
         {
-            applicationInstance.UseRunner(new HostBuilderApplicationRunner(hostBuilderFunc));
+            applicationInstance.UseRunner(new HostApplicationRunner(hostBuilderFunc));
             return applicationInstance;
         }
 
-        public static ApplicationInstance ConfigureHostBuilderApplicationSandbox(this ApplicationInstance applicationInstance,
+        public static IApplicationInstance ConfigureHostBuilderApplicationSandbox(this IApplicationInstance applicationInstance,
             Func<IHostBuilder, Task> configureBuildSandboxFunc,
             Func<IHost, Task>? configureRunSandboxFunc = default)
         {
-            var hostBuilderApplicationRunner = applicationInstance.Runner as HostBuilderApplicationRunner;
+            var hostBuilderApplicationRunner = applicationInstance.Runner as HostApplicationRunner;
             if (hostBuilderApplicationRunner == null)
             {
                 throw new InvalidOperationException("Invalid application runner configured on application instance, expected HostBuilderApplicationRunner");
@@ -25,10 +26,23 @@ namespace SandboxTest.Runners.Host
             return applicationInstance;
         }
 
-        public static ApplicationInstance ConfigureReset(this ApplicationInstance applicationInstance, 
+        public static IApplicationInstance AssignHostApplicationController(this IApplicationInstance applicationInstance, string? name)
+        {
+            var hostBuilderApplicationRunner = applicationInstance.Runner as HostApplicationRunner;
+            if (hostBuilderApplicationRunner == null)
+            {
+                throw new InvalidOperationException("Invalid application runner configured on application instance, expected HostBuilderApplicationRunner");
+            }
+
+            var hostApplicationController = new HostApplicationController(name);
+            applicationInstance.AssignController(hostApplicationController);
+            return applicationInstance;
+        }
+
+        public static IApplicationInstance ConfigureReset(this IApplicationInstance applicationInstance, 
             Func<IHost, Task>? resetFunc)
         {
-            var hostBuilderApplicationRunner = applicationInstance.Runner as HostBuilderApplicationRunner;
+            var hostBuilderApplicationRunner = applicationInstance.Runner as HostApplicationRunner;
             if (hostBuilderApplicationRunner == null)
             {
                 throw new InvalidOperationException("Invalid application runner configured on application instance, expected HostBuilderApplicationRunner");

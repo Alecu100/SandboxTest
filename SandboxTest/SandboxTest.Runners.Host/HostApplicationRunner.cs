@@ -4,7 +4,7 @@ using SandboxTest.Hosting;
 
 namespace SandboxTest.Runners.Host
 {
-    public class HostBuilderApplicationRunner : IApplicationRunner, IHostApplicationRunner
+    public class HostApplicationRunner : IApplicationRunner, IHostApplicationRunner
     {
         private IHost? _host;
         private IHostBuilder? _hostBuilder;
@@ -16,7 +16,7 @@ namespace SandboxTest.Runners.Host
         public IHost Host => _host ?? throw new InvalidOperationException("Host is not built.");
         public IHostBuilder HostBuilder => _hostBuilder ?? throw new InvalidOperationException("HostBuilder is not set up.");
 
-        public HostBuilderApplicationRunner(Func<string[], Task<IHostBuilder>> hostBuilderSourceFunc)
+        public HostApplicationRunner(Func<string[], Task<IHostBuilder>> hostBuilderSourceFunc)
         {
             _hostBuilderFunc = hostBuilderSourceFunc;
         }

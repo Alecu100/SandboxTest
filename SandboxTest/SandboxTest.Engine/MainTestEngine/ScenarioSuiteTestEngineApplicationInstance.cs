@@ -100,11 +100,18 @@ namespace SandboxTest.Engine.MainTestEngine
 
         private async Task<OperationResult?> ExecuteOperationAsync(Operation operation, CancellationToken cancellationToken)
         {
-            var json = JsonConvert.SerializeObject(operation, JsonUtils.JsonSerializerSettings);
-            await _instance.MessageSink.SendMessageAsync(json);
+            try
+            {
+                var json = JsonConvert.SerializeObject(operation, JsonUtils.JsonSerializerSettings);
+                await _instance.MessageSink.SendMessageAsync(json);
 
-            var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _instance.MessageSink.ReceiveMessageAsync());
-            return operationResult;
+                var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _instance.MessageSink.ReceiveMessageAsync());
+                return operationResult;
+            }
+            catch (Exception ex)
+            {
+                return new OperationResult(false, $"Error sending operation of type {operation.GetType().Name} to application instance {_instance.Id} {ex}");
+            }
         }
     }
 }

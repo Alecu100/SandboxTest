@@ -6,6 +6,15 @@
     public class ScenarioStepId
     {
         /// <summary>
+        /// Only used for deserialization purposes
+        /// </summary>
+        public ScenarioStepId()
+        {
+            ApplicationInstanceId = string.Empty;
+            StepIndex = 0;
+        }
+
+        /// <summary>
         /// Creates a new unnamed scenario step.
         /// </summary>
         /// <param name="applicationInstanceId"></param>

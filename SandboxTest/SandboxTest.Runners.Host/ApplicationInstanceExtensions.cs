@@ -11,7 +11,15 @@ namespace SandboxTest.Runners.Host
             return applicationInstance;
         }
 
-        public static IApplicationInstance ConfigureHostBuilderApplicationSandbox(this IApplicationInstance applicationInstance,
+        /// <summary>
+        /// Configures the host in such a way to be able to run in an isolated sandbox independent of external dependencies.
+        /// </summary>
+        /// <param name="applicationInstance"></param>
+        /// <param name="configureBuildSandboxFunc"></param>
+        /// <param name="configureRunSandboxFunc"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static IApplicationInstance ConfigureHostApplicationSandbox(this IApplicationInstance applicationInstance,
             Func<IHostBuilder, Task> configureBuildSandboxFunc,
             Func<IHost, Task>? configureRunSandboxFunc = default)
         {
@@ -26,7 +34,14 @@ namespace SandboxTest.Runners.Host
             return applicationInstance;
         }
 
-        public static IApplicationInstance AssignHostApplicationController(this IApplicationInstance applicationInstance, string? name)
+        /// <summary>
+        /// Adds an application controller of type <see cref="HostApplicationController"/> to the given application instance.
+        /// </summary>
+        /// <param name="applicationInstance"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static IApplicationInstance AddHostApplicationController(this IApplicationInstance applicationInstance, string? name = default)
         {
             var hostBuilderApplicationRunner = applicationInstance.Runner as HostApplicationRunner;
             if (hostBuilderApplicationRunner == null)
@@ -35,7 +50,7 @@ namespace SandboxTest.Runners.Host
             }
 
             var hostApplicationController = new HostApplicationController(name);
-            applicationInstance.AssignController(hostApplicationController);
+            applicationInstance.AddController(hostApplicationController);
             return applicationInstance;
         }
 

@@ -10,6 +10,6 @@ namespace SandboxTest
     {
         IReadOnlyList<IApplicationController> Controllers { get; }
 
-        ApplicationInstance AssignController<TApplicationController>(TApplicationController controller, string? name = null) where TApplicationController : IApplicationController;
+        ApplicationInstance AddController<TApplicationController>(TApplicationController controller, string? name = null) where TApplicationController : IApplicationController;
     }
 }

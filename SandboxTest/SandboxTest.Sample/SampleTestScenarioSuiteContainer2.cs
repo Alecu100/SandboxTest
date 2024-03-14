@@ -8,13 +8,14 @@ namespace SandboxTest.Sample
     public class SampleTestScenarioSuiteContainer2
     {
         private readonly IApplicationInstance _applicationInstance21 = 
-            new ApplicationInstance("Instance21")
+            ApplicationInstance.CreateEmptyInstance("Instance21")
             .UseHostApplicationRunner(args =>
             {
                 var hostBuilder = Host.CreateDefaultBuilder(args);
                 hostBuilder.ConfigureHost();
                 return Task.FromResult(hostBuilder);
-            });
+            })
+            .AddHostApplicationController();
 
 
         [Scenario]

@@ -9,6 +9,16 @@
         protected int _currentStepIndex;
         protected IApplicationMessageSink? _messageSink;
 
+        /// <summary>
+        /// Creates an empty default application instance.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public static ApplicationInstance CreateEmptyInstance(string id)
+        {
+            return new ApplicationInstance(id);
+        }
+
         public ApplicationInstance(string id)
         {
             _id = id;
@@ -75,7 +85,7 @@
             return this;
         }
 
-        public virtual ApplicationInstance AssignController<TApplicationController>(TApplicationController controller, string? name = default) where TApplicationController : IApplicationController
+        public virtual ApplicationInstance AddController<TApplicationController>(TApplicationController controller, string? name = default) where TApplicationController : IApplicationController
         {
             if (_controllers.Any(c => c.Name == name)) 
             {

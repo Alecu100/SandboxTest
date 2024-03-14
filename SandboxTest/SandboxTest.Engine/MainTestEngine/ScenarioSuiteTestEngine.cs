@@ -179,7 +179,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 if (_scenarioFailedErrors.Any())
                 {
                     await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
-                        _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - startTime,, string.Join(Environment.NewLine, _scenarioFailedErrors)));
+                        _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - startTime, string.Join(Environment.NewLine, _scenarioFailedErrors)));
                     return;
                 }
 

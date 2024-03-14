@@ -11,11 +11,6 @@ namespace SandboxTest.TestAdapter
     {
         public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger, ITestCaseDiscoverySink discoverySink)
         {
-            if (!Debugger.IsAttached)
-            {
-                Debugger.Launch();
-            }
-
             var mainTestEngine = new MainTestEngine();
             var scenarioScanContext = new SandboxTestDiscovererScanContext(discoveryContext, logger, discoverySink);
             _ = typeof(ScenarioAttribute);

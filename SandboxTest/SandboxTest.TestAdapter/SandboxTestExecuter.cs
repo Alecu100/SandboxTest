@@ -12,21 +12,11 @@ namespace SandboxTest.TestAdapter
 
         public void Cancel()
         {
-            if (!Debugger.IsAttached)
-            {
-                Debugger.Launch();
-            }
-
             _mainTestEngine?.StopRunningScenariosAsync()?.Wait();
         }
 
         public void RunTests(IEnumerable<TestCase>? tests, IRunContext? runContext, IFrameworkHandle? frameworkHandle)
         {
-            if (!Debugger.IsAttached)
-            {
-                Debugger.Launch();
-            }
-
             if (tests == null)
             {
                 return;

@@ -5,6 +5,12 @@ namespace SandboxTest.Runners.Host
 {
     public static class ApplicationInstanceExtensions
     {
+        /// <summary>
+        /// Assigns a <see cref="HostApplicationRunner"/> as the runner to the application instance.
+        /// </summary>
+        /// <param name="applicationInstance"></param>
+        /// <param name="hostBuilderFunc"></param>
+        /// <returns></returns>
         public static IApplicationInstance UseHostApplicationRunner(this IApplicationInstance applicationInstance, Func<string[], Task<IHostBuilder>> hostBuilderFunc)
         {
             applicationInstance.UseRunner(new HostApplicationRunner(hostBuilderFunc));
@@ -19,7 +25,7 @@ namespace SandboxTest.Runners.Host
         /// <param name="configureRunSandboxFunc"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static IApplicationInstance ConfigureHostApplicationSandbox(this IApplicationInstance applicationInstance,
+        public static IApplicationInstance ConfigureHostApplicationRunnerSandbox(this IApplicationInstance applicationInstance,
             Func<IHostBuilder, Task> configureBuildSandboxFunc,
             Func<IHost, Task>? configureRunSandboxFunc = default)
         {
@@ -54,7 +60,7 @@ namespace SandboxTest.Runners.Host
             return applicationInstance;
         }
 
-        public static IApplicationInstance ConfigureReset(this IApplicationInstance applicationInstance, 
+        public static IApplicationInstance ConfigureHostApplicationRunnerReset(this IApplicationInstance applicationInstance, 
             Func<IHost, Task>? resetFunc)
         {
             var hostBuilderApplicationRunner = applicationInstance.Runner as HostApplicationRunner;

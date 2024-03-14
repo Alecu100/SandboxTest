@@ -31,7 +31,6 @@ namespace SandboxTest.Engine.MainTestEngine
                 stopApplicationInstancesTasks.Add(applicationInstance.StopInstanceAsync());
             }
             await Task.WhenAll(stopApplicationInstancesTasks);
-            await Task.Delay(60000);
         }
 
         public virtual async Task LoadScenarioSuiteAsync(Type scenarioSuiteType, IMainTestEngineRunContext mainTestEngineRunContext, CancellationToken token)

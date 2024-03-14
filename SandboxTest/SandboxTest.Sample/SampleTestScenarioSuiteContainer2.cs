@@ -10,7 +10,7 @@ namespace SandboxTest.Sample
     [ScenarioSuite]
     public class SampleTestScenarioSuiteContainer2
     {
-        private readonly IApplicationInstance _applicationInstance21 = 
+        public readonly IApplicationInstance _applicationInstance21 = 
             ApplicationInstance.CreateEmptyInstance("Instance21")
             .UseHostApplicationRunner(args =>
             {

@@ -8,12 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SandboxTest.Engine.ApplicationContainer\SandboxTest.Engine.ApplicationContainer.csproj" />
     <ProjectReference Include="..\SandboxTest.Runners.Host\SandboxTest.Hosting.csproj" />
     <ProjectReference Include="..\SandboxTest.Sample.Application1\SandboxTest.Sample.Application1.csproj" />
     <ProjectReference Include="..\SandboxTest.TestAdapter\SandboxTest.TestAdapter.csproj" />
     <ProjectReference Include="..\SandboxTest\SandboxTest.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>

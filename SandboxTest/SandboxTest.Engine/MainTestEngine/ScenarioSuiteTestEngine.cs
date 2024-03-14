@@ -330,6 +330,7 @@ namespace SandboxTest.Engine.MainTestEngine
             {
                 _scenarioFailedErrors.Add($"Failed to start application instanfce with id {applicationInstance.Id}");
             }
+            _scenarioSuiteApplicationInstances.Add(scenarioSuiteTestEngineApplicationInstance);
         }
     }
 }

@@ -56,7 +56,7 @@ namespace SandboxTest
         /// </summary>
         /// <param name="previousStep"></param>
         /// <returns></returns>
-        public ScenarioStep ConfigurePreviousStep(ScenarioStep previousStep)
+        public ScenarioStep AddPreviousStep(ScenarioStep previousStep)
         {
             if (_configuredActions.Count > 0)
             {

@@ -11,6 +11,7 @@ namespace SandboxTest.Sample.Application1
             {
                 services.AddScoped<IConsoleService, ConsoleService>();
                 services.AddHostedService<ConsoleBackgroundService>();
+                services.AddSingleton<IRandomGuidGenerator, RandomGuidGenerator>();
             });
             return builder;
         }

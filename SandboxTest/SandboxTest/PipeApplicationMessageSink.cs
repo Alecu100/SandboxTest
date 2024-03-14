@@ -93,7 +93,7 @@ namespace SandboxTest
                     }
                 }
             }
-            while (bytesRead > 0);
+            while (bytesRead > 0 || offset == 0);
             return Encoding.UTF8.GetString(_instancePipeStreamBuffer, 0, offset - MessageSeparatorBytes.Length);
         }
 

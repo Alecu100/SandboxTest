@@ -105,7 +105,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 var json = JsonConvert.SerializeObject(operation, JsonUtils.JsonSerializerSettings);
                 await _instance.MessageSink.SendMessageAsync(json);
 
-                var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _instance.MessageSink.ReceiveMessageAsync());
+                var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _instance.MessageSink.ReceiveMessageAsync(), JsonUtils.JsonSerializerSettings);
                 return operationResult;
             }
             catch (Exception ex)

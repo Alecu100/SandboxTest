@@ -122,13 +122,13 @@ namespace SandboxTest
         /// <returns></returns>
         public static bool operator ==(ScenarioStep? first, ScenarioStep? second)
         {
-            if (first == null)
+            if (first is null)
             {
-                return second == null;
+                return second is null;
             }
-            if (second == null)
+            if (second is null)
             {
-                return first == null;
+                return first is null;
             }
             return first.Equals(second);
         }
@@ -141,13 +141,13 @@ namespace SandboxTest
         /// <returns></returns>
         public static bool operator !=(ScenarioStep? first, ScenarioStep? second)
         {
-            if (first == null)
+            if (first is null)
             {
-                return second != null;
+                return second is not null;
             }
-            if (second == null)
+            if (second is null)
             {
-                return first != null;
+                return first is not null;
             }
             return !first.Equals(second);
         }

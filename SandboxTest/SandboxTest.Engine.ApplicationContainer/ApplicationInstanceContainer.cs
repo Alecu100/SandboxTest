@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SandboxTest.Engine.ChildTestEngine;
 using SandboxTest.Engine.Operations;
 using SandboxTest.Engine.Utils;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace SandboxTest.Engine.ApplicationContainer
 {
@@ -15,6 +17,7 @@ namespace SandboxTest.Engine.ApplicationContainer
         private string? _assemblySourceName;
         private string? _scenarioSuiteTypeFullName;
         private string? _applicationInstanceId;
+        private Task? _handleMessagesTask;
 
         public ApplicationInstanceContainer()
         {
@@ -36,7 +39,8 @@ namespace SandboxTest.Engine.ApplicationContainer
                     throw new ArgumentException("All required arguments for application instance runner have not been provided");
                 }
                 await _childTestEngine.RunApplicationInstanceAsync($"{_mainPath}\\{_assemblySourceName}", _scenarioSuiteTypeFullName, _applicationInstanceId);
-                _ = HandleMessages();
+
+                _handleMessagesTask = Task.Factory.StartNew(HandleMessages, TaskCreationOptions.LongRunning);
             }
             catch (Exception ex)
             {

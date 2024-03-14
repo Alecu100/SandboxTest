@@ -143,7 +143,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 if (_scenarioFailedErrors.Any())
                 {
                     await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
-                        _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, string.Join(Environment.NewLine, _scenarioFailedErrors)));
+                        _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - startTime, string.Join(Environment.NewLine, _scenarioFailedErrors)));
                     return;
                 }
 
@@ -179,7 +179,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 if (_scenarioFailedErrors.Any())
                 {
                     await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
-                        _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, string.Join(Environment.NewLine, _scenarioFailedErrors)));
+                        _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - startTime,, string.Join(Environment.NewLine, _scenarioFailedErrors)));
                     return;
                 }
 
@@ -222,7 +222,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 if (allCyclicDependencySteps.Any())
                 {
                     await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
-                      _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, $"Detected cyclic dependencies between steps {string.Join(',', allCyclicDependencySteps)}"));
+                      _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - startTime, $"Detected cyclic dependencies between steps {string.Join(',', allCyclicDependencySteps)}"));
                     return;
                 }
 
@@ -261,21 +261,21 @@ namespace SandboxTest.Engine.MainTestEngine
                                 scenarioStepContext.Remove(scenarioStepContextKey);
                             }
                         }
-                        foreach (var scenarioStepContextItem in runStepOperationResult.StepContext)
+                        foreach (var runStepOperationStepContextItem in runStepOperationResult.StepContext)
                         {
-                            scenarioStepContext.Add(scenarioStepContextItem.Key, scenarioStepContextItem.Value);
+                            scenarioStepContext[runStepOperationStepContextItem.Key] = runStepOperationStepContextItem.Value;
                         }
                     }
 
                     if (_scenarioFailedErrors.Any())
                     {
                         await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
-                            _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, string.Join(Environment.NewLine, _scenarioFailedErrors)));
+                            _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - startTime, string.Join(Environment.NewLine, _scenarioFailedErrors)));
                         return;
                     }
                 }
                 await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Successful, _scenarioSuiteType.Assembly,
-                    _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, $"Successfully ran scenario for method {scenarioMethod.Name}"));
+                    _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - startTime, $"Successfully ran scenario for method {scenarioMethod.Name}"));
         
             }
             catch (TaskCanceledException)

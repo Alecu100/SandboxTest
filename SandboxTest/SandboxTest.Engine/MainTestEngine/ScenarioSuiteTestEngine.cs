@@ -13,13 +13,13 @@ namespace SandboxTest.Engine.MainTestEngine
         protected Type? _scenarioSuiteType;
         protected object? _scenarioSuiteInstance;
         protected Queue<List<(ScenarioSuiteTestEngineApplicationInstance, ScenarioStep)>> _stepsExecutionStages;
-        protected List<ScenarioStepId> _allStepsIdsToExecute;
+        protected HashSet<ScenarioStepId> _allStepsIdsToExecute;
 
         public ScenarioSuiteTestEngine()
         {
             _scenarioSuiteApplicationInstances = new List<ScenarioSuiteTestEngineApplicationInstance>();
             _stepsExecutionStages = new Queue<List<(ScenarioSuiteTestEngineApplicationInstance, ScenarioStep)>>();
-            _allStepsIdsToExecute = new List<ScenarioStepId>();
+            _allStepsIdsToExecute = new HashSet<ScenarioStepId>();
             _scenarioFailedErrors = new List<string>();
         }
 
@@ -194,18 +194,21 @@ namespace SandboxTest.Engine.MainTestEngine
 
                     foreach (var scenarioSuiteApplicationInstance in _scenarioSuiteApplicationInstances)
                     {
-                        var possibleStepsToExecute = scenarioSuiteApplicationInstance.Instance.Steps
-                            .Where(step => (!step.PreviousStepsIds.Any() || step.PreviousStepsIds.All(stepId => _allStepsIdsToExecute.Contains(stepId))) && !_allStepsIdsToExecute.Contains(step.Id))
-                            .Select(step => (scenarioSuiteApplicationInstance, step));
-                        if (possibleStepsToExecute.Any())
+                        foreach (var step in scenarioSuiteApplicationInstance.Instance.Steps)
                         {
-                            stillHasStepsToConfigure = true;
-                            currentStageSteps.AddRange(possibleStepsToExecute);
-                            _allStepsIdsToExecute.AddRange(possibleStepsToExecute.Select(step => step.step.Id));
+                            if (!_allStepsIdsToExecute.Contains(step.Id) && (!step.PreviousStepsIds.Any() || step.PreviousStepsIds.All(stepId => _allStepsIdsToExecute.Contains(stepId))))
+                            {
+                                currentStageSteps.Add((scenarioSuiteApplicationInstance, step));
+                                stillHasStepsToConfigure = true;
+                            }
                         }
                     }
                     if (stillHasStepsToConfigure)
                     {
+                        foreach (var stageStep in currentStageSteps)
+                        {
+                            _allStepsIdsToExecute.Add(stageStep.Item2.Id);
+                        }
                         _stepsExecutionStages.Enqueue(currentStageSteps);
                     }
                 } while (stillHasStepsToConfigure);

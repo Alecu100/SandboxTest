@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using SandboxTest.Engine.Operations;
+using System.Reflection;
 
 namespace SandboxTest.Engine.MainTestEngine
 {
@@ -76,6 +77,11 @@ namespace SandboxTest.Engine.MainTestEngine
                 throw new InvalidOperationException("No scenario suite loaded in scenario suite test engine");
             }
 
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
             if (_allTestsFailedResultType == ScenarioRunResultType.Failed)
             {
                 foreach (var scenarioMethod in scenarionMethods)
@@ -86,6 +92,102 @@ namespace SandboxTest.Engine.MainTestEngine
                         _scenarioSuiteType, scenarioMethod, currentTime, TimeSpan.Zero, string.Join(Environment.NewLine, _allTestsFailedResultErrorMessages)));
                 }
                 return;
+            }
+        }
+
+        protected virtual async Task RunScenario(MethodInfo scenarioMethod, CancellationToken token)
+        {
+            if (_scenarioSuiteType == null || _mainTestEngineRunContext == null)
+            {
+                throw new InvalidOperationException("No scenario suite loaded in scenario suite test engine");
+            }
+
+            var startTime = DateTimeOffset.UtcNow;
+            await _mainTestEngineRunContext.OnScenarioRunningAsync(new Scenario(_scenarioSuiteType.Assembly, _scenarioSuiteType, scenarioMethod));
+            if (scenarioMethod.GetParameters().Length > 0)
+            {
+                await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
+                    _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, TimeSpan.Zero, $"Scenario method {scenarioMethod.Name} has parameters"));
+                return;
+            }
+
+            try
+            {
+                var result = scenarioMethod.Invoke(_scenarioSuiteInstance, null);
+                var resultTask = result as Task;
+                if (resultTask != null)
+                {
+                    await resultTask;
+                }
+
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                var allAplicationInstancesTasks = new List<Task<OperationResult?>>();
+                foreach (var applicationInstance in _applicationInstances)
+                {
+                    allAplicationInstancesTasks.Add(applicationInstance.ResetInstanceAsync(token));
+                }
+                await Task.WhenAll(allAplicationInstancesTasks);
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+                _allTestsFailedResultErrorMessages.Clear();
+                _allTestsFailedResultType = ScenarioRunResultType.Successful;
+                foreach (var aplicationInstanceTask in allAplicationInstancesTasks)
+                {
+                    var operationResult = await aplicationInstanceTask;
+                    if (operationResult == null || operationResult.IsSuccesful == false) 
+                    {
+                        _allTestsFailedResultType = ScenarioRunResultType.Failed;
+                        _allTestsFailedResultErrorMessages.Add($"Failed to reset application instance for scenario method {scenarioMethod.Name}");
+                    }
+                }
+                if (_allTestsFailedResultType == ScenarioRunResultType.Failed)
+                {
+                    await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
+                        _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, string.Join(Environment.NewLine, _allTestsFailedResultErrorMessages)));
+                    return;
+                }
+
+                allAplicationInstancesTasks.Clear();
+                foreach (var applicationInstance in _applicationInstances)
+                {
+                    allAplicationInstancesTasks.Add(applicationInstance.LoadScenarioAsync(scenarioMethod.Name, token));
+                }
+                await Task.WhenAll(allAplicationInstancesTasks);
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+                foreach (var aplicationInstanceTask in allAplicationInstancesTasks)
+                {
+                    var operationResult = await aplicationInstanceTask;
+                    if (operationResult == null || operationResult.IsSuccesful == false)
+                    {
+                        _allTestsFailedResultType = ScenarioRunResultType.Failed;
+                        _allTestsFailedResultErrorMessages.Add($"Failed to load scenario method {scenarioMethod.Name} for application instance");
+                    }
+                }
+                if (_allTestsFailedResultType == ScenarioRunResultType.Failed)
+                {
+                    await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
+                        _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, string.Join(Environment.NewLine, _allTestsFailedResultErrorMessages)));
+                    return;
+                }
+
+            }
+            catch (TaskCanceledException)
+            {
+                return;
+            }
+            catch (Exception ex) 
+            {
+                await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
+                    _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, TimeSpan.Zero, $"Error {ex} running the scenarion method {scenarioMethod.Name}"));
             }
         }
 

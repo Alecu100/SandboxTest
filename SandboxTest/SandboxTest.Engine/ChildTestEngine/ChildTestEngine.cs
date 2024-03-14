@@ -35,7 +35,7 @@ namespace SandboxTest.Engine.ChildTestEngine
             }
             try
             {
-                var result = scenarioMethod.Invoke(_scenarioSuiteType, null);
+                var result = scenarioMethod.Invoke(_scenarioSuiteInstance, null);
                 var resultTask = result as Task;
                 if (resultTask != null)
                 {

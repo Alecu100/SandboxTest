@@ -4,9 +4,9 @@ using SandboxTest.Engine.Operations;
 using SandboxTest.Engine.Utils;
 using System.ComponentModel;
 
-namespace SandboxTest.Engine.ApplicationRunner
+namespace SandboxTest.Engine.ApplicationContainer
 {
-    public class ApplicationInstanceRunner
+    public class ApplicationInstanceContainer
     {
         private readonly TaskCompletionSource<int> _runFinishedTaskCompletionSource;
         private readonly IChildTestEngine _childTestEngine;
@@ -16,7 +16,7 @@ namespace SandboxTest.Engine.ApplicationRunner
         private string? _scenarioSuiteTypeFullName;
         private string? _applicationInstanceId;
 
-        public ApplicationInstanceRunner()
+        public ApplicationInstanceContainer()
         {
             _childTestEngine = new ChildTestEngine.ChildTestEngine();
             _runFinishedTaskCompletionSource = new TaskCompletionSource<int>();
@@ -38,7 +38,7 @@ namespace SandboxTest.Engine.ApplicationRunner
                 await _childTestEngine.RunApplicationInstanceAsync($"{_mainPath}\\{_assemblySourceName}", _scenarioSuiteTypeFullName, _applicationInstanceId);
                 _ = HandleMessages();
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 _runFinishedTaskCompletionSource.SetResult(-1);
@@ -73,15 +73,15 @@ namespace SandboxTest.Engine.ApplicationRunner
             }
 
             var messageSink = _childTestEngine.RunningInstance.MessageSink;
-            await  messageSink.ConfigureAsync(_applicationInstanceId, _runId, true);
+            await messageSink.ConfigureAsync(_applicationInstanceId, _runId, true);
             while (!_runFinishedTaskCompletionSource.Task.IsCompleted)
             {
                 var messageJson = await messageSink.ReceiveMessageAsync();
                 var message = JsonConvert.DeserializeObject<Operation>(messageJson, JsonUtils.JsonSerializerSettings);
-                switch (message) 
+                switch (message)
                 {
-                    case ReadyOperation: 
-                        await messageSink.SendMessageAsync(JsonConvert.SerializeObject(new OperationResult(true), JsonUtils.JsonSerializerSettings)); 
+                    case ReadyOperation:
+                        await messageSink.SendMessageAsync(JsonConvert.SerializeObject(new OperationResult(true), JsonUtils.JsonSerializerSettings));
                         break;
                     case RunScenarioStepOperation runStepOperation:
                         var result = await _childTestEngine.RunStepAsync(runStepOperation.StepId, runStepOperation.StepContext);

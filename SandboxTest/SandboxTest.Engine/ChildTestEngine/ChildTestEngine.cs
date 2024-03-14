@@ -1,5 +1,4 @@
 ﻿using SandboxTest.Engine.Operations;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace SandboxTest.Engine.ChildTestEngine
@@ -14,9 +13,40 @@ namespace SandboxTest.Engine.ChildTestEngine
 
         public IApplicationInstance? RunningInstance { get => _runningInstance; }
 
-        public virtual Task<OperationResult> LoadScenarioAsync(string scenarioMethodName)
+        public async virtual Task<OperationResult> LoadScenarioAsync(string scenarioMethodName)
         {
-            throw new NotImplementedException();
+            if (_scenarioSuiteType == null)
+            {
+                return new OperationResult(false, "No scenario suite loaded");
+            }
+            if (_runningInstance == null)
+            {
+                return new OperationResult(false, "No application instance running");
+            }
+
+            var scenarioMethod = _scenarioSuiteType.GetMethod(scenarioMethodName, BindingFlags.Instance | BindingFlags.Public);
+            if (scenarioMethod == null) 
+            {
+                return new OperationResult(false, $"Could not find scenario method with name {scenarioMethodName}");
+            }
+            if (scenarioMethod.GetParameters().Length > 0)
+            {
+                return new OperationResult(false, $"Scenario method with name {scenarioMethodName} has parameters defined");
+            }
+            try
+            {
+                var result = scenarioMethod.Invoke(_scenarioSuiteType, null);
+                var resultTask = result as Task;
+                if (resultTask != null)
+                {
+                    await resultTask;
+                }
+                return new OperationResult(true);
+            }
+            catch (Exception ex) 
+            {
+                return new OperationResult(false, $"Error {ex} running the scenarion method with name {scenarioMethodName} ");
+            }
         }
 
         public async virtual Task<OperationResult> ResetApplicationInstanceAsync()
@@ -25,9 +55,17 @@ namespace SandboxTest.Engine.ChildTestEngine
             {
                 return new OperationResult(false, "No application instance running");
             }
-            await _runningInstance.ResetAsync();
 
-            return new OperationResult(true);
+            try
+            {
+                await _runningInstance.ResetAsync();
+
+                return new OperationResult(true);
+            }
+            catch(Exception ex)
+            {
+                return new OperationResult(false, $"Error reseting the application instance {ex}");
+            }
         }
 
         public async virtual Task<OperationResult> RunApplicationInstanceAsync(string sourceAssemblyNameFulPath, string scenarioSuiteTypeFullName, string applicationInstanceId)

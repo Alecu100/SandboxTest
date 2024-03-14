@@ -1,10 +1,10 @@
-﻿namespace SandboxTest.Engine.ApplicationRunner
+﻿namespace SandboxTest.Engine.ApplicationContainer
 {
     internal class Program
     {
         static async Task<int> Main(string[] args)
         {
-            var applicationInstanceRunner = new ApplicationInstanceRunner();
+            var applicationInstanceRunner = new ApplicationInstanceContainer();
             await applicationInstanceRunner.InitializeAsync(args);
             return await applicationInstanceRunner.RunAsync();
         }

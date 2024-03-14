@@ -26,7 +26,7 @@ namespace SandboxTest.Engine.MainTestEngine
             var mainAssemblyPath = _scenarioSuiteType.Assembly.Location;
             var assemblySourceName = Path.GetFileName(mainAssemblyPath);
             var mainPath = Path.GetDirectoryName(mainAssemblyPath);
-            var applicationRunnerPath = $"{mainPath}\\SandboxTest.Engine.ApplicationRunner.exe";
+            var applicationRunnerPath = $"{mainPath}\\SandboxTest.Engine.ApplicationContainer.exe";
             var arguments = $"-{Constants.MainPathArgument}=\"{mainPath}\"  -{Constants.AssemblySourceNameArgument}=\"{assemblySourceName}\"  " +
                 $"-{Constants.ScenarioSuiteTypeFullNameArgument}=\"{_scenarioSuiteType.FullName}\"  -{Constants.RunIdArgument}=\"{_runId}\"  -{Constants.ApplicationInstanceIdArgument}=\"{_applicationInstance.Id}\"  ";
             _applicationInstanceProcess = await _mainTestEngineRunContext.LaunchProcessAsync(applicationRunnerPath, _mainTestEngineRunContext.IsBeingDebugged, mainPath, arguments);

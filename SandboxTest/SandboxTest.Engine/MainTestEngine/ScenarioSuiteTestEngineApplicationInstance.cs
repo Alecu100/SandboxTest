@@ -8,19 +8,28 @@ namespace SandboxTest.Engine.MainTestEngine
     public class ScenarioSuiteTestEngineApplicationInstance
     {
         private readonly Guid _runId;
-        private readonly IApplicationInstance _applicationInstance;
+        private readonly IApplicationInstance _instance;
         private readonly IMainTestEngineRunContext _mainTestEngineRunContext;
         private readonly Type _scenarioSuiteType;
         private Process? _applicationInstanceProcess;
 
+        /// <summary>
+        /// Returns the current application instance assigned to the scenario suite application instance.
+        /// </summary>
+        public IApplicationInstance Instance { get { return _instance; } }
+
         public ScenarioSuiteTestEngineApplicationInstance(Guid runId, IApplicationInstance instance, Type scenarioSuiteType, IMainTestEngineRunContext mainTestEngineRunContext)
         {
             _runId = runId;
-            _applicationInstance = instance;
+            _instance = instance;
             _mainTestEngineRunContext = mainTestEngineRunContext;
             _scenarioSuiteType = scenarioSuiteType; 
         }
 
+        /// <summary>
+        /// Starts the actual application instance process and configures messaging for it.
+        /// </summary>
+        /// <returns></returns>
         public async Task StartInstanceAsync()
         {
             var mainAssemblyPath = _scenarioSuiteType.Assembly.Location;
@@ -28,11 +37,15 @@ namespace SandboxTest.Engine.MainTestEngine
             var mainPath = Path.GetDirectoryName(mainAssemblyPath);
             var applicationRunnerPath = $"{mainPath}\\SandboxTest.Engine.ApplicationContainer.exe";
             var arguments = $"-{Constants.MainPathArgument}=\"{mainPath}\"  -{Constants.AssemblySourceNameArgument}=\"{assemblySourceName}\"  " +
-                $"-{Constants.ScenarioSuiteTypeFullNameArgument}=\"{_scenarioSuiteType.FullName}\"  -{Constants.RunIdArgument}=\"{_runId}\"  -{Constants.ApplicationInstanceIdArgument}=\"{_applicationInstance.Id}\"  ";
+                $"-{Constants.ScenarioSuiteTypeFullNameArgument}=\"{_scenarioSuiteType.FullName}\"  -{Constants.RunIdArgument}=\"{_runId}\"  -{Constants.ApplicationInstanceIdArgument}=\"{_instance.Id}\"  ";
             _applicationInstanceProcess = await _mainTestEngineRunContext.LaunchProcessAsync(applicationRunnerPath, _mainTestEngineRunContext.IsBeingDebugged, mainPath, arguments);
-            await _applicationInstance.MessageSink.ConfigureAsync(_applicationInstance.Id, _runId, false);
+            await _instance.MessageSink.ConfigureAsync(_instance.Id, _runId, false);
         }
 
+        /// <summary>
+        /// Stops the actual application instance process.
+        /// </summary>
+        /// <returns></returns>
         public async Task StopInstanceAsync()
         {
             if (_applicationInstanceProcess != null)
@@ -62,13 +75,13 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <returns></returns>
         public async Task<OperationResult?> ResetInstanceAsync(CancellationToken cancellationToken)
         {
-            var operation = new ResetApplicationInstanceOperation(_applicationInstance.Id);
+            var operation = new ResetApplicationInstanceOperation(_instance.Id);
             return await ExecuteOperationAsync(operation, cancellationToken);
         }
 
         public async Task<OperationResult?> ReadyInstanceAsync(CancellationToken cancellationToken)
         {
-            var operation = new ReadyOperation(_applicationInstance.Id);
+            var operation = new ReadyOperation(_instance.Id);
             return await ExecuteOperationAsync(operation, cancellationToken);
         }
 
@@ -87,9 +100,9 @@ namespace SandboxTest.Engine.MainTestEngine
         private async Task<OperationResult?> ExecuteOperationAsync(Operation operation, CancellationToken cancellationToken)
         {
             var json = JsonConvert.SerializeObject(operation, JsonUtils.JsonSerializerSettings);
-            await _applicationInstance.MessageSink.SendMessageAsync(json);
+            await _instance.MessageSink.SendMessageAsync(json);
 
-            var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _applicationInstance.MessageSink.ReceiveMessageAsync());
+            var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _instance.MessageSink.ReceiveMessageAsync());
             return operationResult;
         }
     }

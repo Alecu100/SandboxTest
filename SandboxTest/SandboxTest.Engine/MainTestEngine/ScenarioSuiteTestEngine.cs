@@ -8,8 +8,7 @@ namespace SandboxTest.Engine.MainTestEngine
         protected List<ScenarioSuiteTestEngineApplicationInstance> _scenarioSuiteApplicationInstances;
         protected IMainTestEngineRunContext? _mainTestEngineRunContext;
         protected Guid _runId;
-        protected ScenarioRunResultType _allTestsFailedResultType;
-        protected List<string> _allTestsFailedResultErrorMessages;
+        protected List<string> _scenarioFailedErrors;
         protected Type? _scenarioSuiteType;
         protected object? _scenarioSuiteInstance;
         protected Queue<List<(ScenarioSuiteTestEngineApplicationInstance, ScenarioStep)>> _stepsExecutionStages;
@@ -20,7 +19,7 @@ namespace SandboxTest.Engine.MainTestEngine
             _scenarioSuiteApplicationInstances = new List<ScenarioSuiteTestEngineApplicationInstance>();
             _stepsExecutionStages = new Queue<List<(ScenarioSuiteTestEngineApplicationInstance, ScenarioStep)>>();
             _allStepsIdsToExecute = new List<ScenarioStepId>();
-            _allTestsFailedResultErrorMessages = new List<string>();
+            _scenarioFailedErrors = new List<string>();
         }
 
         public async virtual Task CloseApplicationInstancesAsync()
@@ -46,8 +45,7 @@ namespace SandboxTest.Engine.MainTestEngine
 
             if (scenarioSuiteType.GetConstructors(BindingFlags.Instance | BindingFlags.Public).All(constructor => constructor.GetParameters().Length > 0))
             {
-                _allTestsFailedResultType = ScenarioRunResultType.Failed;
-                _allTestsFailedResultErrorMessages.Add($"No constructor found for scenario suite type {scenarioSuiteType.Name} without arguments found");
+                _scenarioFailedErrors.Add($"No constructor found for scenario suite type {scenarioSuiteType.Name} without arguments found");
                 return;
             }
             if (token.IsCancellationRequested)
@@ -61,8 +59,8 @@ namespace SandboxTest.Engine.MainTestEngine
             }
             catch (Exception ex) 
             {
-                _allTestsFailedResultType = ScenarioRunResultType.Failed;
-                _allTestsFailedResultErrorMessages.Add($"Error creating scenario suite instance {ex}");
+ 
+                _scenarioFailedErrors.Add($"Error creating scenario suite instance {ex}");
                 return;
             }
 
@@ -86,14 +84,14 @@ namespace SandboxTest.Engine.MainTestEngine
                 return;
             }
 
-            if (_allTestsFailedResultType == ScenarioRunResultType.Failed)
+            if (_scenarioFailedErrors.Any())
             {
                 foreach (var scenarioMethod in scenarionMethods)
                 {
                     var currentTime = DateTimeOffset.UtcNow;
                     await _mainTestEngineRunContext.OnScenarioRunningAsync(new Scenario(_scenarioSuiteType.Assembly, _scenarioSuiteType, scenarioMethod));
                     await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly, 
-                        _scenarioSuiteType, scenarioMethod, currentTime, TimeSpan.Zero, string.Join(Environment.NewLine, _allTestsFailedResultErrorMessages)));
+                        _scenarioSuiteType, scenarioMethod, currentTime, TimeSpan.Zero, string.Join(Environment.NewLine, _scenarioFailedErrors)));
                 }
                 return;
             }
@@ -132,21 +130,19 @@ namespace SandboxTest.Engine.MainTestEngine
                 {
                     return;
                 }
-                _allTestsFailedResultErrorMessages.Clear();
-                _allTestsFailedResultType = ScenarioRunResultType.Successful;
+                _scenarioFailedErrors.Clear();
                 foreach (var aplicationInstanceTask in allAplicationInstancesTasks)
                 {
                     var operationResult = await aplicationInstanceTask;
                     if (operationResult == null || operationResult.IsSuccesful == false)
                     {
-                        _allTestsFailedResultType = ScenarioRunResultType.Failed;
-                        _allTestsFailedResultErrorMessages.Add($"Failed to reset application instance for scenario method {scenarioMethod.Name}");
+                        _scenarioFailedErrors.Add($"Failed to reset application instance for scenario method {scenarioMethod.Name}");
                     }
                 }
-                if (_allTestsFailedResultType == ScenarioRunResultType.Failed)
+                if (_scenarioFailedErrors.Any())
                 {
                     await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
-                        _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, string.Join(Environment.NewLine, _allTestsFailedResultErrorMessages)));
+                        _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, string.Join(Environment.NewLine, _scenarioFailedErrors)));
                     return;
                 }
 
@@ -165,14 +161,13 @@ namespace SandboxTest.Engine.MainTestEngine
                     var operationResult = await aplicationInstanceTask;
                     if (operationResult == null || operationResult.IsSuccesful == false)
                     {
-                        _allTestsFailedResultType = ScenarioRunResultType.Failed;
-                        _allTestsFailedResultErrorMessages.Add($"Failed to load scenario method {scenarioMethod.Name} for application instance");
+                        _scenarioFailedErrors.Add($"Failed to load scenario method {scenarioMethod.Name} for application instance");
                     }
                 }
-                if (_allTestsFailedResultType == ScenarioRunResultType.Failed)
+                if (_scenarioFailedErrors.Any())
                 {
                     await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
-                        _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, string.Join(Environment.NewLine, _allTestsFailedResultErrorMessages)));
+                        _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, string.Join(Environment.NewLine, _scenarioFailedErrors)));
                     return;
                 }
 
@@ -222,10 +217,8 @@ namespace SandboxTest.Engine.MainTestEngine
                 }
                 if (allCyclicDependencySteps.Any())
                 {
-                    _allTestsFailedResultType = ScenarioRunResultType.Failed;
-                    _allTestsFailedResultErrorMessages.Add($"Detected cyclic dependencies between steps {string.Join(',', allCyclicDependencySteps)}");
                     await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
-                      _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, string.Join(Environment.NewLine, _allTestsFailedResultErrorMessages)));
+                      _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, $"Detected cyclic dependencies between steps {string.Join(',', allCyclicDependencySteps)}"));
                     return;
                 }
 
@@ -249,14 +242,13 @@ namespace SandboxTest.Engine.MainTestEngine
                         var runStepOperationResult = await runStepTask as RunScenarioStepOperationResult;
                         if (runStepOperationResult == null)
                         {
-                            _allTestsFailedResultErrorMessages.Add("Failed to run step");
-                            _allTestsFailedResultType = ScenarioRunResultType.Failed;
+                            _scenarioFailedErrors.Add("Failed to run step with unknown error");
                             continue;
                         }
                         if (runStepOperationResult.IsSuccesful == false)
                         {
-                            _allTestsFailedResultErrorMessages.Add($"Failed to run step with error {runStepOperationResult.ErrorMessage}");
-                            _allTestsFailedResultType = ScenarioRunResultType.Failed;
+                            _scenarioFailedErrors.Add($"Failed to run step with error {runStepOperationResult.ErrorMessage}");
+                            continue;
                         }
                         foreach (var scenarioStepContextKey in scenarioStepContext.Keys.ToArray())
                         {
@@ -270,7 +262,17 @@ namespace SandboxTest.Engine.MainTestEngine
                             scenarioStepContext.Add(scenarioStepContextItem.Key, scenarioStepContextItem.Value);
                         }
                     }
+
+                    if (_scenarioFailedErrors.Any())
+                    {
+                        await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
+                            _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, string.Join(Environment.NewLine, _scenarioFailedErrors)));
+                        return;
+                    }
                 }
+                await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Successful, _scenarioSuiteType.Assembly,
+                    _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, $"Successfully ran scenario for method {scenarioMethod.Name}"));
+        
             }
             catch (TaskCanceledException)
             {
@@ -317,8 +319,7 @@ namespace SandboxTest.Engine.MainTestEngine
             var applicationInstance = applicationInstanceField.GetValue(_scenarioSuiteInstance) as IApplicationInstance;
             if (applicationInstance == null)
             {
-                _allTestsFailedResultType = ScenarioRunResultType.Failed;
-                _allTestsFailedResultErrorMessages.Add($"Application instance for field {applicationInstanceField.Name} is missing");
+                _scenarioFailedErrors.Add($"Application instance for field {applicationInstanceField.Name} is missing");
                 return;
             }
 
@@ -327,8 +328,7 @@ namespace SandboxTest.Engine.MainTestEngine
             var readyResult = await scenarioSuiteTestEngineApplicationInstance.ReadyInstanceAsync(token);
             if (readyResult == null || readyResult.IsSuccesful == false)
             {
-                _allTestsFailedResultType = ScenarioRunResultType.Failed;
-                _allTestsFailedResultErrorMessages.Add($"Failed to start application instanfce with id {applicationInstance.Id}");
+                _scenarioFailedErrors.Add($"Failed to start application instanfce with id {applicationInstance.Id}");
             }
         }
     }

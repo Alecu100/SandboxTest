@@ -32,7 +32,23 @@ namespace SandboxTest.Sample
             var secondStep = _applicationInstance21.AddStep().AddPreviousStep(firstStep).InvokeController<HostApplicationController>((controller, ctx) =>
             {
                 var newGuid = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>();
-                newGuid.Should().NotBe(ctx["FirstGuid"]);
+                newGuid.GetNewGuid().Should().NotBe(ctx["FirstGuid"].ToString());
+                return Task.CompletedTask;
+            });
+        }
+
+        [Scenario]
+        public void TestScenarioMethod3_Should_Fail()
+        {
+            var firstStep = _applicationInstance21.AddStep().InvokeController<HostApplicationController>((controller, ctx) =>
+            {
+                ctx["FirstGuid"] = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>().GetNewGuid();
+                return Task.CompletedTask;
+            });
+            var secondStep = _applicationInstance21.AddStep().AddPreviousStep(firstStep).InvokeController<HostApplicationController>((controller, ctx) =>
+            {
+                var newGuid = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>();
+                newGuid.GetNewGuid().Should().Be(ctx["FirstGuid"].ToString());
                 return Task.CompletedTask;
             });
         }

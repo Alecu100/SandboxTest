@@ -1,4 +1,5 @@
 ﻿using SandboxTest.Engine.Operations;
+using System.Linq;
 using System.Reflection;
 
 namespace SandboxTest.Engine.MainTestEngine
@@ -194,7 +195,7 @@ namespace SandboxTest.Engine.MainTestEngine
                     foreach (var scenarioSuiteApplicationInstance in _scenarioSuiteApplicationInstances)
                     {
                         var possibleStepsToExecute = scenarioSuiteApplicationInstance.Instance.Steps
-                            .Where(step => !step.PreviousStepsIds.Any() || step.PreviousStepsIds.All(stepId => _allStepsIdsToExecute.Contains(stepId)))
+                            .Where(step => (!step.PreviousStepsIds.Any() || step.PreviousStepsIds.All(stepId => _allStepsIdsToExecute.Contains(stepId))) && !_allStepsIdsToExecute.Contains(step.Id))
                             .Select(step => (scenarioSuiteApplicationInstance, step));
                         if (possibleStepsToExecute.Any())
                         {

@@ -7,5 +7,6 @@
         int CurrentStepIndex { get; }
 
         ScenarioStep AddStep();
+        ScenarioStep AddStep(string name);
     }
 }

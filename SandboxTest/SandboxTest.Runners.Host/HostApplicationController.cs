@@ -28,7 +28,7 @@ namespace SandboxTest.Hosting
         /// <summary>
         /// Gets the 
         /// </summary>
-        public string Name { get => nameof(HostApplicationController); }
+        public string? Name { get => _name; }
 
         public Task BuildAsync(IApplicationInstance applicationInstance)
         {

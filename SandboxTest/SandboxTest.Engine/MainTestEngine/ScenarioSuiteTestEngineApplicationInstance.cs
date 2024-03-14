@@ -75,6 +75,7 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <returns></returns>
         public async Task<OperationResult?> ResetInstanceAsync(CancellationToken cancellationToken)
         {
+            await _instance.ResetAsync();
             var operation = new ResetApplicationInstanceOperation(_instance.Id);
             return await ExecuteOperationAsync(operation, cancellationToken);
         }

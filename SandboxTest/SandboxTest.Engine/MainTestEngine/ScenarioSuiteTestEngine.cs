@@ -146,6 +146,17 @@ namespace SandboxTest.Engine.MainTestEngine
                     return;
                 }
 
+                var result = scenarioMethod.Invoke(_scenarioSuiteInstance, null);
+                var resultTask = result as Task;
+                if (resultTask != null)
+                {
+                    await resultTask;
+                }
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 allAplicationInstancesTasks.Clear();
                 foreach (var applicationInstance in _scenarioSuiteApplicationInstances)
                 {
@@ -168,17 +179,6 @@ namespace SandboxTest.Engine.MainTestEngine
                 {
                     await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
                         _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, startTime - DateTimeOffset.UtcNow, string.Join(Environment.NewLine, _scenarioFailedErrors)));
-                    return;
-                }
-
-                var result = scenarioMethod.Invoke(_scenarioSuiteInstance, null);
-                var resultTask = result as Task;
-                if (resultTask != null)
-                {
-                    await resultTask;
-                }
-                if (token.IsCancellationRequested)
-                {
                     return;
                 }
 

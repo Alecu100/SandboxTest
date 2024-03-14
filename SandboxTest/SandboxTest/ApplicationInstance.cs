@@ -8,6 +8,7 @@
         protected List<ScenarioStep> _steps;
         protected int _currentStepIndex;
         protected IApplicationMessageSink? _messageSink;
+        protected bool _isRunning;
 
         /// <summary>
         /// Creates an empty default application instance.
@@ -104,13 +105,20 @@
         {
             var scenarioStep = new ScenarioStep(this);
             _currentStepIndex++;
+            _steps.Add(scenarioStep);
             return scenarioStep;
         }
 
-        public virtual ScenarioStep AddNamedStep(string name)
+        /// <summary>
+        /// Adds a step with a dedicated name to be more explicit and readable.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public virtual ScenarioStep AddStep(string name)
         {
             var scenarioStep = new ScenarioStep(this, name);
             _currentStepIndex++;
+            _steps.Add(scenarioStep);
             return scenarioStep;
         }
 
@@ -138,6 +146,7 @@
             }
             await _runner.ConfigureRunAsync();
             await _runner.RunAsync();
+            _isRunning = true;
         }
 
         /// <summary>
@@ -165,10 +174,13 @@
             {
                 throw new InvalidOperationException("Application instance has no assigned runner.");
             }
-            await _runner.ResetAsync();
-            foreach (var controller in _controllers)
+            if (_isRunning)
             {
-                await controller.ResetAsync(this);
+                await _runner.ResetAsync();
+                foreach (var controller in _controllers)
+                {
+                    await controller.ResetAsync(this);
+                }
             }
             _currentStepIndex = 0;
             _steps.Clear();

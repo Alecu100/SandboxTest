@@ -2,7 +2,7 @@
 {
     public interface IApplicationController
     {
-        string Name { get; }
+        string? Name { get; }
 
         /// <summary>
         /// Does any configuration related to the application instance before the application instance is built.

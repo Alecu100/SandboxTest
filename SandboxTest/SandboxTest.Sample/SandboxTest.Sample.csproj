@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsTestProject>true</IsTestProject>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +16,7 @@
     <ProjectReference Include="..\SandboxTest.Sample.Application1\SandboxTest.Sample.Application1.csproj" />
     <ProjectReference Include="..\SandboxTest.TestAdapter\SandboxTest.TestAdapter.csproj" />
     <ProjectReference Include="..\SandboxTest\SandboxTest.csproj" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.12.0" />

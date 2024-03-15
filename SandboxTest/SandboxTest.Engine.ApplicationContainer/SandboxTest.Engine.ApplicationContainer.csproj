@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SandboxTest.Engine\SandboxTest.Engine.csproj" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
 </Project>

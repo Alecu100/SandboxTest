@@ -10,7 +10,7 @@ namespace SandboxTest.Sample
     [ScenarioSuite]
     public class SampleTestScenarioSuite3
     {
-        public readonly IApplicationInstance _applicationInstance31 = ApplicationInstance.CreateEmptyInstance("Instance21")
+        public readonly IApplicationInstance _applicationInstance31 = ApplicationInstance.CreateEmptyInstance("Instance31")
             .UseWireMockApplicationRunner()
             .ConfigureWireMockApplicationRunner(6677, false, false)
             .AddWireMockApplicationController()

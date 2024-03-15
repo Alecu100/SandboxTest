@@ -35,3 +35,5 @@ SandboxTest/SandboxTest.Net.Http/obj/
 SandboxTest/SandboxTest.Net.Http/bin/
 SandboxTest/SandboxTest.AspNetCore/bin/
 SandboxTest/SandboxTest.AspNetCore/obj/
+SandboxTest/SandboxTest.Sample.Application2/bin/
+SandboxTest/SandboxTest.Sample.Application2/obj/

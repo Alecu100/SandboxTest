@@ -24,7 +24,7 @@ namespace SandboxTest.AspNetCore
         /// <param name="configureRunSandboxFunc"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static IApplicationInstance ConfigureHostApplicationRunnerSandbox(this IApplicationInstance applicationInstance,
+        public static IApplicationInstance ConfigureWebApplicationRunnerSandbox(this IApplicationInstance applicationInstance,
             Func<WebApplicationBuilder, Task> configureBuildSandboxFunc,
             Func<WebApplication, Task>? configureRunSandboxFunc = default)
         {

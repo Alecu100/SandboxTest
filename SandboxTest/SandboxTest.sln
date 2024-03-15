@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Net.Http", "San
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandboxTest.AspNetCore", "SandboxTest.AspNetCore\SandboxTest.AspNetCore.csproj", "{81091381-44B9-4AC7-A5D0-7E9C57112145}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandboxTest.Sample.Application2", "SandboxTest.Sample.Application2\SandboxTest.Sample.Application2.csproj", "{D7B1B994-A63B-4EFF-8BD6-1CBF313E5C63}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{81091381-44B9-4AC7-A5D0-7E9C57112145}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{81091381-44B9-4AC7-A5D0-7E9C57112145}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{81091381-44B9-4AC7-A5D0-7E9C57112145}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7B1B994-A63B-4EFF-8BD6-1CBF313E5C63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7B1B994-A63B-4EFF-8BD6-1CBF313E5C63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7B1B994-A63B-4EFF-8BD6-1CBF313E5C63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7B1B994-A63B-4EFF-8BD6-1CBF313E5C63}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

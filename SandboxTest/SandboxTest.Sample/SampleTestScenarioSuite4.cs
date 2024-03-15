@@ -3,10 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using SandboxTest.AspNetCore;
 using SandboxTest.Net.Http;
 using SandboxTest.Sample.Application2;
-using SandboxTest.WireMock;
 using System.Net.Http.Json;
-using WireMock.RequestBuilders;
-using WireMock.ResponseBuilders;
 
 namespace SandboxTest.Sample
 {

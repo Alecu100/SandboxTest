@@ -12,7 +12,7 @@ namespace SanboxTest.Runners.WireMock
         protected int _port = 80;
         protected bool _useSsl = true;
         protected bool _useAdminInterface = false;
-        protected Func<WireMockApplicationRunner, Task>? _configureRunAction;
+        protected Func<WireMockApplicationRunner, Task>? _configureBuildAction;
         protected WireMockServer? _wireMockServer;
 
         /// <summary>
@@ -56,30 +56,30 @@ namespace SanboxTest.Runners.WireMock
         /// ConfigureBuildAsync is  not used for WireMockRunner because the WireMockServer starts directly without any kind of build step aside from port and a couple of other things.
         /// </summary>
         /// <returns></returns>
-        public Task ConfigureBuildAsync()
+        public async Task ConfigureBuildAsync()
+        {
+            if (_configureBuildAction != null)
+            {
+                await _configureBuildAction(this);
+            }
+        }
+
+        /// <summary>
+        /// ConfigureRunAsync is not used for WireMockRunner because it starts directly on build.
+        /// </summary>
+        /// <returns></returns>
+        public virtual Task ConfigureRunAsync()
         {
             return Task.CompletedTask;
         }
 
         /// <summary>
-        /// ConfigureRunAsync is used for WireMockRunner to set up the port on which to start the WireMockServer and whether to use ssl or the admin interface.
-        /// </summary>
-        /// <returns></returns>
-        public virtual async Task ConfigureRunAsync()
-        {
-            if (_configureRunAction != null)
-            {
-                await _configureRunAction(this);
-            }
-        }
-
-        /// <summary>
         /// Sets the configure run function to configure on what port to start the WireMock server and if it should use ssl or admin interface.
         /// </summary>
-        /// <param name="configureRunFunc"></param>
-        public void OnConfigureRun(Func<WireMockApplicationRunner, Task>? configureRunFunc)
+        /// <param name="configureBuildFunc"></param>
+        public void OnConfigureBuild(Func<WireMockApplicationRunner, Task>? configureBuildFunc)
         {
-            _configureRunAction = configureRunFunc;
+            _configureBuildAction = configureBuildFunc;
         }
 
         /// <summary>

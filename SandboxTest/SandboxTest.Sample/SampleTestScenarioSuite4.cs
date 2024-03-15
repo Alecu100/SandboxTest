@@ -34,7 +34,8 @@ namespace SandboxTest.Sample
         {
             var firstStep = _applicationInstance41.AddStep().InvokeController<HttpClientApplicationController>(async (controller, ctx) =>
             {
-                var httpRequest = new HttpRequestMessage(HttpMethod.Get, "/weatherforecast");
+                var httpRequest = new HttpRequestMessage(HttpMethod.Get, "/WeatherForecast");
+                httpRequest.Headers.Add("accept", "text/plain");
                 var httpResponse = await controller.HttpClient.SendAsync(httpRequest);
                 httpResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
                 var weatherForecast = await httpResponse.Content.ReadFromJsonAsync<WeatherForecast>();
@@ -43,7 +44,8 @@ namespace SandboxTest.Sample
             });
             var secondStep = _applicationInstance41.AddStep().AddPreviousStep(firstStep).InvokeController<HttpClientApplicationController>(async (controller, ctx) =>
             {
-                var httpRequest = new HttpRequestMessage(HttpMethod.Get, "/weatherforecast");
+                var httpRequest = new HttpRequestMessage(HttpMethod.Get, "/WeatherForecast");
+                httpRequest.Headers.Add("accept", "text/plain");
                 var httpResponse = await controller.HttpClient.SendAsync(httpRequest);
                 httpResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
                 var weatherForecast = await httpResponse.Content.ReadFromJsonAsync<WeatherForecast>();

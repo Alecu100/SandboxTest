@@ -70,7 +70,7 @@ namespace SandboxTest.Hosting
         /// <exception cref="InvalidOperationException"></exception>
         public static IApplicationInstance AddHostApplicationController(this IApplicationInstance applicationInstance, string? name = default)
         {
-            var hostBuilderApplicationRunner = applicationInstance.Runner as HostApplicationRunner;
+            var hostBuilderApplicationRunner = applicationInstance.Runner as IHostApplicationRunner;
             if (hostBuilderApplicationRunner == null)
             {
                 throw new InvalidOperationException("Invalid application runner configured on application instance, expected HostBuilderApplicationRunner");

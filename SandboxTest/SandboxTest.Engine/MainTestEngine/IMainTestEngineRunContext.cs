@@ -19,6 +19,14 @@ namespace SandboxTest.Engine.MainTestEngine
         Task OnScenarioRunningAsync(Scenario scenario);
 
         /// <summary>
+        /// Logs a message to be displayed in the test host runner.
+        /// </summary>
+        /// <param name="logLevel"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        Task LogMessage(LogLevel logLevel, string message);
+
+        /// <summary>
         /// Whether the scenario is being debugged or not.
         /// </summary>
         bool IsBeingDebugged { get; }

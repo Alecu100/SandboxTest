@@ -10,6 +10,11 @@ namespace SandboxTest.TestAdapter
     {
         private IMainTestEngine? _mainTestEngine;
 
+        public SandboxTestExecuter()
+        {
+            _mainTestEngine = new MainTestEngine();
+        }
+
         public void Cancel()
         {
             _mainTestEngine?.StopRunningScenariosAsync()?.Wait();
@@ -22,7 +27,6 @@ namespace SandboxTest.TestAdapter
                 return;
             }
 
-            _mainTestEngine = new MainTestEngine();
             var scenarios = tests.Select(test => test.ConvertToScenario());
             var scenarioRunContext = new SandboxTestExecuterRunContext(runContext, frameworkHandle);
             _ = typeof(ScenarioAttribute);

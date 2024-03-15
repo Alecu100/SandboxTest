@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace SandboxTest.Engine.MainTestEngine
 {
-    public class ScenarioSuiteTestEngineApplicationInstance
+    public class ScenarioSuiteTestEngineApplicationHandler
     {
         private readonly Guid _runId;
         private readonly IApplicationInstance _instance;
@@ -18,7 +18,7 @@ namespace SandboxTest.Engine.MainTestEngine
         /// </summary>
         public IApplicationInstance Instance { get { return _instance; } }
 
-        public ScenarioSuiteTestEngineApplicationInstance(Guid runId, IApplicationInstance instance, Type scenarioSuiteType, IMainTestEngineRunContext mainTestEngineRunContext)
+        public ScenarioSuiteTestEngineApplicationHandler(Guid runId, IApplicationInstance instance, Type scenarioSuiteType, IMainTestEngineRunContext mainTestEngineRunContext)
         {
             _runId = runId;
             _instance = instance;
@@ -58,12 +58,12 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <summary>
         /// Executes a specific step for an application instance.
         /// </summary>
-        /// <param name="scenarioStepId"></param>
+        /// <param name="scenarioStep"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<OperationResult?> ExecuteStepAsync(ScenarioStepId scenarioStepId, ScenarioStepContext stepContext, CancellationToken cancellationToken)
+        public async Task<OperationResult?> ExecuteStepAsync(ScenarioStep scenarioStep, ScenarioStepContext stepContext, CancellationToken cancellationToken)
         {
-            var operation = new RunScenarioStepOperation(scenarioStepId, stepContext);
+            var operation = new RunScenarioStepOperation(scenarioStep.Id, stepContext);
             return await ExecuteOperationAsync(operation, cancellationToken);
         }
 
@@ -112,6 +112,35 @@ namespace SandboxTest.Engine.MainTestEngine
             {
                 return new OperationResult(false, $"Error sending operation of type {operation.GetType().Name} to application instance {_instance.Id} {ex}");
             }
+        }
+
+        /// <summary>
+        /// Compares only if they both are associated to the same application instance id.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override bool Equals(object? obj)
+        {
+            if (obj is null || obj is not ScenarioSuiteTestEngineApplicationHandler)
+            {
+                return false;
+            }
+            
+            var otherHandler = obj as ScenarioSuiteTestEngineApplicationHandler;
+            if (otherHandler?._instance?.Id == null)
+            {
+                return false;
+            }
+            return otherHandler._instance.Id.Equals(_instance.Id);
+        }
+
+        /// <summary>
+        /// Returns only the hashcode of the application instance id
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return _instance.Id.GetHashCode();
         }
     }
 }

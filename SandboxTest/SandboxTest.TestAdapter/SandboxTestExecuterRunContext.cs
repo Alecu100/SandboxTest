@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using SandboxTest.Engine;
 using SandboxTest.Engine.MainTestEngine;
 using System.Diagnostics;
@@ -48,6 +49,18 @@ namespace SandboxTest.TestAdapter
                 throw new InvalidOperationException($"Failed to start process for path {filePath}");
             }
             return Task.FromResult(process);
+        }
+        
+        /// <summary>
+        /// Sends a test log message to the visual studio test host.
+        /// </summary>
+        /// <param name="logLevel"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public Task LogMessage(LogLevel logLevel, string message)
+        {
+            _frameworkHandle?.SendMessage((TestMessageLevel)(int)logLevel, message);
+            return Task.CompletedTask;
         }
 
         public Task OnScenarioRanAsync(ScenarioRunResult scenarioRunResult)

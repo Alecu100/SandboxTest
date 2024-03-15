@@ -6,19 +6,19 @@ namespace SandboxTest.Engine.MainTestEngine
 {
     public class ScenarioSuiteTestEngine : IScenarioSuiteTestEngine
     {
-        protected List<ScenarioSuiteTestEngineApplicationInstance> _scenarioSuiteApplicationInstances;
+        protected List<ScenarioSuiteTestEngineApplicationHandler> _scenarioSuiteApplicationInstances;
         protected IMainTestEngineRunContext? _mainTestEngineRunContext;
         protected Guid _runId;
         protected List<string> _scenarioFailedErrors;
         protected Type? _scenarioSuiteType;
         protected object? _scenarioSuiteInstance;
-        protected Queue<List<(ScenarioSuiteTestEngineApplicationInstance, ScenarioStep)>> _stepsExecutionStages;
+        protected Queue<ScenarioSuiteStepsStage> _stepsExecutionStages;
         protected HashSet<ScenarioStepId> _allStepsIdsToExecute;
 
         public ScenarioSuiteTestEngine()
         {
-            _scenarioSuiteApplicationInstances = new List<ScenarioSuiteTestEngineApplicationInstance>();
-            _stepsExecutionStages = new Queue<List<(ScenarioSuiteTestEngineApplicationInstance, ScenarioStep)>>();
+            _scenarioSuiteApplicationInstances = new List<ScenarioSuiteTestEngineApplicationHandler>();
+            _stepsExecutionStages = new Queue<ScenarioSuiteStepsStage>();
             _allStepsIdsToExecute = new HashSet<ScenarioStepId>();
             _scenarioFailedErrors = new List<string>();
         }
@@ -64,6 +64,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 return;
             }
 
+            await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, "Starting application instances");
             var startApplicationInstancesTasks = new List<Task>();
             foreach ( var applicationInstancesMember in applicationInstancesMembers) 
             {
@@ -108,6 +109,8 @@ namespace SandboxTest.Engine.MainTestEngine
             {
                 throw new InvalidOperationException("No scenario suite loaded in scenario suite test engine");
             }
+
+            await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Running application scenario method {scenarioMethod.Name}");
 
             var startTime = DateTimeOffset.UtcNow;
             await _mainTestEngineRunContext.OnScenarioRunningAsync(new Scenario(_scenarioSuiteType.Assembly, _scenarioSuiteType, scenarioMethod));
@@ -189,7 +192,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 do
                 {
                     stillHasStepsToConfigure = false;
-                    var currentStageSteps = new List<(ScenarioSuiteTestEngineApplicationInstance, ScenarioStep)>();
+                    var currentScenarioSuiteStepsStage = new ScenarioSuiteStepsStage();
 
                     foreach (var scenarioSuiteApplicationInstance in _scenarioSuiteApplicationInstances)
                     {
@@ -197,18 +200,18 @@ namespace SandboxTest.Engine.MainTestEngine
                         {
                             if (!_allStepsIdsToExecute.Contains(step.Id) && (!step.PreviousStepsIds.Any() || step.PreviousStepsIds.All(stepId => _allStepsIdsToExecute.Contains(stepId))))
                             {
-                                currentStageSteps.Add((scenarioSuiteApplicationInstance, step));
+                                currentScenarioSuiteStepsStage.AddApplicationInstanceStep(scenarioSuiteApplicationInstance, step);
                                 stillHasStepsToConfigure = true;
                             }
                         }
                     }
                     if (stillHasStepsToConfigure)
                     {
-                        foreach (var stageStep in currentStageSteps)
+                        foreach (var stageStep in currentScenarioSuiteStepsStage.AllInstanceSteps)
                         {
-                            _allStepsIdsToExecute.Add(stageStep.Item2.Id);
+                            _allStepsIdsToExecute.Add(stageStep.Id);
                         }
-                        _stepsExecutionStages.Enqueue(currentStageSteps);
+                        _stepsExecutionStages.Enqueue(currentScenarioSuiteStepsStage);
                     }
                 } while (stillHasStepsToConfigure);
 
@@ -229,40 +232,50 @@ namespace SandboxTest.Engine.MainTestEngine
                 while (_stepsExecutionStages.Any())
                 {
                     var currentStageApplicationSteps = _stepsExecutionStages.Dequeue();
-                    var currentStageExecuteStepsTasks = new List<Task<OperationResult?>>();
-                    foreach (var currentStageApplicationStep in currentStageApplicationSteps)
+                    await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Running step execution stage with steps {currentStageApplicationSteps}");
+                    var currentStageExecuteStepsTasks = new List<Task<List<RunScenarioStepOperationResult?>>>();
+                    foreach (var currentStageApplicationStep in currentStageApplicationSteps.InstanceHandlersSteps)
                     {
-                        currentStageExecuteStepsTasks.Add(currentStageApplicationStep.Item1.ExecuteStepAsync(currentStageApplicationStep.Item2.Id, scenarioStepContext, token));
+                        currentStageExecuteStepsTasks.Add(RunStepsForApplicationInstanceAsync(currentStageApplicationStep, scenarioStepContext, token));
                     }
                     await Task.WhenAll(currentStageExecuteStepsTasks);
+                    await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Finished running step execution stage with steps {currentStageApplicationSteps}");
 
-                    foreach (var runStepTask in currentStageExecuteStepsTasks)
+                    foreach (var runStepsTask in currentStageExecuteStepsTasks)
                     {
                         if (token.IsCancellationRequested)
                         {
                             return;
                         }
-                        var runStepOperationResult = await runStepTask as RunScenarioStepOperationResult;
-                        if (runStepOperationResult == null)
+                        var runStepsOperationResults = await runStepsTask;
+                        if (runStepsOperationResults == null)
                         {
                             _scenarioFailedErrors.Add("Failed to run step with unknown error");
                             continue;
                         }
-                        if (runStepOperationResult.IsSuccesful == false)
+                        foreach (var runStepOperationResult in runStepsOperationResults)
                         {
-                            _scenarioFailedErrors.Add($"Failed to run step with error {runStepOperationResult.ErrorMessage}");
-                            continue;
-                        }
-                        foreach (var scenarioStepContextKey in scenarioStepContext.Keys.ToArray())
-                        {
-                            if (!runStepOperationResult.StepContext.ContainsKey(scenarioStepContextKey))
+                            if (runStepOperationResult == null)
                             {
-                                scenarioStepContext.Remove(scenarioStepContextKey);
+                                _scenarioFailedErrors.Add("Failed to run step with unknown error");
+                                continue;
                             }
-                        }
-                        foreach (var runStepOperationStepContextItem in runStepOperationResult.StepContext)
-                        {
-                            scenarioStepContext[runStepOperationStepContextItem.Key] = runStepOperationStepContextItem.Value;
+                            if (runStepOperationResult.IsSuccesful == false)
+                            {
+                                _scenarioFailedErrors.Add($"Failed to run step with error {runStepOperationResult.ErrorMessage}");
+                                continue;
+                            }
+                            foreach (var scenarioStepContextKey in scenarioStepContext.Keys.ToArray())
+                            {
+                                if (!runStepOperationResult.StepContext.ContainsKey(scenarioStepContextKey))
+                                {
+                                    scenarioStepContext.Remove(scenarioStepContextKey);
+                                }
+                            }
+                            foreach (var runStepOperationStepContextItem in runStepOperationResult.StepContext)
+                            {
+                                scenarioStepContext[runStepOperationStepContextItem.Key] = runStepOperationStepContextItem.Value;
+                            }
                         }
                     }
 
@@ -286,6 +299,17 @@ namespace SandboxTest.Engine.MainTestEngine
                 await _mainTestEngineRunContext.OnScenarioRanAsync(new ScenarioRunResult(ScenarioRunResultType.Failed, _scenarioSuiteType.Assembly,
                     _scenarioSuiteType, scenarioMethod, DateTimeOffset.UtcNow, TimeSpan.Zero, $"Error {ex} running the scenarion method {scenarioMethod.Name}"));
             }
+        }
+
+        private async Task<List<RunScenarioStepOperationResult?>> RunStepsForApplicationInstanceAsync(KeyValuePair<ScenarioSuiteTestEngineApplicationHandler, List<ScenarioStep>> applicationInstanceSteps, ScenarioStepContext scenarioStepContext, CancellationToken token)
+        {
+            var allStepsResults = new List<RunScenarioStepOperationResult?>();
+            foreach (var instanceStep in applicationInstanceSteps.Value)
+            {
+                var result = await applicationInstanceSteps.Key.ExecuteStepAsync(instanceStep, scenarioStepContext, token);
+                allStepsResults.Add(result as RunScenarioStepOperationResult);
+            }
+            return allStepsResults;
         }
 
         protected virtual IEnumerable<FieldInfo> GetApplicationInstancesMembers()
@@ -326,14 +350,24 @@ namespace SandboxTest.Engine.MainTestEngine
                 return;
             }
 
-            var scenarioSuiteTestEngineApplicationInstance = new ScenarioSuiteTestEngineApplicationInstance(_runId, applicationInstance, _scenarioSuiteType, _mainTestEngineRunContext);
-            await scenarioSuiteTestEngineApplicationInstance.StartInstanceAsync();
+            var scenarioSuiteTestEngineApplicationInstance = new ScenarioSuiteTestEngineApplicationHandler(_runId, applicationInstance, _scenarioSuiteType, _mainTestEngineRunContext);
+            try
+            {
+                await scenarioSuiteTestEngineApplicationInstance.StartInstanceAsync();
+            }
+            catch(Exception ex)
+            {
+                _scenarioFailedErrors.Add($"Application instance {applicationInstance.Id} failed to start with exception {ex}");
+                return;
+            }
+            await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Waiting for ready by application instance {applicationInstance.Id}");
             var readyResult = await scenarioSuiteTestEngineApplicationInstance.ReadyInstanceAsync(token);
             if (readyResult == null || readyResult.IsSuccesful == false)
             {
                 _scenarioFailedErrors.Add($"Failed to start application instanfce with id {applicationInstance.Id}");
             }
             _scenarioSuiteApplicationInstances.Add(scenarioSuiteTestEngineApplicationInstance);
+            await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Application instance {applicationInstance.Id} started succesfully");
         }
     }
 }

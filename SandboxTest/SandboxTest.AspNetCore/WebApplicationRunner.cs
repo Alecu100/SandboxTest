@@ -164,7 +164,7 @@ namespace SandboxTest.AspNetCore
             {
                 throw new InvalidOperationException("Web application not built");
             }
-            _runTask = _webApplication.RunAsync(_url);
+            _runTask = Task.Run(async () => await _webApplication.RunAsync(_url));
             return Task.CompletedTask;
         }
 

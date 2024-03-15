@@ -40,7 +40,7 @@ namespace SandboxTest.Engine.ApplicationContainer
                 }
                 await _childTestEngine.RunApplicationInstanceAsync($"{_mainPath}\\{_assemblySourceName}", _scenarioSuiteTypeFullName, _applicationInstanceId);
 
-                _handleMessagesTask = Task.Factory.StartNew(HandleMessages, TaskCreationOptions.LongRunning);
+                _handleMessagesTask = Task.Run(HandleMessages);
             }
             catch (Exception ex)
             {
@@ -76,30 +76,37 @@ namespace SandboxTest.Engine.ApplicationContainer
                 return;
             }
 
-            var messageSink = _childTestEngine.RunningInstance.MessageSink;
-            await messageSink.ConfigureAsync(_applicationInstanceId, _runId, true);
-            while (!_runFinishedTaskCompletionSource.Task.IsCompleted)
+            try
             {
-                var messageJson = await messageSink.ReceiveMessageAsync();
-                var message = JsonConvert.DeserializeObject<Operation>(messageJson, JsonUtils.JsonSerializerSettings);
-                switch (message)
+                var messageSink = _childTestEngine.RunningInstance.MessageSink;
+                await messageSink.ConfigureAsync(_applicationInstanceId, _runId, true);
+                while (!_runFinishedTaskCompletionSource.Task.IsCompleted)
                 {
-                    case ReadyOperation:
-                        await messageSink.SendMessageAsync(JsonConvert.SerializeObject(new OperationResult(true), JsonUtils.JsonSerializerSettings));
-                        break;
-                    case RunScenarioStepOperation runStepOperation:
-                        var result = await _childTestEngine.RunStepAsync(runStepOperation.StepId, runStepOperation.StepContext);
-                        await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
-                        break;
-                    case ResetApplicationInstanceOperation:
-                        result = await _childTestEngine.ResetApplicationInstanceAsync();
-                        await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
-                        break;
-                    case LoadScenarioOperation loadScenarioOperation:
-                        result = await _childTestEngine.LoadScenarioAsync(loadScenarioOperation.ScenarioMethodName);
-                        await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
-                        break;
+                    var messageJson = await messageSink.ReceiveMessageAsync();
+                    var message = JsonConvert.DeserializeObject<Operation>(messageJson, JsonUtils.JsonSerializerSettings);
+                    switch (message)
+                    {
+                        case ReadyOperation:
+                            await messageSink.SendMessageAsync(JsonConvert.SerializeObject(new OperationResult(true), JsonUtils.JsonSerializerSettings));
+                            break;
+                        case RunScenarioStepOperation runStepOperation:
+                            var result = await _childTestEngine.RunStepAsync(runStepOperation.StepId, runStepOperation.StepContext);
+                            await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
+                            break;
+                        case ResetApplicationInstanceOperation:
+                            result = await _childTestEngine.ResetApplicationInstanceAsync();
+                            await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
+                            break;
+                        case LoadScenarioOperation loadScenarioOperation:
+                            result = await _childTestEngine.LoadScenarioAsync(loadScenarioOperation.ScenarioMethodName);
+                            await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
+                            break;
+                    }
                 }
+            }
+            catch (Exception) 
+            {
+                _runFinishedTaskCompletionSource.SetResult(-1);
             }
         }
     }

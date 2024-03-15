@@ -9,7 +9,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SandboxTest.Engine.ApplicationContainer\SandboxTest.Engine.ApplicationContainer.csproj" />
+    <ProjectReference Include="..\SandboxTest.Net.Http\SandboxTest.Net.Http.csproj" />
     <ProjectReference Include="..\SandboxTest.Runners.Host\SandboxTest.Hosting.csproj" />
+    <ProjectReference Include="..\SandboxTest.Runners.WireMock\SandboxTest.WireMock.csproj" />
     <ProjectReference Include="..\SandboxTest.Sample.Application1\SandboxTest.Sample.Application1.csproj" />
     <ProjectReference Include="..\SandboxTest.TestAdapter\SandboxTest.TestAdapter.csproj" />
     <ProjectReference Include="..\SandboxTest\SandboxTest.csproj" />

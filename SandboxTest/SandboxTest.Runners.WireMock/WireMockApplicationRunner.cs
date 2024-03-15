@@ -1,4 +1,5 @@
 ﻿using SandboxTest;
+using SandboxTest.WireMock;
 using WireMock.Server;
 
 namespace SanboxTest.Runners.WireMock
@@ -6,19 +7,18 @@ namespace SanboxTest.Runners.WireMock
     /// <summary>
     /// Represents the WireMockApplicationRunner used to start instances of mocked Rest or http APIs with WireMockServer.
     /// </summary>
-    public class WireMockApplicationRunner : IApplicationRunner
+    public class WireMockApplicationRunner : IApplicationRunner, IWireMockApplicationRunner
     {
-        private int _port = 80;
-        private bool _useSsl = true;
-        private bool _useAdminInterface = false;
-        private Func<WireMockApplicationRunner, Task>? _configureRunAction;
-
-        private WireMockServer? _wireMockServer;
+        protected int _port = 80;
+        protected bool _useSsl = true;
+        protected bool _useAdminInterface = false;
+        protected Func<WireMockApplicationRunner, Task>? _configureRunAction;
+        protected WireMockServer? _wireMockServer;
 
         /// <summary>
         /// Returns the WireMock server set up for the application runner.
         /// </summary>
-        public WireMockServer? WireMockServer { get => _wireMockServer; }
+        public WireMockServer WireMockServer { get => _wireMockServer ?? throw new InvalidOperationException("WireMock application controller not built"); }
 
         /// <summary>
         /// Gets or sets the port to use start the WireMock server on.
@@ -36,11 +36,19 @@ namespace SanboxTest.Runners.WireMock
         public bool UseAdminInterface { get => _useAdminInterface; set => _useAdminInterface = value; }
 
         /// <summary>
-        /// BuildAsync is  not used for WireMockRunner because the WireMockServer starts directly without any kind of build step aside from port and a couple of other things.
+        /// BuildAsync is used to start WireMockRunner because the WireMockServer starts directly without any kind of build step aside from port and a couple of other things.
         /// </summary>
         /// <returns></returns>
         public Task BuildAsync()
         {
+            if (_useAdminInterface)
+            {
+                _wireMockServer = WireMockServer.StartWithAdminInterface(_port, _useSsl);
+            }
+            else
+            {
+                _wireMockServer = WireMockServer.Start(_port, _useSsl);
+            }
             return Task.CompletedTask;
         }
 
@@ -57,7 +65,7 @@ namespace SanboxTest.Runners.WireMock
         /// ConfigureRunAsync is used for WireMockRunner to set up the port on which to start the WireMockServer and whether to use ssl or the admin interface.
         /// </summary>
         /// <returns></returns>
-        public async Task ConfigureRunAsync()
+        public virtual async Task ConfigureRunAsync()
         {
             if (_configureRunAction != null)
             {
@@ -79,7 +87,7 @@ namespace SanboxTest.Runners.WireMock
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public Task ResetAsync()
+        public virtual Task ResetAsync()
         {
             if (_wireMockServer == null)
             {
@@ -90,19 +98,11 @@ namespace SanboxTest.Runners.WireMock
         }
 
         /// <summary>
-        /// Starts the Wiremock server.
+        /// WireMock server only start directly from the build step.
         /// </summary>
         /// <returns></returns>
-        public Task RunAsync()
+        public virtual Task RunAsync()
         {
-            if (_useAdminInterface)
-            {
-                _wireMockServer = WireMockServer.StartWithAdminInterface(_port, _useSsl);
-            }
-            else
-            {
-                _wireMockServer = WireMockServer.Start(_port, _useSsl);
-            }
             return Task.CompletedTask;
         }
 
@@ -111,7 +111,7 @@ namespace SanboxTest.Runners.WireMock
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public Task StopAsync()
+        public virtual Task StopAsync()
         {
             if (_wireMockServer == null)
             {

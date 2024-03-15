@@ -88,9 +88,9 @@
 
         public virtual ApplicationInstance AddController<TApplicationController>(TApplicationController controller, string? name = default) where TApplicationController : IApplicationController
         {
-            if (_controllers.Any(c => c.Name == name)) 
+            if (_controllers.Any(c => c.Name == name && c.GetType() == typeof(TApplicationController)))
             {
-                throw new InvalidOperationException($"Already defined an application controller with the name {name}.");
+                throw new InvalidOperationException($"Already defined an application controller with the name {name} and the same type.");
             }
             _controllers.Add(controller);
 

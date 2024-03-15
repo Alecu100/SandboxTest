@@ -8,10 +8,9 @@ using SandboxTest.Sample.Application1;
 namespace SandboxTest.Sample
 {
     [ScenarioSuite]
-    public class SampleTestScenarioSuiteContainer2
+    public class SampleTestScenarioSuite2
     {
-        public readonly IApplicationInstance _applicationInstance21 = 
-            ApplicationInstance.CreateEmptyInstance("Instance21")
+        public readonly IApplicationInstance _applicationInstance21 = ApplicationInstance.CreateEmptyInstance("Instance21")
             .UseHostApplicationRunner(args =>
             {
                 var hostBuilder = Host.CreateDefaultBuilder(args);
@@ -22,7 +21,7 @@ namespace SandboxTest.Sample
 
 
         [Scenario]
-        public void TestScenarioMethod2()
+        public void TestScenario2()
         {
             var firstStep = _applicationInstance21.AddStep().InvokeController<HostApplicationController>((controller, ctx) =>
             {
@@ -38,7 +37,7 @@ namespace SandboxTest.Sample
         }
 
         [Scenario]
-        public void TestScenarioMethod3_Should_Fail()
+        public void TestScenario3_Should_Fail()
         {
             var firstStep = _applicationInstance21.AddStep().InvokeController<HostApplicationController>((controller, ctx) =>
             {

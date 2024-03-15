@@ -5,8 +5,8 @@ namespace SandboxTest.WireMock
 {
     public class WireMockApplicationController : IApplicationController
     {
-        private readonly string? _name;
-        private WireMockServer? _wireMockServer;
+        protected readonly string? _name;
+        protected WireMockServer? _wireMockServer;
 
         /// <summary>
         /// Creates a new instance of the <see cref="WireMockApplicationController"/>.
@@ -25,7 +25,7 @@ namespace SandboxTest.WireMock
         /// <summary>
         /// Gets the WireMock server that can be configured to return specific responses for http requests.
         /// </summary>
-        public WireMockServer? WireMockServer { get => _wireMockServer; }
+        public WireMockServer WireMockServer { get => _wireMockServer ?? throw new InvalidOperationException("WireMock application controller is not built"); }
 
         /// <summary>
         /// Fetches the WireMock server instance in order to expose it to be configured to return specific responses for http requests.
@@ -33,7 +33,7 @@ namespace SandboxTest.WireMock
         /// <param name="applicationInstance"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public Task BuildAsync(IApplicationInstance applicationInstance)
+        public virtual Task BuildAsync(IApplicationInstance applicationInstance)
         {
             var wireMockRunner = applicationInstance.Runner as WireMockApplicationRunner;
             if (wireMockRunner == null)
@@ -53,7 +53,7 @@ namespace SandboxTest.WireMock
         /// </summary>
         /// <param name="applicationInstance"></param>
         /// <returns></returns>
-        public Task ConfigureBuildAsync(IApplicationInstance applicationInstance)
+        public virtual Task ConfigureBuildAsync(IApplicationInstance applicationInstance)
         {
             return Task.CompletedTask;
         }
@@ -63,7 +63,7 @@ namespace SandboxTest.WireMock
         /// </summary>
         /// <param name="applicationInstance"></param>
         /// <returns></returns>
-        public Task ResetAsync(ApplicationInstance applicationInstance)
+        public virtual Task ResetAsync(ApplicationInstance applicationInstance)
         {
             return Task.CompletedTask;
         }

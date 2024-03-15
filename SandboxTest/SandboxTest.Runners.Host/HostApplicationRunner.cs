@@ -13,14 +13,22 @@ namespace SandboxTest.Runners.Host
         private Func<IHost, Task>? _configureRunSandboxFunc;
         private Func<IHost, Task>? _resetFunc;
 
-        public IHost Host => _host ?? throw new InvalidOperationException("Host is not built.");
-        public IHostBuilder HostBuilder => _hostBuilder ?? throw new InvalidOperationException("HostBuilder is not set up.");
+        ///<inheritdoc/>
+        public IHost Host => _host ?? throw new InvalidOperationException("Host application runner is not built");
+
+        ///<inheritdoc/>
+        public IHostBuilder HostBuilder => _hostBuilder ?? throw new InvalidOperationException("Host application runner is not built");
 
         public HostApplicationRunner(Func<string[], Task<IHostBuilder>> hostBuilderSourceFunc)
         {
             _hostBuilderFunc = hostBuilderSourceFunc;
         }
 
+        /// <summary>
+        /// Builds the host by calling the IHostBuilder.Build method.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public Task BuildAsync()
         {
             if (_hostBuilder == null)
@@ -46,6 +54,11 @@ namespace SandboxTest.Runners.Host
             _configureBuildSandboxFunc = configureBuildSandboxFunc;
         }
 
+        /// <summary>
+        /// Use the configure sandbox function to allow the host to run in a sandbox.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public async Task ConfigureBuildAsync()
         {
             _hostBuilder = await _hostBuilderFunc([]);
@@ -59,6 +72,11 @@ namespace SandboxTest.Runners.Host
             }
         }
 
+        /// <summary>
+        /// Uses the configure run function.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public async Task ConfigureRunAsync()
         {
             if (_host == null)
@@ -95,6 +113,7 @@ namespace SandboxTest.Runners.Host
             _resetFunc = resetFunc;
         }
 
+        ///<inheritdoc/>
         public async Task RunAsync()
         {
             if (_host == null)
@@ -104,6 +123,7 @@ namespace SandboxTest.Runners.Host
             await _host.StartAsync();
         }
 
+        ///<inheritdoc/>
         public async Task StopAsync()
         {
             if (_host == null)
@@ -113,6 +133,7 @@ namespace SandboxTest.Runners.Host
             await _host.StopAsync();
         }
 
+        ///<inheritdoc/>
         public async Task ResetAsync()
         {
             if (_host == null)

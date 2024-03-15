@@ -30,3 +30,6 @@ SandboxTest/SandboxTest.Sample.Application1/bin/
 SandboxTest/SandboxTest.Sample.Application1/obj/
 SandboxTest/SandboxTest.Engine.ApplicationContainer/obj/
 SandboxTest/SandboxTest.Engine.ApplicationContainer/bin/
+SandboxTest/SandboxTest.Net.Http/obj/project.nuget.cache
+SandboxTest/SandboxTest.Net.Http/obj/
+SandboxTest/SandboxTest.Net.Http/bin/

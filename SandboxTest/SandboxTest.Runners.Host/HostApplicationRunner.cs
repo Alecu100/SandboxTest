@@ -1,24 +1,30 @@
-﻿
-using Microsoft.Extensions.Hosting;
-using SandboxTest.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 
-namespace SandboxTest.Runners.Host
+namespace SandboxTest.Hosting
 {
+    /// <summary>
+    /// Represents a runner capable of running generic .Net core hosts <see cref="IHost"/>.
+    /// </summary>
     public class HostApplicationRunner : IApplicationRunner, IHostApplicationRunner
     {
-        private IHost? _host;
-        private IHostBuilder? _hostBuilder;
-        private Func<string[], Task<IHostBuilder>> _hostBuilderFunc;
-        private Func<IHostBuilder, Task>? _configureBuildSandboxFunc;
-        private Func<IHost, Task>? _configureRunSandboxFunc;
-        private Func<IHost, Task>? _resetFunc;
+        protected IHost? _host;
+        protected IHostBuilder? _hostBuilder;
+        protected Func<string[], Task<IHostBuilder>> _hostBuilderFunc;
+        protected Func<IHostBuilder, Task>? _configureBuildSandboxFunc;
+        protected Func<IHost, Task>? _configureRunSandboxFunc;
+        protected Func<IHost, Task>? _resetFunc;
+        protected string[]? _arguments;
 
         ///<inheritdoc/>
         public IHost Host => _host ?? throw new InvalidOperationException("Host application runner is not built");
 
         ///<inheritdoc/>
-        public IHostBuilder HostBuilder => _hostBuilder ?? throw new InvalidOperationException("Host application runner is not built");
+        public IHostBuilder HostBuilder => _hostBuilder ?? throw new InvalidOperationException("Host builder is not found");
 
+        /// <summary>
+        /// Creates a new instance of <see cref="HostApplicationRunner"/> having as parameter a function that return the original host builder.
+        /// </summary>
+        /// <param name="hostBuilderSourceFunc"></param>
         public HostApplicationRunner(Func<string[], Task<IHostBuilder>> hostBuilderSourceFunc)
         {
             _hostBuilderFunc = hostBuilderSourceFunc;
@@ -29,11 +35,11 @@ namespace SandboxTest.Runners.Host
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public Task BuildAsync()
+        public virtual Task BuildAsync()
         {
             if (_hostBuilder == null)
             {
-                throw new InvalidOperationException("HostBuilder not found.");
+                throw new InvalidOperationException("Host builder not found.");
             }
             _host = _hostBuilder.Build();
             return Task.CompletedTask;
@@ -55,16 +61,25 @@ namespace SandboxTest.Runners.Host
         }
 
         /// <summary>
+        /// Configures the arguments to use when creating the <see cref="Microsoft.Extensions.Hosting.HostBuilder"/>
+        /// </summary>
+        /// <param name="arguments"></param>
+        public void OnConfigureArguments(params string[] arguments)
+        {
+            _arguments = arguments;
+        }
+
+        /// <summary>
         /// Use the configure sandbox function to allow the host to run in a sandbox.
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public async Task ConfigureBuildAsync()
+        public virtual async Task ConfigureBuildAsync()
         {
-            _hostBuilder = await _hostBuilderFunc([]);
+            _hostBuilder = await _hostBuilderFunc(_arguments ?? []);
             if (_hostBuilder == null)
             {
-                throw new InvalidOperationException("HostBuilder not found.");
+                throw new InvalidOperationException("Host builder not found.");
             }
             if (_configureBuildSandboxFunc != null)
             {
@@ -73,11 +88,11 @@ namespace SandboxTest.Runners.Host
         }
 
         /// <summary>
-        /// Uses the configure run function.
+        /// Uses the configure run function to perform any additional operations after building the application but before running it.
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public async Task ConfigureRunAsync()
+        public virtual async Task ConfigureRunAsync()
         {
             if (_host == null)
             {
@@ -99,18 +114,9 @@ namespace SandboxTest.Runners.Host
         {
             if (_configureRunSandboxFunc != null)
             {
-                throw new InvalidOperationException("ConfigureRunFunc already set.");
+                throw new InvalidOperationException("Configure run function already set.");
             }
             _configureRunSandboxFunc = configureRunFunc;
-        }
-
-        /// <summary>
-        /// Provides a way to clean up an IHost before starting another scenario from the same scenarion container.
-        /// </summary>
-        /// <param name="resetFunc"></param>
-        public void OnConfigureReset(Func<IHost, Task>? resetFunc)
-        {
-            _resetFunc = resetFunc;
         }
 
         ///<inheritdoc/>
@@ -124,7 +130,7 @@ namespace SandboxTest.Runners.Host
         }
 
         ///<inheritdoc/>
-        public async Task StopAsync()
+        public virtual async Task StopAsync()
         {
             if (_host == null)
             {
@@ -134,7 +140,7 @@ namespace SandboxTest.Runners.Host
         }
 
         ///<inheritdoc/>
-        public async Task ResetAsync()
+        public virtual async Task ResetAsync()
         {
             if (_host == null)
             {
@@ -144,6 +150,15 @@ namespace SandboxTest.Runners.Host
             {
                 await _resetFunc(_host);
             }
+        }
+
+        /// <summary>
+        /// Provides a way to clean up an IHost before starting another scenario from the same scenario suite.
+        /// </summary>
+        /// <param name="resetFunc"></param>
+        public void OnConfigureReset(Func<IHost, Task>? resetFunc)
+        {
+            _resetFunc = resetFunc;
         }
     }
 }

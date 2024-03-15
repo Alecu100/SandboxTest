@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SandboxTest.Hosting;
-using SandboxTest.Runners.Host;
 using SandboxTest.Sample.Application1;
 
 namespace SandboxTest.Sample

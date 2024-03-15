@@ -33,3 +33,5 @@ SandboxTest/SandboxTest.Engine.ApplicationContainer/bin/
 SandboxTest/SandboxTest.Net.Http/obj/project.nuget.cache
 SandboxTest/SandboxTest.Net.Http/obj/
 SandboxTest/SandboxTest.Net.Http/bin/
+SandboxTest/SandboxTest.AspNetCore/bin/
+SandboxTest/SandboxTest.AspNetCore/obj/

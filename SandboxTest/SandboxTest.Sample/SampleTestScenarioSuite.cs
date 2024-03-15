@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
-using SandboxTest.Runners.Host;
+using SandboxTest.Hosting;
 using SandboxTest.Sample.Application1;
 
 namespace SandboxTest.Sample

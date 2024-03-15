@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
-using SandboxTest.Hosting;
 
-namespace SandboxTest.Runners.Host
+namespace SandboxTest.Hosting
 {
     /// <summary>
     /// Static class that offers extension methods to use the <see cref="HostApplicationRunner"/>  and related functionalities.
@@ -44,6 +43,25 @@ namespace SandboxTest.Runners.Host
         }
 
         /// <summary>
+        /// Configures the arguments to use when creating the <see cref="HostBuilder"/> for a <see cref="HostApplicationRunner"/>
+        /// </summary>
+        /// <param name="applicationInstance"></param>
+        /// <param name="arguments"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static IApplicationInstance ConfigureHostApplicationRunnerArguments(this IApplicationInstance applicationInstance, params string[] arguments)
+        {
+            var hostBuilderApplicationRunner = applicationInstance.Runner as HostApplicationRunner;
+            if (hostBuilderApplicationRunner == null)
+            {
+                throw new InvalidOperationException("Invalid application runner configured on application instance, expected HostBuilderApplicationRunner");
+            }
+
+            hostBuilderApplicationRunner.OnConfigureArguments(arguments);
+            return applicationInstance;
+        }
+
+        /// <summary>
         /// Adds an application controller of type <see cref="HostApplicationController"/> to the given application instance.
         /// </summary>
         /// <param name="applicationInstance"></param>
@@ -63,7 +81,7 @@ namespace SandboxTest.Runners.Host
             return applicationInstance;
         }
 
-        public static IApplicationInstance ConfigureHostApplicationRunnerReset(this IApplicationInstance applicationInstance, 
+        public static IApplicationInstance ConfigureHostApplicationRunnerReset(this IApplicationInstance applicationInstance,
             Func<IHost, Task>? resetFunc)
         {
             var hostBuilderApplicationRunner = applicationInstance.Runner as HostApplicationRunner;

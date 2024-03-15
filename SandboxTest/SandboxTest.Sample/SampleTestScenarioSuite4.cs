@@ -27,8 +27,7 @@ namespace SandboxTest.Sample
             {
                 builder.Services.AddControllers().ConfigureApplicationPartManager(parts => parts.ApplicationParts.Add(new AssemblyPart(typeof(WebApplicationExtensions).Assembly)));
                 return Task.CompletedTask;
-            },
-            webApp =>
+            }, webApp =>
             {
                 webApp.ConfigureWebApplication();
                 return Task.CompletedTask;

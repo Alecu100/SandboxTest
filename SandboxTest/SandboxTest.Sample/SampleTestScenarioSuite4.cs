@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using HandlebarsDotNet;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;

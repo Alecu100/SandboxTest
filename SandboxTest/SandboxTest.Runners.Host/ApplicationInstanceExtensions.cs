@@ -3,6 +3,9 @@ using SandboxTest.Hosting;
 
 namespace SandboxTest.Runners.Host
 {
+    /// <summary>
+    /// Static class that offers extension methods to use the <see cref="HostApplicationRunner"/>  and related functionalities.
+    /// </summary>
     public static class ApplicationInstanceExtensions
     {
         /// <summary>

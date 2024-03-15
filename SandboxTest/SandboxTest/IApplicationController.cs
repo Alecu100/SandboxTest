@@ -1,5 +1,8 @@
 ﻿namespace SandboxTest
 {
+    /// <summary>
+    /// Represents an application controller used to execute actions on application instances.
+    /// </summary>
     public interface IApplicationController
     {
         string? Name { get; }

@@ -1,12 +1,12 @@
 ﻿namespace SandboxTest.Hosting.ProxyInterceptor
 {
     /// <summary>
-    /// Static class that offers extension methods to use the <see cref="ProxyInterceptorController"/>.
+    /// Static class that offers extension methods to use the <see cref="ServiceInterceptorController"/>.
     /// </summary>
     public static class ApplicationInstanceExtensions
     {
         /// <summary>
-        /// Adds an application controller of type <see cref="ProxyInterceptorController"/> to the given application instance.
+        /// Adds an application controller of type <see cref="ServiceInterceptorController"/> to the given application instance.
         /// </summary>
         /// <param name="applicationInstance"></param>
         /// <returns></returns>
@@ -18,12 +18,12 @@
             {
                 throw new InvalidOperationException("Invalid application runner configured on application instance, expected HostBuilderApplicationRunner");
             }
-            if (applicationInstance.Controllers.Any(controller => controller is ProxyInterceptorController))
+            if (applicationInstance.Controllers.Any(controller => controller is ServiceInterceptorController))
             {
                 throw new InvalidOperationException("Application instance already has one interceptor controller assigned, only one can be assigned per application instance");
             }
 
-            var hostApplicationController = new ProxyInterceptorController();
+            var hostApplicationController = new ServiceInterceptorController();
             applicationInstance.AddController(hostApplicationController);
             return applicationInstance;
         }

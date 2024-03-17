@@ -2,10 +2,10 @@
 
 namespace SandboxTest.Hosting.ProxyInterceptor
 {
-    public class ProxyInterceptor : DispatchProxy
+    public class ServiceInterceptor : DispatchProxy
     {
         private object? _wrappedInstance;
-        private ProxyInterceptorController? _controller;
+        private ServiceInterceptorController? _controller;
         private Type? _interfaceType;
 
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
@@ -18,12 +18,12 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             {
                 return null;
             }
-            if (_controller.ProxyWrapperActions[_interfaceType].ContainsKey(targetMethod))
+            if (_controller.ProxyWrapperActions.ContainsKey(_interfaceType) && _controller.ProxyWrapperActions[_interfaceType].ContainsKey(targetMethod))
             {
                 var methodActions = _controller.ProxyWrapperActions[_interfaceType][targetMethod];
                 for (int actionIndex = methodActions.Count - 1; actionIndex  >= 0; actionIndex--) 
                 {
-                    ProxyInterceptorAction? action = methodActions[actionIndex];
+                    ServiceInterceptorAction? action = methodActions[actionIndex];
                     if (action.ArgumentsMatcher(args))
                     {
                         if (targetMethod.ReturnParameter.ParameterType != typeof(void))
@@ -45,7 +45,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             return targetMethod.Invoke(_wrappedInstance, args);
         }
 
-        public void Initialize(ProxyInterceptorController controller, object? wrappedInstance, Type interfaceType)
+        public void Initialize(ServiceInterceptorController controller, object? wrappedInstance, Type interfaceType)
         {
             _wrappedInstance = wrappedInstance;
             _controller = controller;

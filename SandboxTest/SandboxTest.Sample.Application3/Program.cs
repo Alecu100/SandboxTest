@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 
-namespace SandboxTest.Sample.Application1
+namespace SandboxTest.Sample.Application3
 {
     internal class Program
     {

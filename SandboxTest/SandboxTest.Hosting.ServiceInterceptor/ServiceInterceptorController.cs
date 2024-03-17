@@ -1,28 +1,29 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using System.Collections.Concurrent;
 using System.Reflection;
 
 namespace SandboxTest.Hosting.ProxyInterceptor
 {
     /// <summary>
-    /// Represents a proxy wrapper controller that uses the dependency injection mechanism from standard IHost to replace all the implementations with proxy wrappers containing the original instance.
+    /// Represents a service proxy wrapper controller that uses the dependency injection mechanism from standard IHost to replace all the implementations with proxy wrappers containing the original instance.
     /// These proxies intercept calls to them by default passing them to the original instance but also allows to intercept and verify these calls, return alternative values or even throw exceptions.
     /// </summary>
-    public class ProxyInterceptorController : IApplicationController
+    public class ServiceInterceptorController : IApplicationController
     {
-        private Dictionary<Type, Dictionary<MethodInfo, List<ProxyInterceptorAction>>> _proxyWrapperActions;
-        private ConcurrentBag<ProxyInterceptorRecordedCall> _proxyWrapperRecordedCalls;
+        private ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>> _proxyWrapperActions;
+        private ConcurrentBag<ServiceInterceptorRecordedCall> _proxyWrapperRecordedCalls;
         private IServiceProvider? _originalServiceProvider;
 
         /// <summary>
-        /// Creates a new instance of the <see cref="ProxyInterceptorController"/>.
+        /// Creates a new instance of the <see cref="ServiceInterceptorController"/>.
         /// By default the name of it is always empty/null since only one of this kind of controller should be used per application instance.
         /// </summary>
-        public ProxyInterceptorController()
+        public ServiceInterceptorController()
         {
-            _proxyWrapperActions = new Dictionary<Type, Dictionary<MethodInfo, List<ProxyInterceptorAction>>>();
-            _proxyWrapperRecordedCalls = new ConcurrentBag<ProxyInterceptorRecordedCall>();
+            _proxyWrapperActions = new ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>>();
+            _proxyWrapperRecordedCalls = new ConcurrentBag<ServiceInterceptorRecordedCall>();
         }
 
         /// <summary>
@@ -30,9 +31,9 @@ namespace SandboxTest.Hosting.ProxyInterceptor
         /// </summary>
         /// <typeparam name="TInterface"></typeparam>
         /// <returns></returns>
-        public ProxyInterceptorConfigurator<TInterface> ConfigureInterceptor<TInterface>()
+        public ServiceInterceptorConfigurator<TInterface> ConfigureInterceptor<TInterface>()
         {
-            return new ProxyInterceptorConfigurator<TInterface>(this);
+            return new ServiceInterceptorConfigurator<TInterface>(this);
         }
 
         /// <summary>
@@ -60,7 +61,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             }
             hostApplicationRunner.HostBuilder.ConfigureServices((ctx, services) =>
             {
-                var proxyInterceptorType = typeof(ProxyInterceptor);
+                var proxyInterceptorType = typeof(ServiceInterceptor);
                 var originalServices = new ServiceCollection();
                 foreach (var service in services)
                 {
@@ -70,13 +71,13 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 services.Clear();
                 foreach (var serviceDescriptor in originalServices)
                 {
-                    if (serviceDescriptor.ServiceType.IsInterface)
+                    if (serviceDescriptor.ServiceType.IsInterface && !serviceDescriptor.ServiceType.IsGenericTypeDefinition && serviceDescriptor.ServiceType != typeof(IHostApplicationLifetime))
                     {
                         if (!serviceDescriptor.IsKeyedService)
                         {
                             Func<IServiceProvider, object> proxyInterceptorFactory = (provider) =>
                             {
-                                var proxyInterceptor = (ProxyInterceptor)DispatchProxy.Create(serviceDescriptor.ServiceType, proxyInterceptorType);
+                                var proxyInterceptor = (ServiceInterceptor)DispatchProxy.Create(serviceDescriptor.ServiceType, proxyInterceptorType);
                                 proxyInterceptor.Initialize(this, _originalServiceProvider.GetRequiredService(serviceDescriptor.ServiceType), serviceDescriptor.ServiceType);
                                 return proxyInterceptor;
                             };
@@ -89,7 +90,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                         {
                             Func<IServiceProvider, object?, object> proxyInterceptorFactory = (provider, key) =>
                             {
-                                var proxyInterceptor = (ProxyInterceptor)DispatchProxy.Create(serviceDescriptor.ServiceType, proxyInterceptorType);
+                                var proxyInterceptor = (ServiceInterceptor)DispatchProxy.Create(serviceDescriptor.ServiceType, proxyInterceptorType);
                                 proxyInterceptor.Initialize(this, _originalServiceProvider.GetRequiredKeyedService(serviceDescriptor.ServiceType, key), serviceDescriptor.ServiceType);
                                 return proxyInterceptor;
                             };
@@ -120,11 +121,11 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             return Task.CompletedTask;
         }
 
-        public Dictionary<Type, Dictionary<MethodInfo, List<ProxyInterceptorAction>>> ProxyWrapperActions { get => _proxyWrapperActions; }
+        public ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>> ProxyWrapperActions { get => _proxyWrapperActions; }
 
         /// <summary>
         /// Returns a list of all the recored proxy wrapper calls.
         /// </summary>
-        public ConcurrentBag<ProxyInterceptorRecordedCall> ProxyWrapperRecordedCalls { get => _proxyWrapperRecordedCalls; }
+        public ConcurrentBag<ServiceInterceptorRecordedCall> ProxyWrapperRecordedCalls { get => _proxyWrapperRecordedCalls; }
     }
 }

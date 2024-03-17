@@ -5,13 +5,13 @@ namespace SandboxTest.Hosting.ProxyInterceptor
     /// <summary>
     /// Represents a recorded method call intercepted by a proxy interceptor.
     /// </summary>
-    public class ProxyInterceptorRecordedCall
+    public class ServiceInterceptorRecordedCall
     {
         private Type _interfaceType;
         private MethodInfo _method;
         private object?[]? _args;
 
-        public ProxyInterceptorRecordedCall(Type interfaceType, MethodInfo method, object?[]? args = null)
+        public ServiceInterceptorRecordedCall(Type interfaceType, MethodInfo method, object?[]? args = null)
         {
             _interfaceType = interfaceType;
             _method = method;

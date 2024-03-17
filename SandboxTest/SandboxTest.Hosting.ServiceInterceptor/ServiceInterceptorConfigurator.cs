@@ -1,13 +1,14 @@
-﻿using System.Linq.Expressions;
+﻿using System.Collections.Concurrent;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace SandboxTest.Hosting.ProxyInterceptor
 {
-    public class ProxyInterceptorConfigurator<TInterface>
+    public class ServiceInterceptorConfigurator<TInterface>
     {
-        private ProxyInterceptorController _controller;
+        private ServiceInterceptorController _controller;
 
-        public ProxyInterceptorConfigurator(ProxyInterceptorController controller) 
+        public ServiceInterceptorConfigurator(ServiceInterceptorController controller) 
         { 
             _controller = controller;
         }
@@ -105,11 +106,11 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 
     public class ProxyWrapperConfiguratorFunc<TInterface, TReturn>
     {
-        private ProxyInterceptorController _controller;
+        private ServiceInterceptorController _controller;
         private Expression<Func<TInterface, Func<TReturn>>> _interfaceMethodFunc;
         private Action<object>? _recordFunc;
 
-        public ProxyWrapperConfiguratorFunc(ProxyInterceptorController controller, Expression<Func<TInterface, Func<TReturn>>> interfaceMethodFunc)
+        public ProxyWrapperConfiguratorFunc(ServiceInterceptorController controller, Expression<Func<TInterface, Func<TReturn>>> interfaceMethodFunc)
         {
             _controller = controller;
             _interfaceMethodFunc = interfaceMethodFunc;
@@ -119,7 +120,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
         {
             _recordFunc = (target) =>
             {
-                _controller.ProxyWrapperRecordedCalls.Add(new ProxyInterceptorRecordedCall(typeof(TInterface), GetInterfaceMethod(), null));
+                _controller.ProxyWrapperRecordedCalls.Add(new ServiceInterceptorRecordedCall(typeof(TInterface), GetInterfaceMethod(), null));
             };
             return this;
         }
@@ -130,15 +131,15 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var interfaceType = typeof(TInterface);
             if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
             {
-                _controller.ProxyWrapperActions[interfaceType] = new Dictionary<MethodInfo, List<ProxyInterceptorAction>>();
+                _controller.ProxyWrapperActions.TryAdd(interfaceType, new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>());
             }
 
             if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
             {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ProxyInterceptorAction>();
+                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
             }
 
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ProxyInterceptorAction
+            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
             {
                 ArgumentsMatcher = (args) =>
                 {
@@ -161,15 +162,15 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var interfaceType = typeof(TInterface);
             if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
             {
-                _controller.ProxyWrapperActions[interfaceType] = new Dictionary<MethodInfo, List<ProxyInterceptorAction>>();
+                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
             }
 
             if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
             {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ProxyInterceptorAction>();
+                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
             }
 
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ProxyInterceptorAction
+            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
             {
                 ArgumentsMatcher = (args) =>
                 {
@@ -192,15 +193,15 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var interfaceType = typeof(TInterface);
             if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
             {
-                _controller.ProxyWrapperActions[interfaceType] = new Dictionary<MethodInfo, List<ProxyInterceptorAction>>();
+                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
             }
 
             if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
             {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ProxyInterceptorAction>();
+                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
             }
 
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ProxyInterceptorAction
+            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
             {
                 ArgumentsMatcher = (args) =>
                 {
@@ -234,12 +235,12 @@ namespace SandboxTest.Hosting.ProxyInterceptor
         where TExpressionFunc : LambdaExpression
 
     {
-        private ProxyInterceptorController _controller;
+        private ServiceInterceptorController _controller;
         private TArgumentFunc? _argumentsFunc;
         private Action<object, object?[]?>? _recordFunc;
         private TExpressionFunc _interfaceMethodFunc;
 
-        public ProxyWrapperConfiguratorFunc(ProxyInterceptorController controller, TExpressionFunc interfaceMethodFunc)
+        public ProxyWrapperConfiguratorFunc(ServiceInterceptorController controller, TExpressionFunc interfaceMethodFunc)
         {
             _controller = controller;
             _interfaceMethodFunc = interfaceMethodFunc;
@@ -256,7 +257,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
         {
             _recordFunc = (target, args) =>
             {
-                _controller.ProxyWrapperRecordedCalls.Add(new ProxyInterceptorRecordedCall(typeof(TInterface), GetInterfaceMethod(), args));
+                _controller.ProxyWrapperRecordedCalls.Add(new ServiceInterceptorRecordedCall(typeof(TInterface), GetInterfaceMethod(), args));
             };
             return this;
         }
@@ -267,15 +268,15 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var interfaceType = typeof(TInterface);
             if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
             {
-                _controller.ProxyWrapperActions[interfaceType] = new Dictionary<MethodInfo, List<ProxyInterceptorAction>>();
+                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
             }
 
             if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
             {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ProxyInterceptorAction>();
+                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
             }
 
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ProxyInterceptorAction
+            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
             {
                 ArgumentsMatcher = (args) =>
                 {
@@ -303,15 +304,15 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var interfaceType = typeof(TInterface);
             if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
             {
-                _controller.ProxyWrapperActions[interfaceType] = new Dictionary<MethodInfo, List<ProxyInterceptorAction>>();
+                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
             }
 
             if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
             {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ProxyInterceptorAction>();
+                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
             }
 
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ProxyInterceptorAction
+            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
             {
                 ArgumentsMatcher = (args) =>
                 {
@@ -339,15 +340,15 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var interfaceType = typeof(TInterface);
             if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
             {
-                _controller.ProxyWrapperActions[interfaceType] = new Dictionary<MethodInfo, List<ProxyInterceptorAction>>();
+                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
             }
 
             if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
             {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ProxyInterceptorAction>();
+                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
             }
 
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ProxyInterceptorAction
+            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
             {
                 ArgumentsMatcher = (args) =>
                 {
@@ -382,11 +383,11 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 
     public class ProxyWrapperConfiguratorAction<TInterface>
     {
-        private ProxyInterceptorController _controller;
+        private ServiceInterceptorController _controller;
         private Expression<Func<TInterface, Action>> _interfaceMethodFunc;
         private Action<object>? _recordAction;
 
-        public ProxyWrapperConfiguratorAction(ProxyInterceptorController controller, Expression<Func<TInterface, Action>> interfaceMethodFunc)
+        public ProxyWrapperConfiguratorAction(ServiceInterceptorController controller, Expression<Func<TInterface, Action>> interfaceMethodFunc)
         {
             _controller = controller;
             _interfaceMethodFunc = interfaceMethodFunc;
@@ -396,7 +397,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
         {
             _recordAction = (target) =>
             {
-                _controller.ProxyWrapperRecordedCalls.Add(new ProxyInterceptorRecordedCall(typeof(TInterface), GetInterfaceMethod(), null));
+                _controller.ProxyWrapperRecordedCalls.Add(new ServiceInterceptorRecordedCall(typeof(TInterface), GetInterfaceMethod(), null));
             };
             return this;
         }
@@ -407,15 +408,15 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var interfaceType = typeof(TInterface);
             if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
             {
-                _controller.ProxyWrapperActions[interfaceType] = new Dictionary<MethodInfo, List<ProxyInterceptorAction>>();
+                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
             }
 
             if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
             {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ProxyInterceptorAction>();
+                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
             }
 
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ProxyInterceptorAction
+            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
             {
                 ArgumentsMatcher = (args) =>
                 {
@@ -438,15 +439,15 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var interfaceType = typeof(TInterface);
             if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
             {
-                _controller.ProxyWrapperActions[interfaceType] = new Dictionary<MethodInfo, List<ProxyInterceptorAction>>();
+                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
             }
 
             if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
             {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ProxyInterceptorAction>();
+                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
             }
 
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ProxyInterceptorAction
+            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
             {
                 ArgumentsMatcher = (args) =>
                 {
@@ -480,12 +481,12 @@ namespace SandboxTest.Hosting.ProxyInterceptor
     where TExpressionAction : LambdaExpression
 
     {
-        private ProxyInterceptorController _controller;
+        private ServiceInterceptorController _controller;
         private TArgumentAction? _argumentsFunc;
         private Action<object, object?[]?>? _recordFunc;
         private TExpressionAction _interfaceMethodAction;
 
-        public ProxyWrapperConfiguratorAction(ProxyInterceptorController controller, TExpressionAction interfaceMethodAction)
+        public ProxyWrapperConfiguratorAction(ServiceInterceptorController controller, TExpressionAction interfaceMethodAction)
         {
             _controller = controller;
             _interfaceMethodAction = interfaceMethodAction;
@@ -502,7 +503,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
         {
             _recordFunc = (target, args) =>
             {
-                _controller.ProxyWrapperRecordedCalls.Add(new ProxyInterceptorRecordedCall(typeof(TInterface), GetInterfaceMethod(), args));
+                _controller.ProxyWrapperRecordedCalls.Add(new ServiceInterceptorRecordedCall(typeof(TInterface), GetInterfaceMethod(), args));
             };
             return this;
         }
@@ -513,15 +514,15 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var interfaceType = typeof(TInterface);
             if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
             {
-                _controller.ProxyWrapperActions[interfaceType] = new Dictionary<MethodInfo, List<ProxyInterceptorAction>>();
+                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
             }
 
             if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
             {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ProxyInterceptorAction>();
+                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
             }
 
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ProxyInterceptorAction
+            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
             {
                 ArgumentsMatcher = (args) =>
                 {
@@ -549,15 +550,15 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var interfaceType = typeof(TInterface);
             if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
             {
-                _controller.ProxyWrapperActions[interfaceType] = new Dictionary<MethodInfo, List<ProxyInterceptorAction>>();
+                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
             }
 
             if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
             {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ProxyInterceptorAction>();
+                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
             }
 
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ProxyInterceptorAction
+            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
             {
                 ArgumentsMatcher = (args) =>
                 {

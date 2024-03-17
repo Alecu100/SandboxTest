@@ -27,9 +27,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Sample.Applicat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Hosting", "SandboxTest.Hosting\SandboxTest.Hosting.csproj", "{32080B43-5934-49F7-9AAA-C5927283FB51}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Hosting.ProxyInterceptor", "SandboxTest.Hosting.ProxyInterceptor\SandboxTest.Hosting.ProxyInterceptor.csproj", "{0903BB17-1B04-4D96-B371-DA679D9A5FED}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandboxTest.Sample.Application3", "SandboxTest.Sample.Application3\SandboxTest.Sample.Application3.csproj", "{2515B286-F664-4154-B74E-779030FC900B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Sample.Application3", "SandboxTest.Sample.Application3\SandboxTest.Sample.Application3.csproj", "{5D6631F1-8D0B-44F0-86CD-2EFF1A544F95}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Hosting.ServiceInterceptor", "SandboxTest.Hosting.ServiceInterceptor\SandboxTest.Hosting.ServiceInterceptor.csproj", "{4CA9BB40-9126-4908-9478-CE8056D1BBC5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,14 +85,14 @@ Global
 		{32080B43-5934-49F7-9AAA-C5927283FB51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32080B43-5934-49F7-9AAA-C5927283FB51}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{32080B43-5934-49F7-9AAA-C5927283FB51}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0903BB17-1B04-4D96-B371-DA679D9A5FED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0903BB17-1B04-4D96-B371-DA679D9A5FED}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0903BB17-1B04-4D96-B371-DA679D9A5FED}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0903BB17-1B04-4D96-B371-DA679D9A5FED}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5D6631F1-8D0B-44F0-86CD-2EFF1A544F95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5D6631F1-8D0B-44F0-86CD-2EFF1A544F95}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5D6631F1-8D0B-44F0-86CD-2EFF1A544F95}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5D6631F1-8D0B-44F0-86CD-2EFF1A544F95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2515B286-F664-4154-B74E-779030FC900B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2515B286-F664-4154-B74E-779030FC900B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2515B286-F664-4154-B74E-779030FC900B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2515B286-F664-4154-B74E-779030FC900B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CA9BB40-9126-4908-9478-CE8056D1BBC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CA9BB40-9126-4908-9478-CE8056D1BBC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CA9BB40-9126-4908-9478-CE8056D1BBC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CA9BB40-9126-4908-9478-CE8056D1BBC5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

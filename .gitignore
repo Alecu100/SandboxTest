@@ -43,3 +43,5 @@ SandboxTest/SandboxTest.Hosting/bin/
 SandboxTest/SandboxTest.Hosting.ProxyInterceptor/bin/
 SandboxTest/SandboxTest.Sample.Application3/bin/
 SandboxTest/SandboxTest.Sample.Application3/obj/
+SandboxTest/SandboxTest.Hosting.ServiceInterceptor/bin/
+SandboxTest/SandboxTest.Hosting.ServiceInterceptor/obj/

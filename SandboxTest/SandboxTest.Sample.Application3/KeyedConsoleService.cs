@@ -1,4 +1,4 @@
-﻿namespace SandboxTest.Sample.Application1
+﻿namespace SandboxTest.Sample.Application3
 {
     public class KeyedConsoleService : IConsoleService
     {

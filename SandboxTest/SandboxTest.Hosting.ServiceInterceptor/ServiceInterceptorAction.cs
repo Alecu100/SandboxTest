@@ -1,6 +1,6 @@
 ﻿namespace SandboxTest.Hosting.ProxyInterceptor
 {
-    public class ProxyInterceptorAction
+    public class ServiceInterceptorAction
     {
         required public Func<object?[]?, bool> ArgumentsMatcher { get; set; }
 

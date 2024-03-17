@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace SandboxTest.Sample.Application1
+namespace SandboxTest.Sample.Application3
 {
     public static class HostingExtensions
     {
@@ -11,7 +11,7 @@ namespace SandboxTest.Sample.Application1
             {
                 services.AddScoped<IConsoleService, ConsoleService>();
                 services.AddKeyedScoped<IConsoleService, ConsoleService>("KeyedConsoleService");
-                services.AddHostedService<ConsoleBackgroundService>();
+                services.AddHostedService<KeyedConsoleBackgroundService>();
                 services.AddSingleton<IRandomGuidGenerator, RandomGuidGenerator>();
             });
             return builder;

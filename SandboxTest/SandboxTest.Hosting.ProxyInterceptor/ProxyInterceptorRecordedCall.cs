@@ -1,7 +1,10 @@
 ﻿using System.Reflection;
 
-namespace SandboxTest.ProxyWrapper
+namespace SandboxTest.Hosting.ProxyInterceptor
 {
+    /// <summary>
+    /// Represents a recorded method call intercepted by a proxy interceptor.
+    /// </summary>
     public class ProxyInterceptorRecordedCall
     {
         private Type _interfaceType;
@@ -14,5 +17,20 @@ namespace SandboxTest.ProxyWrapper
             _method = method;
             _args = args;
         }
+
+        /// <summary>
+        /// Returns the interface type that the proxy interceptor implements and the original object too.
+        /// </summary>
+        public Type InterfaceType { get => _interfaceType; }
+
+        /// <summary>
+        /// Returns the method that was invoked.
+        /// </summary>
+        public MethodInfo Method { get => _method; }
+
+        /// <summary>
+        /// Returns the arguments that the method was invoked with.
+        /// </summary>
+        public object?[]? Args { get => _args; }
     }
 }

@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SandboxTest.AspNetCore\SandboxTest.AspNetCore.csproj" />
     <ProjectReference Include="..\SandboxTest.Engine.ApplicationContainer\SandboxTest.Engine.ApplicationContainer.csproj" />
+    <ProjectReference Include="..\SandboxTest.Hosting.ProxyInterceptor\SandboxTest.Hosting.ProxyInterceptor.csproj" />
     <ProjectReference Include="..\SandboxTest.Net.Http\SandboxTest.Net.Http.csproj" />
     <ProjectReference Include="..\SandboxTest.Runners.WireMock\SandboxTest.WireMock.csproj" />
     <ProjectReference Include="..\SandboxTest.Sample.Application1\SandboxTest.Sample.Application1.csproj" />

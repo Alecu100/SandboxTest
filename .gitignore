@@ -37,3 +37,7 @@ SandboxTest/SandboxTest.AspNetCore/bin/
 SandboxTest/SandboxTest.AspNetCore/obj/
 SandboxTest/SandboxTest.Sample.Application2/bin/
 SandboxTest/SandboxTest.Sample.Application2/obj/
+SandboxTest/SandboxTest.Hosting.ProxyInterceptor/obj/
+SandboxTest/SandboxTest.Hosting/obj/
+SandboxTest/SandboxTest.Hosting/bin/
+SandboxTest/SandboxTest.Hosting.ProxyInterceptor/bin/

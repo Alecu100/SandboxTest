@@ -5,8 +5,6 @@ VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest", "SandboxTest\SandboxTest.csproj", "{F75F0769-B640-4241-B280-49B5690FFB24}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Hosting", "SandboxTest.Runners.Host\SandboxTest.Hosting.csproj", "{64F6C7F9-4A84-44CA-9122-6008FF01E5FD}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.WireMock", "SandboxTest.Runners.WireMock\SandboxTest.WireMock.csproj", "{A8DF8552-596B-4F1A-B35E-F8310A7ACE88}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.TestAdapter", "SandboxTest.TestAdapter\SandboxTest.TestAdapter.csproj", "{238FCC44-12C7-42D9-A472-5D87AA4C6289}"
@@ -23,9 +21,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Engine.Applicat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Net.Http", "SandboxTest.Net.Http\SandboxTest.Net.Http.csproj", "{3F82F51A-0924-48D4-9D6F-4022111FC281}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandboxTest.AspNetCore", "SandboxTest.AspNetCore\SandboxTest.AspNetCore.csproj", "{81091381-44B9-4AC7-A5D0-7E9C57112145}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.AspNetCore", "SandboxTest.AspNetCore\SandboxTest.AspNetCore.csproj", "{81091381-44B9-4AC7-A5D0-7E9C57112145}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandboxTest.Sample.Application2", "SandboxTest.Sample.Application2\SandboxTest.Sample.Application2.csproj", "{D7B1B994-A63B-4EFF-8BD6-1CBF313E5C63}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Sample.Application2", "SandboxTest.Sample.Application2\SandboxTest.Sample.Application2.csproj", "{D7B1B994-A63B-4EFF-8BD6-1CBF313E5C63}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Hosting", "SandboxTest.Hosting\SandboxTest.Hosting.csproj", "{32080B43-5934-49F7-9AAA-C5927283FB51}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Hosting.ProxyInterceptor", "SandboxTest.Hosting.ProxyInterceptor\SandboxTest.Hosting.ProxyInterceptor.csproj", "{0903BB17-1B04-4D96-B371-DA679D9A5FED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,10 +39,6 @@ Global
 		{F75F0769-B640-4241-B280-49B5690FFB24}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F75F0769-B640-4241-B280-49B5690FFB24}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F75F0769-B640-4241-B280-49B5690FFB24}.Release|Any CPU.Build.0 = Release|Any CPU
-		{64F6C7F9-4A84-44CA-9122-6008FF01E5FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{64F6C7F9-4A84-44CA-9122-6008FF01E5FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{64F6C7F9-4A84-44CA-9122-6008FF01E5FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{64F6C7F9-4A84-44CA-9122-6008FF01E5FD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A8DF8552-596B-4F1A-B35E-F8310A7ACE88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A8DF8552-596B-4F1A-B35E-F8310A7ACE88}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8DF8552-596B-4F1A-B35E-F8310A7ACE88}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -81,6 +79,14 @@ Global
 		{D7B1B994-A63B-4EFF-8BD6-1CBF313E5C63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D7B1B994-A63B-4EFF-8BD6-1CBF313E5C63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D7B1B994-A63B-4EFF-8BD6-1CBF313E5C63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32080B43-5934-49F7-9AAA-C5927283FB51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32080B43-5934-49F7-9AAA-C5927283FB51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32080B43-5934-49F7-9AAA-C5927283FB51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32080B43-5934-49F7-9AAA-C5927283FB51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0903BB17-1B04-4D96-B371-DA679D9A5FED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0903BB17-1B04-4D96-B371-DA679D9A5FED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0903BB17-1B04-4D96-B371-DA679D9A5FED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0903BB17-1B04-4D96-B371-DA679D9A5FED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

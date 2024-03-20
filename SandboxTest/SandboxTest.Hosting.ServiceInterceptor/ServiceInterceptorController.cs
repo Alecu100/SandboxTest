@@ -69,16 +69,48 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 }
                 _originalServiceProvider = originalServices.BuildServiceProvider();
                 services.Clear();
+                services.AddSingleton(this);
                 foreach (var serviceDescriptor in originalServices)
                 {
-                    if (serviceDescriptor.ServiceType.IsInterface && !serviceDescriptor.ServiceType.IsGenericTypeDefinition && serviceDescriptor.ServiceType != typeof(IHostApplicationLifetime))
+                    if (serviceDescriptor.ServiceType.IsInterface && serviceDescriptor.ServiceType != typeof(IHostApplicationLifetime))
                     {
-                        if (!serviceDescriptor.IsKeyedService)
+                        if (serviceDescriptor.IsKeyedService && serviceDescriptor.KeyedImplementationFactory != null)
+                        {
+                            Func<IServiceProvider, object?, object> proxyInterceptorFactory = (provider, obj) =>
+                            {
+                                var serviceProxyInterceptorType = ServiceInterceptor.CreateServiceInterceptorTypeWrapper(serviceDescriptor.ServiceType);
+                                var proxyInterceptor = Activator.CreateInstance(serviceProxyInterceptorType, new object[] { this, serviceDescriptor.KeyedImplementationFactory(provider, serviceDescriptor.ServiceKey) })
+                                    ?? throw new InvalidOperationException($"Failed to create service interceptor instance for type {serviceDescriptor.ServiceType.Name}");
+                                return proxyInterceptor;
+                            };
+
+                            var dispatchProxyServiceDescriptor = new ServiceDescriptor(serviceDescriptor.ServiceType, serviceDescriptor.ServiceKey, proxyInterceptorFactory, serviceDescriptor.Lifetime);
+                            services.Add(dispatchProxyServiceDescriptor);
+                            continue;
+                        }
+                        if (serviceDescriptor.IsKeyedService && serviceDescriptor.KeyedImplementationInstance != null)
+                        {
+                            var serviceProxyInterceptorType = ServiceInterceptor.CreateServiceInterceptorTypeWrapper(serviceDescriptor.ServiceType);
+                            var proxyInterceptor = Activator.CreateInstance(serviceProxyInterceptorType, new object[] { this, serviceDescriptor.KeyedImplementationInstance })
+                                ?? throw new InvalidOperationException($"Failed to create service interceptor instance for type {serviceDescriptor.ServiceType.Name}");
+
+                            var dispatchProxyServiceDescriptor = new ServiceDescriptor(serviceDescriptor.ServiceType, serviceDescriptor.ServiceKey, proxyInterceptor);
+                            services.Add(dispatchProxyServiceDescriptor);
+                            continue;
+                        }
+                        if (serviceDescriptor.IsKeyedService && serviceDescriptor.KeyedImplementationType != null)
+                        {
+                            var serviceProxyInterceptorType = ServiceInterceptor.CreateServiceInterceptorTypeWrapper(serviceDescriptor.ServiceType, serviceDescriptor.KeyedImplementationType);
+                            var dispatchProxyServiceDescriptor = new ServiceDescriptor(serviceDescriptor.ServiceType, serviceDescriptor.ServiceKey, serviceProxyInterceptorType, serviceDescriptor.Lifetime);
+                            services.Add(dispatchProxyServiceDescriptor);
+                        }
+                        if (serviceDescriptor.ImplementationFactory != null)
                         {
                             Func<IServiceProvider, object> proxyInterceptorFactory = (provider) =>
                             {
-                                var proxyInterceptor = (ServiceInterceptor)DispatchProxy.Create(serviceDescriptor.ServiceType, proxyInterceptorType);
-                                proxyInterceptor.Initialize(this, _originalServiceProvider.GetRequiredService(serviceDescriptor.ServiceType), serviceDescriptor.ServiceType);
+                                var serviceProxyInterceptorType = ServiceInterceptor.CreateServiceInterceptorTypeWrapper(serviceDescriptor.ServiceType);
+                                var proxyInterceptor = Activator.CreateInstance(serviceProxyInterceptorType, new object[] { this, serviceDescriptor.ImplementationFactory(provider) })
+                                    ?? throw new InvalidOperationException($"Failed to create service interceptor instance for type {serviceDescriptor.ServiceType.Name}");
                                 return proxyInterceptor;
                             };
 
@@ -86,18 +118,21 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                             services.Add(dispatchProxyServiceDescriptor);
                             continue;
                         }
-                        if (serviceDescriptor.IsKeyedService)
+                        if (serviceDescriptor.ImplementationInstance != null)
                         {
-                            Func<IServiceProvider, object?, object> proxyInterceptorFactory = (provider, key) =>
-                            {
-                                var proxyInterceptor = (ServiceInterceptor)DispatchProxy.Create(serviceDescriptor.ServiceType, proxyInterceptorType);
-                                proxyInterceptor.Initialize(this, _originalServiceProvider.GetRequiredKeyedService(serviceDescriptor.ServiceType, key), serviceDescriptor.ServiceType);
-                                return proxyInterceptor;
-                            };
+                            var serviceProxyInterceptorType = ServiceInterceptor.CreateServiceInterceptorTypeWrapper(serviceDescriptor.ServiceType);
+                            var proxyInterceptor = Activator.CreateInstance(serviceProxyInterceptorType, new object[] { this, serviceDescriptor.ImplementationInstance })
+                                ?? throw new InvalidOperationException($"Failed to create service interceptor instance for type {serviceDescriptor.ServiceType.Name}");
 
-                            var dispatchProxyServiceDescriptor = new ServiceDescriptor(serviceDescriptor.ServiceType, serviceDescriptor.ServiceKey, proxyInterceptorFactory, serviceDescriptor.Lifetime);
+                            var dispatchProxyServiceDescriptor = new ServiceDescriptor(serviceDescriptor.ServiceType, proxyInterceptor);
                             services.Add(dispatchProxyServiceDescriptor);
                             continue;
+                        }
+                        if (serviceDescriptor.ImplementationType != null)
+                        {
+                            var serviceProxyInterceptorType = ServiceInterceptor.CreateServiceInterceptorTypeWrapper(serviceDescriptor.ServiceType, serviceDescriptor.ImplementationType);
+                            var dispatchProxyServiceDescriptor = new ServiceDescriptor(serviceDescriptor.ServiceType, serviceProxyInterceptorType, serviceDescriptor.Lifetime);
+                            services.Add(dispatchProxyServiceDescriptor);
                         }
                     }
                     else

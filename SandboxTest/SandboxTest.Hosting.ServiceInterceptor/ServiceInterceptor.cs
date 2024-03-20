@@ -33,7 +33,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var assemblyName = new AssemblyName($"ServiceInterceptorProxyAssembly.{MakeSafeName(interfaceType.Name)}.{MakeSafeName(wrappedType.Name)}.dll");
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name ?? throw new InvalidOperationException("Could not create assembly name"));
-            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{interfaceType.Name}{wrappedType.Name}", TypeAttributes.Public, serviceInterceptorBaseType);
+            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{MakeSafeName(interfaceType.Name)}{MakeSafeName(wrappedType.Name)}", TypeAttributes.Public, serviceInterceptorBaseType);
             GenericTypeParameterBuilder[]? serviceInterceptorGenericParameters = null;
             Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap = null;
 
@@ -70,10 +70,10 @@ namespace SandboxTest.Hosting.ProxyInterceptor
         public static Type CreateServiceInterceptorTypeWrapper(Type interfaceType)
         {
             var serviceInterceptorBaseType = typeof(ServiceInterceptor);
-            var assemblyName = new AssemblyName($"ServiceInterceptorProxyAssembly.{interfaceType.Name}");
+            var assemblyName = new AssemblyName($"ServiceInterceptorProxyAssembly.{MakeSafeName(interfaceType.Name)}");
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name ?? throw new InvalidOperationException("Could not create assembly name"));
-            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{interfaceType.Name}", TypeAttributes.Public, serviceInterceptorBaseType);
+            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{MakeSafeName(interfaceType.Name)}", TypeAttributes.Public, serviceInterceptorBaseType);
             GenericTypeParameterBuilder[]? serviceInterceptorGenericParameters = null;
             Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap = null;
 

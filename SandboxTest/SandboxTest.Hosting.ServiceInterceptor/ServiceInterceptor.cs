@@ -9,10 +9,23 @@ namespace SandboxTest.Hosting.ProxyInterceptor
         private ServiceInterceptorController _controller;
         private List<Type> _interfaceType;
 
-        public ServiceInterceptor(ServiceInterceptorController controller)
+        public ServiceInterceptor(ServiceInterceptorController controller, Type wrappedType, object?[]? arguments)
         {
             _controller = controller;
             _interfaceType = GetType().GetInterfaces().ToList();
+            if (wrappedType.IsGenericTypeDefinition)
+            {
+                if (!GetType().IsGenericType)
+                {
+                    throw new InvalidOperationException("Non generic service interceptor contains generic wrapped type");
+                }
+                var actualType = wrappedType.GetType().MakeGenericType(GetType().GetGenericArguments());
+                _wrappedInstance = Activator.CreateInstance(actualType, arguments);
+            }
+            else
+            {
+                _wrappedInstance = Activator.CreateInstance(wrappedType, arguments);
+            }
         }
 
         public ServiceInterceptor(ServiceInterceptorController controller, object wrappedInstance)
@@ -22,7 +35,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             _interfaceType = GetType().GetInterfaces().ToList();
         }
 
-        public static Type CreateServiceInterceptorTypeWrapper(Type interfaceType, Type wrappedType)
+        public static Type CreateServiceInterceptorTypeWrapper(Type interfaceType, Type wrappedType, ServiceInterceptorController controller)
         {
             if (!GetAllInterfacesImplementedByType(wrappedType).Any(wrappedInterfaceType => InterfacesAreEquivalent(wrappedInterfaceType, interfaceType)))
             {
@@ -35,6 +48,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{MakeSafeName(interfaceType.Name)}{MakeSafeName(wrappedType.Name)}", TypeAttributes.Public, serviceInterceptorBaseType);
             GenericTypeParameterBuilder[]? serviceInterceptorGenericParameters = null;
             Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap = null;
+            Dictionary<Type, GenericTypeParameterBuilder>? wrappedTypeGenericParametersMap = null;
             List<MethodBuilder> builtMethods = new List<MethodBuilder>();
 
             if (interfaceType.IsGenericTypeDefinition)
@@ -46,21 +60,24 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 var interfaceGenericArguments = interfaceType.GetGenericArguments();
                 serviceInterceptorGenericParameters = serviceInterceptorTypeBuilder.DefineGenericParameters(interfaceGenericArguments.Select(arg => $"{arg.Name}W").ToArray());
                 serviceInterceptorGenericParametersMap = new Dictionary<Type, GenericTypeParameterBuilder>();
+                wrappedTypeGenericParametersMap = new Dictionary<Type, GenericTypeParameterBuilder>();
                 for (int i = 0; i < serviceInterceptorGenericParameters.Length; i++)
                 {
                     serviceInterceptorGenericParametersMap[interfaceGenericArguments[i]] = serviceInterceptorGenericParameters[i];
                 }
-
-                interfaceType = ReplaceGenericArgumentsAndConstraintsFromGenericType(interfaceType, serviceInterceptorGenericParametersMap);
-                wrappedType = wrappedType.MakeGenericType(serviceInterceptorGenericParameters.Select(param => param.AsType()).ToArray());
-                serviceInterceptorTypeBuilder.AddInterfaceImplementation(interfaceType);
+                var wrappedTypeGenericArguments = wrappedType.GetGenericArguments();
+                for (int i = 0; i < wrappedTypeGenericArguments.Length; i++)
+                {
+                    wrappedTypeGenericParametersMap[wrappedTypeGenericArguments[i]] = serviceInterceptorGenericParameters[i];
+                }
+                serviceInterceptorTypeBuilder.AddInterfaceImplementation(ReplaceGenericArgumentsAndConstraintsFromGenericType(interfaceType, serviceInterceptorGenericParametersMap));
             }
             else
             {
                 serviceInterceptorTypeBuilder.AddInterfaceImplementation(interfaceType);
             }
 
-            GenerateConstructors(wrappedType, serviceInterceptorBaseType, serviceInterceptorTypeBuilder);
+            GenerateConstructors(wrappedType, serviceInterceptorBaseType, serviceInterceptorTypeBuilder, wrappedTypeGenericParametersMap, controller);
 
             GenerateInterfaceMethods(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap, builtMethods);
 
@@ -71,7 +88,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             return serviceInterceptorTypeBuilder.CreateType();
         }
 
-        public static Type CreateServiceInterceptorTypeWrapper(Type interfaceType)
+        public static Type CreateServiceInterceptorTypeWrapper(Type interfaceType, ServiceInterceptorController serviceInterceptorController)
         {
             var serviceInterceptorBaseType = typeof(ServiceInterceptor);
             var assemblyName = new AssemblyName($"ServiceInterceptorProxyAssembly.{MakeSafeName(interfaceType.Name)}");
@@ -118,6 +135,16 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 return true;
             }
 
+            if (interface1.IsAssignableFrom(interface2))
+            {
+                return true;
+            }
+
+            if (interface2.IsAssignableFrom(interface1))
+            {
+                return true;
+            }
+
             if (interface1.IsGenericType && !interface1.IsGenericTypeDefinition && interface1.GetGenericTypeDefinition() == interface2)
             {
                 return true;
@@ -137,7 +164,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 
             foreach (var interfaceEvent in interfaceEvents)
             {
-                serviceInterceptorTypeBuilder.DefineEvent(interfaceEvent.Name, interfaceEvent.Attributes, interfaceEvent.EventHandlerType ?? throw new Exception($"Failed to create event {interfaceEvent.Name} for interface {interfaceType.Name}"));
+                var e = serviceInterceptorTypeBuilder.DefineEvent(interfaceEvent.Name, interfaceEvent.Attributes, interfaceEvent.EventHandlerType ?? throw new Exception($"Failed to create event {interfaceEvent.Name} for interface {interfaceType.Name}"));
             }
         }
 
@@ -147,7 +174,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 
             foreach (var interfaceProperty in interfaceProperties) 
             {
-                var property = serviceInterceptorTypeBuilder.DefineProperty(interfaceProperty.Name, interfaceProperty.Attributes, interfaceProperty.PropertyType, Type.EmptyTypes);
+                var property = serviceInterceptorTypeBuilder.DefineProperty(interfaceProperty.Name, interfaceProperty.Attributes, serviceInterceptorGenericParametersMap?.ContainsKey(interfaceProperty.PropertyType) ?? false ? serviceInterceptorGenericParametersMap[interfaceProperty.PropertyType] : interfaceProperty.PropertyType, Type.EmptyTypes);
                 var getMethodProperty = builtMethods.FirstOrDefault(builtMethod => builtMethod.Name == $"get_{property.Name}");
                 var setMethodProperty = builtMethods.FirstOrDefault(builtMethod => builtMethod.Name == $"set_{property.Name}");
                 if (getMethodProperty != null)
@@ -204,8 +231,8 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                         }
                     }
                 }
-                interfaceMethodTypeBuilder.SetParameters(interfaceMethod.GetParameters().Select(x => x.ParameterType).ToArray());
-                interfaceMethodTypeBuilder.SetReturnType(interfaceMethod.ReturnType);
+                interfaceMethodTypeBuilder.SetParameters(interfaceMethod.GetParameters().Select(x => serviceInterceptorGenericParametersMap?.ContainsKey(x.ParameterType) ?? false ? serviceInterceptorGenericParametersMap[x.ParameterType] : x.ParameterType).ToArray());
+                interfaceMethodTypeBuilder.SetReturnType(serviceInterceptorGenericParametersMap?.ContainsKey(interfaceMethod.ReturnType) ?? false ? serviceInterceptorGenericParametersMap[interfaceMethod.ReturnType] : interfaceMethod.ReturnType);
 
                 var interfaceParameters = interfaceMethod.GetParameters();
                 var ilGenerator = interfaceMethodTypeBuilder.GetILGenerator();
@@ -361,7 +388,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
         private static List<Type> GetAllInterfacesImplementedByType(Type type)
         {
             var allInterfaces = type.GetInterfaces().ToList();
-            foreach (var inf in allInterfaces) 
+            foreach (var inf in allInterfaces.ToArray()) 
             {
                 if (inf != null)
                 {
@@ -411,39 +438,125 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             ilGenerator.Emit(OpCodes.Ret);
         }
 
-        private static void GenerateConstructors(Type wrappedType, Type serviceInterceptorBaseType, TypeBuilder serviceInterceptorTypeBuilder)
+        private static void GenerateConstructors(Type wrappedType, Type serviceInterceptorBaseType, TypeBuilder serviceInterceptorTypeBuilder, Dictionary<Type, GenericTypeParameterBuilder>? wrappedTypeGenericParametersMap, ServiceInterceptorController controller)
         {
+            var objectGetTypeMethod = typeof(ServiceInterceptor).GetType().GetMethod(nameof(GetType), BindingFlags.Public | BindingFlags.Instance) ?? throw new InvalidOperationException("Could not get get type object method");
+            var objectTypeIsValueTypeGetMethod = typeof(ServiceInterceptor).GetType().GetProperty(nameof(Type.IsValueType), BindingFlags.Public | BindingFlags.Instance)?.GetMethod ?? throw new InvalidOperationException("Could not get the method is value type");
             var serviceInterceptorControllerType = typeof(ServiceInterceptorController);
-            var baseConstructor = serviceInterceptorBaseType.GetConstructor(new[] { typeof(ServiceInterceptorController) }) ?? throw new InvalidOperationException("Could not find proper base constructor of service interceptor type");
+            var baseConstructor = serviceInterceptorBaseType.GetConstructor(new[] { typeof(ServiceInterceptorController), typeof(Type), typeof(object?[]) }) ?? throw new InvalidOperationException("Could not find proper base constructor of service interceptor type");
             var wrappedTypeConstructors = wrappedType.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
             var wrappedInstanceField = serviceInterceptorBaseType.GetField(nameof(_wrappedInstance), BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException("Could not get wrapped instance field");
-          
+            Func<Type> getWrapperFunc = () => wrappedType;
+
+            controller.AddReference(getWrapperFunc);
+
             foreach (var wrappedTypeConstructor in wrappedTypeConstructors)
             {
                 var wrappedTypeConstructorParameters = wrappedTypeConstructor.GetParameters();
                 var constructor = serviceInterceptorTypeBuilder.DefineConstructor(wrappedTypeConstructor.Attributes, wrappedTypeConstructor.CallingConvention,
-                    new[] { serviceInterceptorControllerType }.Concat(wrappedTypeConstructorParameters.Select(param => param.ParameterType)).ToArray());
+                    new[] { serviceInterceptorControllerType }.Concat(wrappedTypeConstructorParameters.Select(param => wrappedTypeGenericParametersMap?.ContainsKey(param.ParameterType) ?? false ? wrappedTypeGenericParametersMap[param.ParameterType] : param.ParameterType)).ToArray());
                 var ilGenerator = constructor.GetILGenerator();
                 ilGenerator.Emit(OpCodes.Ldarg_0);
                 ilGenerator.Emit(OpCodes.Ldarg_1);
-                ilGenerator.Emit(OpCodes.Call, baseConstructor);
-                if (wrappedTypeConstructorParameters.Length >= 2)
+                ilGenerator.Emit(OpCodes.Callvirt, getWrapperFunc.Method);
+                if (!wrappedTypeConstructorParameters.Any())
+                {
+                    ilGenerator.Emit(OpCodes.Ldnull);
+                    ilGenerator.Emit(OpCodes.Call, baseConstructor);
+                    ilGenerator.Emit(OpCodes.Ret);
+                }
+
+                ilGenerator.Emit(OpCodes.Ldc_I4, wrappedTypeConstructorParameters.Length);
+                ilGenerator.Emit(OpCodes.Newarr, typeof(object));
+                ilGenerator.Emit(OpCodes.Stloc_0);
+                var loadArgumentLabel = ilGenerator.DefineLabel();
+                var loadNextArgumentLabel = ilGenerator.DefineLabel();
+                if (wrappedTypeConstructorParameters.Length >= 1)
                 {
                     ilGenerator.Emit(OpCodes.Ldarg_2);
+                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Ldarg_2);
+                    ilGenerator.Emit(OpCodes.Callvirt, objectGetTypeMethod);
+                    ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
+                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Ldarg_2);
+                    ilGenerator.Emit(OpCodes.Box);
+                    ilGenerator.Emit(OpCodes.Stloc_1);
+                    ilGenerator.Emit(OpCodes.Ldloc_0);
+                    ilGenerator.Emit(OpCodes.Ldind_I4, 0);
+                    ilGenerator.Emit(OpCodes.Ldloc_1);
+                    ilGenerator.Emit(OpCodes.Stelem, typeof(object));
+                    ilGenerator.Emit(OpCodes.Br, loadNextArgumentLabel);
+                    ilGenerator.MarkLabel(loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Ldloc_0);
+                    ilGenerator.Emit(OpCodes.Ldind_I4, 0);
+                    ilGenerator.Emit(OpCodes.Ldarg_2);
+                    ilGenerator.Emit(OpCodes.Castclass, typeof(object));
+                    ilGenerator.Emit(OpCodes.Stelem, typeof(object));
                 }
-                if (wrappedTypeConstructorParameters.Length >= 3)
+
+                ilGenerator.MarkLabel(loadNextArgumentLabel);
+
+                if (wrappedTypeConstructorParameters.Length >= 2)
                 {
+                    loadArgumentLabel = ilGenerator.DefineLabel();
+                    loadNextArgumentLabel = ilGenerator.DefineLabel();
+
                     ilGenerator.Emit(OpCodes.Ldarg_3);
+                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Ldarg_3);
+                    ilGenerator.Emit(OpCodes.Callvirt, objectGetTypeMethod);
+                    ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
+                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Ldarg_3);
+                    ilGenerator.Emit(OpCodes.Box);
+                    ilGenerator.Emit(OpCodes.Stloc_1);
+                    ilGenerator.Emit(OpCodes.Ldloc_0);
+                    ilGenerator.Emit(OpCodes.Ldind_I4, 1);
+                    ilGenerator.Emit(OpCodes.Ldloc_1);
+                    ilGenerator.Emit(OpCodes.Stelem, typeof(object));
+                    ilGenerator.Emit(OpCodes.Br, loadNextArgumentLabel);
+                    ilGenerator.MarkLabel(loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Ldloc_0);
+                    ilGenerator.Emit(OpCodes.Ldind_I4, 1);
+                    ilGenerator.Emit(OpCodes.Ldarg_3);
+                    ilGenerator.Emit(OpCodes.Castclass, typeof(object));
+                    ilGenerator.Emit(OpCodes.Stelem, typeof(object));
+
+                    ilGenerator.MarkLabel(loadNextArgumentLabel);
                 }
-                for (short constructorParamIndex = 4; constructorParamIndex < wrappedTypeConstructorParameters.Length + 2; constructorParamIndex++)
+
+                for (short parameterIndex = 2; parameterIndex < wrappedTypeConstructorParameters.Length; parameterIndex++)
                 {
-                    ilGenerator.Emit(OpCodes.Ldarg, constructorParamIndex);
+                    loadArgumentLabel = ilGenerator.DefineLabel();
+                    loadNextArgumentLabel = ilGenerator.DefineLabel();
+
+                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 2));
+                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 2));
+                    ilGenerator.Emit(OpCodes.Callvirt, objectGetTypeMethod);
+                    ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
+                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 2));
+                    ilGenerator.Emit(OpCodes.Box);
+                    ilGenerator.Emit(OpCodes.Stloc_1);
+                    ilGenerator.Emit(OpCodes.Ldloc_0);
+                    ilGenerator.Emit(OpCodes.Ldind_I4, (int)parameterIndex);
+                    ilGenerator.Emit(OpCodes.Ldloc_1);
+                    ilGenerator.Emit(OpCodes.Stelem, typeof(object));
+                    ilGenerator.Emit(OpCodes.Br, loadNextArgumentLabel);
+                    ilGenerator.MarkLabel(loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Ldloc_0);
+                    ilGenerator.Emit(OpCodes.Ldind_I4, (int)parameterIndex);
+                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 2));
+                    ilGenerator.Emit(OpCodes.Castclass, typeof(object));
+                    ilGenerator.Emit(OpCodes.Stelem, typeof(object));
+
+                    ilGenerator.MarkLabel(loadNextArgumentLabel);
                 }
-                ilGenerator.Emit(OpCodes.Newobj, wrappedTypeConstructor);
-                ilGenerator.Emit(OpCodes.Stloc_0);
-                ilGenerator.Emit(OpCodes.Ldarg_0);
+
                 ilGenerator.Emit(OpCodes.Ldloc_0);
-                ilGenerator.Emit(OpCodes.Stfld, wrappedInstanceField);
+                ilGenerator.Emit(OpCodes.Call, baseConstructor);
                 ilGenerator.Emit(OpCodes.Ret);
             }
         }
@@ -461,7 +574,6 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                         {
                             continue;
                         }
-                        genericParametersMap[type].SetGenericParameterAttributes(type.GenericParameterAttributes);
                         if (replacedGenericConstraint.IsInterface)
                         {
                             genericParametersMap[type].SetInterfaceConstraints(replacedGenericConstraint);
@@ -469,6 +581,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                         }
                         genericParametersMap[type].SetBaseTypeConstraint(replacedGenericConstraint);
                     }
+                    genericParametersMap[type].SetGenericParameterAttributes(type.GenericParameterAttributes & ~(GenericParameterAttributes.Covariant) & ~(GenericParameterAttributes.Contravariant));
                     return genericParametersMap[type];
                 }
                 return type;

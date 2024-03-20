@@ -67,6 +67,42 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             return serviceInterceptorTypeBuilder.CreateType();
         }
 
+        public static Type CreateServiceInterceptorTypeWrapper(Type interfaceType)
+        {
+            var serviceInterceptorBaseType = typeof(ServiceInterceptor);
+            var assemblyName = new AssemblyName($"ServiceInterceptorProxyAssembly.{interfaceType.Name}");
+            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name ?? throw new InvalidOperationException("Could not create assembly name"));
+            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{interfaceType.Name}", TypeAttributes.Public, serviceInterceptorBaseType);
+            GenericTypeParameterBuilder[]? serviceInterceptorGenericParameters = null;
+            Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap = null;
+
+            if (interfaceType.IsGenericTypeDefinition)
+            {
+                var interfaceGenericArguments = interfaceType.GetGenericArguments();
+                serviceInterceptorGenericParameters = serviceInterceptorTypeBuilder.DefineGenericParameters(interfaceGenericArguments.Select(arg => $"{arg.Name}W").ToArray());
+                serviceInterceptorGenericParametersMap = new Dictionary<Type, GenericTypeParameterBuilder>();
+                for (int i = 0; i < serviceInterceptorGenericParameters.Length; i++)
+                {
+                    serviceInterceptorGenericParametersMap[interfaceGenericArguments[i]] = serviceInterceptorGenericParameters[i];
+                }
+
+                interfaceType = ReplaceGenericArgumentsAndConstraintsFromGenericType(interfaceType, serviceInterceptorGenericParametersMap);
+                serviceInterceptorTypeBuilder.AddInterfaceImplementation(interfaceType.MakeGenericType(serviceInterceptorGenericParameters.Select(param => param.AsType()).ToArray()));
+            }
+            else
+            {
+                serviceInterceptorTypeBuilder.AddInterfaceImplementation(interfaceType);
+            }
+
+            GenerateConstructor(serviceInterceptorBaseType, serviceInterceptorTypeBuilder);
+
+            GenerateInterfaceMethods(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap);
+
+            return serviceInterceptorTypeBuilder.CreateType();
+        }
+
+
         private static void GenerateInterfaceMethods(Type interfaceType, TypeBuilder serviceInterceptorTypeBuilder, Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap)
         {
             var invokeMethod = typeof(ServiceInterceptor).GetMethod(nameof(Invoke), BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException("Could not get current method"); 
@@ -255,6 +291,21 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 ilGenerator.Emit(OpCodes.Callvirt, invokeMethod);
                 ilGenerator.Emit(OpCodes.Ret);
             }
+        }
+
+        private static void GenerateConstructor(Type serviceInterceptorBaseType, TypeBuilder serviceInterceptorTypeBuilder)
+        {
+            var serviceInterceptorControllerType = typeof(ServiceInterceptorController);
+            var baseConstructor = serviceInterceptorBaseType.GetConstructor(new[] { typeof(ServiceInterceptorController), typeof(object) }) ?? throw new InvalidOperationException("Could not find proper base constructor of service interceptor type");
+            var wrappedInstanceField = serviceInterceptorTypeBuilder.GetField(nameof(_wrappedInstance), BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException("Could not get wrapped instance field");
+            var constructor = serviceInterceptorTypeBuilder.DefineConstructor(baseConstructor.Attributes, baseConstructor.CallingConvention,
+                new[] { serviceInterceptorControllerType }.Concat(baseConstructor.GetParameters().Select(param => param.ParameterType)).ToArray());
+            var ilGenerator = constructor.GetILGenerator();
+            ilGenerator.Emit(OpCodes.Ldarg_0);
+            ilGenerator.Emit(OpCodes.Ldarg_1);
+            ilGenerator.Emit(OpCodes.Ldarg_2);
+            ilGenerator.Emit(OpCodes.Call, baseConstructor);
+            ilGenerator.Emit(OpCodes.Ret);
         }
 
         private static void GenerateConstructors(Type wrappedType, Type serviceInterceptorBaseType, TypeBuilder serviceInterceptorTypeBuilder)

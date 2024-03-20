@@ -30,7 +30,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 throw new InvalidOperationException($"Wrapped type {wrappedType.FullName} must implement interface type {interfaceType.FullName}");
             }
             var serviceInterceptorBaseType = typeof(ServiceInterceptor);
-            var assemblyName = new AssemblyName($"ServiceInterceptorProxyAssembly.{interfaceType.Name}");
+            var assemblyName = new AssemblyName($"ServiceInterceptorProxyAssembly.{MakeSafeName(interfaceType.Name)}.{MakeSafeName(wrappedType.Name)}.dll");
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name ?? throw new InvalidOperationException("Could not create assembly name"));
             var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{interfaceType.Name}{wrappedType.Name}", TypeAttributes.Public, serviceInterceptorBaseType);
@@ -291,6 +291,11 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 ilGenerator.Emit(OpCodes.Callvirt, invokeMethod);
                 ilGenerator.Emit(OpCodes.Ret);
             }
+        }
+
+        private static string MakeSafeName(string name)
+        {
+            return name.Replace("'", "").Replace("`", "").Replace("-", "_").Replace(",", "").Replace(";", "");
         }
 
         private static void GenerateConstructor(Type serviceInterceptorBaseType, TypeBuilder serviceInterceptorTypeBuilder)

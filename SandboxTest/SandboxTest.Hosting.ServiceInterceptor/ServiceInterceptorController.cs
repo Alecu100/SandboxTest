@@ -76,9 +76,9 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                     {
                         if (serviceDescriptor.IsKeyedService && serviceDescriptor.KeyedImplementationFactory != null)
                         {
+                            var serviceProxyInterceptorType = ServiceInterceptor.CreateServiceInterceptorTypeWrapper(serviceDescriptor.ServiceType);
                             Func<IServiceProvider, object?, object> proxyInterceptorFactory = (provider, obj) =>
                             {
-                                var serviceProxyInterceptorType = ServiceInterceptor.CreateServiceInterceptorTypeWrapper(serviceDescriptor.ServiceType);
                                 var proxyInterceptor = Activator.CreateInstance(serviceProxyInterceptorType, new object[] { this, serviceDescriptor.KeyedImplementationFactory(provider, serviceDescriptor.ServiceKey) })
                                     ?? throw new InvalidOperationException($"Failed to create service interceptor instance for type {serviceDescriptor.ServiceType.Name}");
                                 return proxyInterceptor;
@@ -106,9 +106,9 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                         }
                         if (serviceDescriptor.ImplementationFactory != null)
                         {
+                            var serviceProxyInterceptorType = ServiceInterceptor.CreateServiceInterceptorTypeWrapper(serviceDescriptor.ServiceType);
                             Func<IServiceProvider, object> proxyInterceptorFactory = (provider) =>
                             {
-                                var serviceProxyInterceptorType = ServiceInterceptor.CreateServiceInterceptorTypeWrapper(serviceDescriptor.ServiceType);
                                 var proxyInterceptor = Activator.CreateInstance(serviceProxyInterceptorType, new object[] { this, serviceDescriptor.ImplementationFactory(provider) })
                                     ?? throw new InvalidOperationException($"Failed to create service interceptor instance for type {serviceDescriptor.ServiceType.Name}");
                                 return proxyInterceptor;

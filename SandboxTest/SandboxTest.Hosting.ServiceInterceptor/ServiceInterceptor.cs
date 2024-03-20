@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Reflection.Emit;
 
 namespace SandboxTest.Hosting.ProxyInterceptor
@@ -25,7 +24,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 
         public static Type CreateServiceInterceptorTypeWrapper(Type interfaceType, Type wrappedType)
         {
-            if (!wrappedType.GetInterfaces().Any(wrappedInterfaceType => wrappedInterfaceType == interfaceType))
+            if (!GetAllInterfacesImplementedByType(wrappedType).Any(wrappedInterfaceType => InterfacesAreEquivalent(wrappedInterfaceType, interfaceType)))
             {
                 throw new InvalidOperationException($"Wrapped type {wrappedType.FullName} must implement interface type {interfaceType.FullName}");
             }
@@ -36,6 +35,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{MakeSafeName(interfaceType.Name)}{MakeSafeName(wrappedType.Name)}", TypeAttributes.Public, serviceInterceptorBaseType);
             GenericTypeParameterBuilder[]? serviceInterceptorGenericParameters = null;
             Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap = null;
+            List<MethodBuilder> builtMethods = new List<MethodBuilder>();
 
             if (interfaceType.IsGenericTypeDefinition)
             {
@@ -53,7 +53,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 
                 interfaceType = ReplaceGenericArgumentsAndConstraintsFromGenericType(interfaceType, serviceInterceptorGenericParametersMap);
                 wrappedType = wrappedType.MakeGenericType(serviceInterceptorGenericParameters.Select(param => param.AsType()).ToArray());
-                serviceInterceptorTypeBuilder.AddInterfaceImplementation(interfaceType.MakeGenericType(serviceInterceptorGenericParameters.Select(param => param.AsType()).ToArray()));
+                serviceInterceptorTypeBuilder.AddInterfaceImplementation(interfaceType);
             }
             else
             {
@@ -62,7 +62,11 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 
             GenerateConstructors(wrappedType, serviceInterceptorBaseType, serviceInterceptorTypeBuilder);
 
-            GenerateInterfaceMethods(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap);
+            GenerateInterfaceMethods(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap, builtMethods);
+
+            GenerateInterfaceProperties(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap, builtMethods);
+
+            GenerateInterfaceEvents(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap);
 
             return serviceInterceptorTypeBuilder.CreateType();
         }
@@ -73,9 +77,10 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var assemblyName = new AssemblyName($"ServiceInterceptorProxyAssembly.{MakeSafeName(interfaceType.Name)}");
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name ?? throw new InvalidOperationException("Could not create assembly name"));
-            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{MakeSafeName(interfaceType.Name)}", TypeAttributes.Public, serviceInterceptorBaseType);
+            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{MakeSafeName(interfaceType.Name)}", TypeAttributes.Public | TypeAttributes.Class, serviceInterceptorBaseType);
             GenericTypeParameterBuilder[]? serviceInterceptorGenericParameters = null;
             Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap = null;
+            List<MethodBuilder> builtMethods = new List<MethodBuilder>();
 
             if (interfaceType.IsGenericTypeDefinition)
             {
@@ -97,24 +102,77 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 
             GenerateConstructor(serviceInterceptorBaseType, serviceInterceptorTypeBuilder);
 
-            GenerateInterfaceMethods(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap);
+            GenerateInterfaceMethods(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap, builtMethods);
+
+            GenerateInterfaceProperties(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap, builtMethods);
+
+            GenerateInterfaceEvents(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap);
 
             return serviceInterceptorTypeBuilder.CreateType();
         }
 
+        private static bool InterfacesAreEquivalent(Type interface1, Type interface2)
+        {
+            if (interface1 == interface2)
+            {
+                return true;
+            }
 
-        private static void GenerateInterfaceMethods(Type interfaceType, TypeBuilder serviceInterceptorTypeBuilder, Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap)
+            if (interface1.IsGenericType && !interface1.IsGenericTypeDefinition && interface1.GetGenericTypeDefinition() == interface2)
+            {
+                return true;
+            }
+
+            if (interface2.IsGenericType && !interface2.IsGenericTypeDefinition && interface1.GetGenericTypeDefinition() == interface1)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static void GenerateInterfaceEvents(Type interfaceType, TypeBuilder serviceInterceptorTypeBuilder, Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap)
+        {
+            var interfaceEvents = interfaceType.GetEvents(BindingFlags.Instance);
+
+            foreach (var interfaceEvent in interfaceEvents)
+            {
+                serviceInterceptorTypeBuilder.DefineEvent(interfaceEvent.Name, interfaceEvent.Attributes, interfaceEvent.EventHandlerType ?? throw new Exception($"Failed to create event {interfaceEvent.Name} for interface {interfaceType.Name}"));
+            }
+        }
+
+        private static void GenerateInterfaceProperties(Type interfaceType, TypeBuilder serviceInterceptorTypeBuilder, Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap, List<MethodBuilder> builtMethods)
+        {
+            var interfaceProperties = GetAllInterfaceProperties(interfaceType);
+
+            foreach (var interfaceProperty in interfaceProperties) 
+            {
+                var property = serviceInterceptorTypeBuilder.DefineProperty(interfaceProperty.Name, interfaceProperty.Attributes, interfaceProperty.PropertyType, Type.EmptyTypes);
+                var getMethodProperty = builtMethods.FirstOrDefault(builtMethod => builtMethod.Name == $"get_{property.Name}");
+                var setMethodProperty = builtMethods.FirstOrDefault(builtMethod => builtMethod.Name == $"set_{property.Name}");
+                if (getMethodProperty != null)
+                {
+                    property.SetGetMethod(getMethodProperty);
+                }
+                if (setMethodProperty != null)
+                {
+                    property.SetSetMethod(setMethodProperty);
+                }
+            }
+        }
+
+        private static void GenerateInterfaceMethods(Type interfaceType, TypeBuilder serviceInterceptorTypeBuilder, Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap, List<MethodBuilder> builtMethods)
         {
             var invokeMethod = typeof(ServiceInterceptor).GetMethod(nameof(Invoke), BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException("Could not get current method"); 
             var getCurrentMethod = typeof(MethodBase).GetMethod(nameof(MethodBase.GetCurrentMethod), BindingFlags.Static | BindingFlags.Public) ?? throw new InvalidOperationException("Could not get current method");
-            var interfaceMethods = interfaceType.GetMethods(BindingFlags.Instance | BindingFlags.Public);
+            var interfaceMethods = GetAllInterfaceMethods(interfaceType);
             var objectGetTypeMethod = typeof(ServiceInterceptor).GetType().GetMethod(nameof(GetType), BindingFlags.Public | BindingFlags.Instance) ?? throw new InvalidOperationException("Could not get get type object method");
             var objectTypeIsValueTypeGetMethod = typeof(ServiceInterceptor).GetType().GetProperty(nameof(Type.IsValueType), BindingFlags.Public | BindingFlags.Instance)?.GetMethod ?? throw new InvalidOperationException("Could not get the method is value type");
 
             foreach (var interfaceMethod in interfaceMethods)
             {
-                var interfaceMethodTypeBuilder = serviceInterceptorTypeBuilder.DefineMethod(interfaceMethod.Name, interfaceMethod.Attributes, interfaceMethod.CallingConvention);
-                interfaceMethodTypeBuilder.SetReturnType(interfaceMethod.ReturnType);
+                var interfaceMethodTypeBuilder = serviceInterceptorTypeBuilder.DefineMethod(interfaceMethod.Name, (interfaceMethod.Attributes) & ~(MethodAttributes.Abstract), interfaceMethod.CallingConvention);
+                builtMethods.Add(interfaceMethodTypeBuilder);
                 var interfaceMethodArgumentsType = new List<Type>();
                 var interfaceMethodGenericArguments = interfaceMethod.GetGenericArguments();
                 var interfaceMethodGenericParametersMap = new Dictionary<Type, GenericTypeParameterBuilder>();
@@ -146,6 +204,8 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                         }
                     }
                 }
+                interfaceMethodTypeBuilder.SetParameters(interfaceMethod.GetParameters().Select(x => x.ParameterType).ToArray());
+                interfaceMethodTypeBuilder.SetReturnType(interfaceMethod.ReturnType);
 
                 var interfaceParameters = interfaceMethod.GetParameters();
                 var ilGenerator = interfaceMethodTypeBuilder.GetILGenerator();
@@ -298,13 +358,51 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             return name.Replace("'", "").Replace("`", "").Replace("-", "_").Replace(",", "").Replace(";", "");
         }
 
+        private static List<Type> GetAllInterfacesImplementedByType(Type type)
+        {
+            var allInterfaces = type.GetInterfaces().ToList();
+            foreach (var inf in allInterfaces) 
+            {
+                if (inf != null)
+                {
+                    allInterfaces.AddRange(GetAllInterfacesImplementedByType(inf));
+                }
+            }
+
+            return allInterfaces;
+        }
+
+        private static List<MethodInfo> GetAllInterfaceMethods(Type interfaceType)
+        {
+            var interfaceMethods = interfaceType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).ToList();
+            var implementedInterfaces = interfaceType.GetInterfaces();
+            foreach (var implementedInterface in implementedInterfaces)
+            {
+                interfaceMethods.AddRange(GetAllInterfaceMethods(implementedInterface));
+            }
+
+            return interfaceMethods;
+        }
+
+        private static List<PropertyInfo> GetAllInterfaceProperties(Type interfaceType)
+        {
+            var interfaceProperties = interfaceType.GetProperties(BindingFlags.Instance).ToList();
+            var implementedInterfaces = interfaceType.GetInterfaces();
+            foreach (var implementedInterface in implementedInterfaces)
+            {
+                interfaceProperties.AddRange(GetAllInterfaceProperties(implementedInterface));
+            }
+
+            return interfaceProperties;
+        }
+
         private static void GenerateConstructor(Type serviceInterceptorBaseType, TypeBuilder serviceInterceptorTypeBuilder)
         {
             var serviceInterceptorControllerType = typeof(ServiceInterceptorController);
             var baseConstructor = serviceInterceptorBaseType.GetConstructor(new[] { typeof(ServiceInterceptorController), typeof(object) }) ?? throw new InvalidOperationException("Could not find proper base constructor of service interceptor type");
-            var wrappedInstanceField = serviceInterceptorTypeBuilder.GetField(nameof(_wrappedInstance), BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException("Could not get wrapped instance field");
+            var wrappedInstanceField = serviceInterceptorBaseType.GetField(nameof(_wrappedInstance), BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException("Could not get wrapped instance field");
             var constructor = serviceInterceptorTypeBuilder.DefineConstructor(baseConstructor.Attributes, baseConstructor.CallingConvention,
-                new[] { serviceInterceptorControllerType }.Concat(baseConstructor.GetParameters().Select(param => param.ParameterType)).ToArray());
+                baseConstructor.GetParameters().Select(param => param.ParameterType).ToArray());
             var ilGenerator = constructor.GetILGenerator();
             ilGenerator.Emit(OpCodes.Ldarg_0);
             ilGenerator.Emit(OpCodes.Ldarg_1);
@@ -318,7 +416,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var serviceInterceptorControllerType = typeof(ServiceInterceptorController);
             var baseConstructor = serviceInterceptorBaseType.GetConstructor(new[] { typeof(ServiceInterceptorController) }) ?? throw new InvalidOperationException("Could not find proper base constructor of service interceptor type");
             var wrappedTypeConstructors = wrappedType.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
-            var wrappedInstanceField = serviceInterceptorTypeBuilder.GetField(nameof(_wrappedInstance), BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException("Could not get wrapped instance field");
+            var wrappedInstanceField = serviceInterceptorBaseType.GetField(nameof(_wrappedInstance), BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException("Could not get wrapped instance field");
           
             foreach (var wrappedTypeConstructor in wrappedTypeConstructors)
             {

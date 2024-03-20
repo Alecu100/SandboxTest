@@ -1,5 +1,8 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.InteropServices;
 
 namespace SandboxTest.Hosting.ProxyInterceptor
 {
@@ -454,11 +457,10 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var serviceInterceptorControllerType = typeof(ServiceInterceptorController);
             var baseConstructor = serviceInterceptorBaseType.GetConstructor(new[] { typeof(ServiceInterceptorController), typeof(Type), typeof(object?[]) }) ?? throw new InvalidOperationException("Could not find proper base constructor of service interceptor type");
             var wrappedTypeConstructors = wrappedType.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
-            Func<Type> getWrapperFunc = () => wrappedType;
-            var getWrapperSourceType = getWrapperFunc.Method.DeclaringType;
-            var getWrapperSourceConstructor = getWrapperSourceType?.GetConstructor(Type.EmptyTypes) ?? throw new InvalidOperationException("Failed to get constructor for type getWrapperType object");
+            var gcHandleWrappedType = GCHandle.Alloc(wrappedType);
+            var ptrHandleWrappedType = GCHandle.ToIntPtr(gcHandleWrappedType);
 
-            controller.AddReference(getWrapperFunc);
+            controller.AddReference(wrappedType);
 
             foreach (var wrappedTypeConstructor in wrappedTypeConstructors)
             {
@@ -468,11 +470,14 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 var ilGenerator = constructor.GetILGenerator();
                 var localOjectParamList = ilGenerator.DeclareLocal(typeof(object[]));
                 var localObjectParam = ilGenerator.DeclareLocal(typeof(object));
+                ilGenerator.EmitWriteLine("Calling constructor for wrapped type");
                 ilGenerator.Emit(OpCodes.Ldarg_0);
                 ilGenerator.Emit(OpCodes.Ldarg_1);
-                ilGenerator.Emit(OpCodes.Newobj, getWrapperSourceConstructor);
-                ilGenerator.Emit(OpCodes.Callvirt, getWrapperFunc.Method);
-                ilGenerator.EmitWriteLine("Calling constructor for wrapped type");
+                if (IntPtr.Size == 4)
+                    ilGenerator.Emit(OpCodes.Ldc_I4, ptrHandleWrappedType.ToInt32());
+                else
+                    ilGenerator.Emit(OpCodes.Ldc_I8, ptrHandleWrappedType.ToInt64());
+                ilGenerator.Emit(OpCodes.Ldobj, typeof(Type));
                 if (!wrappedTypeConstructorParameters.Any())
                 {
                     ilGenerator.Emit(OpCodes.Ldnull);

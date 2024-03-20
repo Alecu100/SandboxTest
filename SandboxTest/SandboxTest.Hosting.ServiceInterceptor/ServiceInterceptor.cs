@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Reflection.Emit;
 
 namespace SandboxTest.Hosting.ProxyInterceptor
@@ -243,6 +242,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 
                 var interfaceParameters = interfaceMethod.GetParameters();
                 var ilGenerator = interfaceMethodTypeBuilder.GetILGenerator();
+                ilGenerator.EmitWriteLine("Calling generated interface method");
                 ilGenerator.Emit(OpCodes.Call, getCurrentMethod);
                 ilGenerator.Emit(OpCodes.Castclass, typeof(MethodInfo));
                 ilGenerator.Emit(OpCodes.Stloc_2);
@@ -264,8 +264,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 if (interfaceParameters.Length >= 1) 
                 {
                     ilGenerator.Emit(OpCodes.Ldarg_1);
-                    ilGenerator.Emit(OpCodes.Ldnull);
-                    ilGenerator.Emit(OpCodes.Beq, loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
                     ilGenerator.Emit(OpCodes.Ldarg_1);
                     ilGenerator.Emit(OpCodes.Callvirt, objectGetTypeMethod);
                     ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
@@ -295,8 +294,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                     loadNextArgumentLabel = ilGenerator.DefineLabel();
 
                     ilGenerator.Emit(OpCodes.Ldarg_2);
-                    ilGenerator.Emit(OpCodes.Ldnull);
-                    ilGenerator.Emit(OpCodes.Beq, loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
                     ilGenerator.Emit(OpCodes.Ldarg_2);
                     ilGenerator.Emit(OpCodes.Callvirt, objectGetTypeMethod);
                     ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
@@ -325,8 +323,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                     loadNextArgumentLabel = ilGenerator.DefineLabel();
 
                     ilGenerator.Emit(OpCodes.Ldarg_3);
-                    ilGenerator.Emit(OpCodes.Ldnull);
-                    ilGenerator.Emit(OpCodes.Beq, loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
                     ilGenerator.Emit(OpCodes.Ldarg_3);
                     ilGenerator.Emit(OpCodes.Callvirt, objectGetTypeMethod);
                     ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
@@ -355,8 +352,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                     loadNextArgumentLabel = ilGenerator.DefineLabel();
 
                     ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
-                    ilGenerator.Emit(OpCodes.Ldnull);
-                    ilGenerator.Emit(OpCodes.Beq, loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
                     ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
                     ilGenerator.Emit(OpCodes.Callvirt, objectGetTypeMethod);
                     ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
@@ -438,10 +434,13 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var constructor = serviceInterceptorTypeBuilder.DefineConstructor(baseConstructor.Attributes, baseConstructor.CallingConvention,
                 baseConstructor.GetParameters().Select(param => param.ParameterType).ToArray());
             var ilGenerator = constructor.GetILGenerator();
+            ilGenerator.EmitWriteLine("Calling generated constructor for interface type");
             ilGenerator.Emit(OpCodes.Ldarg_0);
             ilGenerator.Emit(OpCodes.Ldarg_1);
             ilGenerator.Emit(OpCodes.Ldarg_2);
             ilGenerator.Emit(OpCodes.Call, baseConstructor);
+            ilGenerator.Emit(OpCodes.Nop);
+            ilGenerator.Emit(OpCodes.Nop);
             ilGenerator.Emit(OpCodes.Ret);
         }
 
@@ -468,10 +467,13 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 ilGenerator.Emit(OpCodes.Ldarg_1);
                 ilGenerator.Emit(OpCodes.Newobj, getWrapperConstructor);
                 ilGenerator.Emit(OpCodes.Callvirt, getWrapperFunc.Method);
+                ilGenerator.EmitWriteLine("Calling constructor for wrapped type");
                 if (!wrappedTypeConstructorParameters.Any())
                 {
                     ilGenerator.Emit(OpCodes.Ldnull);
                     ilGenerator.Emit(OpCodes.Call, baseConstructor);
+                    ilGenerator.Emit(OpCodes.Nop);
+                    ilGenerator.Emit(OpCodes.Nop);
                     ilGenerator.Emit(OpCodes.Ret);
                 }
 
@@ -480,29 +482,27 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 ilGenerator.Emit(OpCodes.Stloc_0);
                 var loadArgumentLabel = ilGenerator.DefineLabel();
                 var loadNextArgumentLabel = ilGenerator.DefineLabel();
-                if (wrappedTypeConstructorParameters.Length >= 1)
-                {
-                    ilGenerator.Emit(OpCodes.Ldarg_2);
-                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
-                    ilGenerator.Emit(OpCodes.Ldarg_2);
-                    ilGenerator.Emit(OpCodes.Callvirt, objectGetTypeMethod);
-                    ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
-                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
-                    ilGenerator.Emit(OpCodes.Ldarg_2);
-                    ilGenerator.Emit(OpCodes.Box);
-                    ilGenerator.Emit(OpCodes.Stloc_1);
-                    ilGenerator.Emit(OpCodes.Ldloc_0);
-                    ilGenerator.Emit(OpCodes.Ldind_I4, 0);
-                    ilGenerator.Emit(OpCodes.Ldloc_1);
-                    ilGenerator.Emit(OpCodes.Stelem, typeof(object));
-                    ilGenerator.Emit(OpCodes.Br, loadNextArgumentLabel);
-                    ilGenerator.MarkLabel(loadArgumentLabel);
-                    ilGenerator.Emit(OpCodes.Ldloc_0);
-                    ilGenerator.Emit(OpCodes.Ldind_I4, 0);
-                    ilGenerator.Emit(OpCodes.Ldarg_2);
-                    ilGenerator.Emit(OpCodes.Castclass, typeof(object));
-                    ilGenerator.Emit(OpCodes.Stelem, typeof(object));
-                }
+
+                ilGenerator.Emit(OpCodes.Ldarg_2);
+                ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
+                ilGenerator.Emit(OpCodes.Ldarg_2);
+                ilGenerator.Emit(OpCodes.Callvirt, objectGetTypeMethod);
+                ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
+                ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
+                ilGenerator.Emit(OpCodes.Ldarg_2);
+                ilGenerator.Emit(OpCodes.Box);
+                ilGenerator.Emit(OpCodes.Stloc_1);
+                ilGenerator.Emit(OpCodes.Ldloc_0);
+                ilGenerator.Emit(OpCodes.Ldind_I4, 0);
+                ilGenerator.Emit(OpCodes.Ldloc_1);
+                ilGenerator.Emit(OpCodes.Stelem, typeof(object));
+                ilGenerator.Emit(OpCodes.Br, loadNextArgumentLabel);
+                ilGenerator.MarkLabel(loadArgumentLabel);
+                ilGenerator.Emit(OpCodes.Ldloc_0);
+                ilGenerator.Emit(OpCodes.Ldind_I4, 0);
+                ilGenerator.Emit(OpCodes.Ldarg_2);
+                ilGenerator.Emit(OpCodes.Castclass, typeof(object));
+                ilGenerator.Emit(OpCodes.Stelem, typeof(object));
 
                 ilGenerator.MarkLabel(loadNextArgumentLabel);
 
@@ -566,6 +566,8 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 
                 ilGenerator.Emit(OpCodes.Ldloc_0);
                 ilGenerator.Emit(OpCodes.Call, baseConstructor);
+                ilGenerator.Emit(OpCodes.Nop);
+                ilGenerator.Emit(OpCodes.Nop);
                 ilGenerator.Emit(OpCodes.Ret);
             }
         }

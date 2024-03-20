@@ -72,7 +72,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 services.AddSingleton(this);
                 foreach (var serviceDescriptor in _originalServiceCollection)
                 {
-                    if (serviceDescriptor.ServiceType.IsInterface && serviceDescriptor.ServiceType != typeof(IHostApplicationLifetime) && TypeIsAccessible(serviceDescriptor.ServiceType))
+                    if (serviceDescriptor.ServiceType.IsInterface && TypeIsAccessible(serviceDescriptor.ServiceType))
                     {
                         if (serviceDescriptor.IsKeyedService && serviceDescriptor.KeyedImplementationFactory != null)
                         {
@@ -149,6 +149,10 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 
         private static bool TypeIsAccessible(Type type)
         {
+            if (type == typeof(IHostApplicationLifetime))
+            {
+                return false;
+            }
             var typeIsAccessible = type.IsPublic;
             if (type.IsGenericType && !type.IsGenericTypeDefinition)
             {

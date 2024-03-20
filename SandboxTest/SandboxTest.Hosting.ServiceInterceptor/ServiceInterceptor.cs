@@ -6,9 +6,9 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 {
     public class ServiceInterceptor : DispatchProxy
     {
-        private object? _wrappedInstance;
-        private ServiceInterceptorController _controller;
-        private List<Type> _interfaceType;
+        protected object? _wrappedInstance;
+        protected ServiceInterceptorController _controller;
+        protected List<Type> _interfaceType;
 
         public ServiceInterceptor(ServiceInterceptorController controller, Type wrappedType, object?[]? arguments)
         {
@@ -452,8 +452,9 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var serviceInterceptorControllerType = typeof(ServiceInterceptorController);
             var baseConstructor = serviceInterceptorBaseType.GetConstructor(new[] { typeof(ServiceInterceptorController), typeof(Type), typeof(object?[]) }) ?? throw new InvalidOperationException("Could not find proper base constructor of service interceptor type");
             var wrappedTypeConstructors = wrappedType.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
-            var wrappedInstanceField = serviceInterceptorBaseType.GetField(nameof(_wrappedInstance), BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException("Could not get wrapped instance field");
             Func<Type> getWrapperFunc = () => wrappedType;
+            var getWrapperType = getWrapperFunc.Method.DeclaringType;
+            var getWrapperConstructor = getWrapperType?.GetConstructor(Type.EmptyTypes) ?? throw new InvalidOperationException("Failed to get constructor for type getWrapperType object");
 
             controller.AddReference(getWrapperFunc);
 
@@ -465,6 +466,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 var ilGenerator = constructor.GetILGenerator();
                 ilGenerator.Emit(OpCodes.Ldarg_0);
                 ilGenerator.Emit(OpCodes.Ldarg_1);
+                ilGenerator.Emit(OpCodes.Newobj, getWrapperConstructor);
                 ilGenerator.Emit(OpCodes.Callvirt, getWrapperFunc.Method);
                 if (!wrappedTypeConstructorParameters.Any())
                 {

@@ -112,10 +112,6 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                             Func<IServiceProvider, object> proxyInterceptorFactory = (provider) =>
                             {
                                 var localServiceDescriptor = serviceDescriptor;
-                                if (serviceDescriptor.ServiceType == typeof(IHost))
-                                {
-                                    return localServiceDescriptor.ImplementationFactory(provider);
-                                }
                                 var proxyInterceptor = Activator.CreateInstance(serviceProxyInterceptorType, new object[] { this, localServiceDescriptor.ImplementationFactory(provider) })
                                     ?? throw new InvalidOperationException($"Failed to create service interceptor instance for type {serviceDescriptor.ServiceType.Name}");
                                 return proxyInterceptor;

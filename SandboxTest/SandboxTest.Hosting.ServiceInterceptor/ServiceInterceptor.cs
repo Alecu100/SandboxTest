@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Reflection.Emit;
 
 namespace SandboxTest.Hosting.ProxyInterceptor
@@ -35,17 +36,18 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             _interfaceType = GetType().GetInterfaces().ToList();
         }
 
-        public static Type CreateServiceInterceptorTypeWrapper(Type interfaceType, Type wrappedType, ServiceInterceptorController controller)
+        public static Type CreateServiceInterceptorTypeWrapper(Type interfaceType, Type wrappedType, ServiceInterceptorController serviceInterceptorController)
         {
             if (!GetAllInterfacesImplementedByType(wrappedType).Any(wrappedInterfaceType => InterfacesAreEquivalent(wrappedInterfaceType, interfaceType)))
             {
                 throw new InvalidOperationException($"Wrapped type {wrappedType.FullName} must implement interface type {interfaceType.FullName}");
             }
+            var guid = Guid.NewGuid();
             var serviceInterceptorBaseType = typeof(ServiceInterceptor);
-            var assemblyName = new AssemblyName($"ServiceInterceptorProxyAssembly.{MakeSafeName(interfaceType.Name)}.{MakeSafeName(wrappedType.Name)}.dll");
+            var assemblyName = new AssemblyName($"ServiceInterceptorProxyAssembly.{MakeSafeName(interfaceType.Name)}.{MakeSafeName(wrappedType.Name)}.{guid}.dll");
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name ?? throw new InvalidOperationException("Could not create assembly name"));
-            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{MakeSafeName(interfaceType.Name)}{MakeSafeName(wrappedType.Name)}", TypeAttributes.Public, serviceInterceptorBaseType);
+            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{MakeSafeName(interfaceType.Name)}{MakeSafeName(wrappedType.Name)}-{guid}", TypeAttributes.Public, serviceInterceptorBaseType);
             GenericTypeParameterBuilder[]? serviceInterceptorGenericParameters = null;
             Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap = null;
             Dictionary<Type, GenericTypeParameterBuilder>? wrappedTypeGenericParametersMap = null;
@@ -77,7 +79,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 serviceInterceptorTypeBuilder.AddInterfaceImplementation(interfaceType);
             }
 
-            GenerateConstructors(wrappedType, serviceInterceptorBaseType, serviceInterceptorTypeBuilder, wrappedTypeGenericParametersMap, controller);
+            GenerateConstructors(wrappedType, serviceInterceptorBaseType, serviceInterceptorTypeBuilder, wrappedTypeGenericParametersMap, serviceInterceptorController);
 
             GenerateInterfaceMethods(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap, builtMethods);
 
@@ -85,16 +87,19 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 
             GenerateInterfaceEvents(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap);
 
-            return serviceInterceptorTypeBuilder.CreateType();
+            var createdType = serviceInterceptorTypeBuilder.CreateType();
+            serviceInterceptorController.AddReference(createdType);
+            return createdType;
         }
 
         public static Type CreateServiceInterceptorTypeWrapper(Type interfaceType, ServiceInterceptorController serviceInterceptorController)
         {
+            var guid = Guid.NewGuid();
             var serviceInterceptorBaseType = typeof(ServiceInterceptor);
             var assemblyName = new AssemblyName($"ServiceInterceptorProxyAssembly.{MakeSafeName(interfaceType.Name)}");
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name ?? throw new InvalidOperationException("Could not create assembly name"));
-            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{MakeSafeName(interfaceType.Name)}", TypeAttributes.Public | TypeAttributes.Class, serviceInterceptorBaseType);
+            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{MakeSafeName(interfaceType.Name)}-{guid}", TypeAttributes.Public | TypeAttributes.Class, serviceInterceptorBaseType);
             GenericTypeParameterBuilder[]? serviceInterceptorGenericParameters = null;
             Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap = null;
             List<MethodBuilder> builtMethods = new List<MethodBuilder>();
@@ -125,7 +130,9 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 
             GenerateInterfaceEvents(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap);
 
-            return serviceInterceptorTypeBuilder.CreateType();
+            var createdType =  serviceInterceptorTypeBuilder.CreateType();
+            serviceInterceptorController.AddReference(createdType);
+            return createdType;
         }
 
         private static bool InterfacesAreEquivalent(Type interface1, Type interface2)

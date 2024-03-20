@@ -14,7 +14,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
     {
         private ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>> _proxyWrapperActions;
         private ConcurrentBag<ServiceInterceptorRecordedCall> _proxyWrapperRecordedCalls;
-        private IServiceProvider? _originalServiceProvider;
+        private IServiceCollection _originalServiceCollection;
         private List<object> _referencesToKeepAlive = new List<object>();
 
         /// <summary>
@@ -63,15 +63,14 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             hostApplicationRunner.HostBuilder.ConfigureServices((ctx, services) =>
             {
                 var proxyInterceptorType = typeof(ServiceInterceptor);
-                var originalServices = new ServiceCollection();
+                _originalServiceCollection = new ServiceCollection();
                 foreach (var service in services)
                 {
-                    originalServices.Add(service);
+                    _originalServiceCollection.Add(service);
                 }
-                _originalServiceProvider = originalServices.BuildServiceProvider();
                 services.Clear();
                 services.AddSingleton(this);
-                foreach (var serviceDescriptor in originalServices)
+                foreach (var serviceDescriptor in _originalServiceCollection)
                 {
                     if (serviceDescriptor.ServiceType.IsInterface && serviceDescriptor.ServiceType != typeof(IHostApplicationLifetime) && TypeIsAccessible(serviceDescriptor.ServiceType))
                     {
@@ -80,7 +79,8 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                             var serviceProxyInterceptorType = ServiceInterceptor.CreateServiceInterceptorTypeWrapper(serviceDescriptor.ServiceType, this);
                             Func<IServiceProvider, object?, object> proxyInterceptorFactory = (provider, obj) =>
                             {
-                                var proxyInterceptor = Activator.CreateInstance(serviceProxyInterceptorType, new object[] { this, serviceDescriptor.KeyedImplementationFactory(provider, serviceDescriptor.ServiceKey) })
+                                var localServiceDescriptor = serviceDescriptor;
+                                var proxyInterceptor = Activator.CreateInstance(serviceProxyInterceptorType, new object[] { this, localServiceDescriptor.KeyedImplementationFactory(provider, serviceDescriptor.ServiceKey) })
                                     ?? throw new InvalidOperationException($"Failed to create service interceptor instance for type {serviceDescriptor.ServiceType.Name}");
                                 return proxyInterceptor;
                             };
@@ -111,7 +111,12 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                             var serviceProxyInterceptorType = ServiceInterceptor.CreateServiceInterceptorTypeWrapper(serviceDescriptor.ServiceType, this);
                             Func<IServiceProvider, object> proxyInterceptorFactory = (provider) =>
                             {
-                                var proxyInterceptor = Activator.CreateInstance(serviceProxyInterceptorType, new object[] { this, serviceDescriptor.ImplementationFactory(provider) })
+                                var localServiceDescriptor = serviceDescriptor;
+                                if (serviceDescriptor.ServiceType == typeof(IHost))
+                                {
+                                    return localServiceDescriptor.ImplementationFactory(provider);
+                                }
+                                var proxyInterceptor = Activator.CreateInstance(serviceProxyInterceptorType, new object[] { this, localServiceDescriptor.ImplementationFactory(provider) })
                                     ?? throw new InvalidOperationException($"Failed to create service interceptor instance for type {serviceDescriptor.ServiceType.Name}");
                                 return proxyInterceptor;
                             };

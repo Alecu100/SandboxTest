@@ -38,7 +38,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             _interfaceType = GetType().GetInterfaces().ToList();
         }
 
-        public static Type CreateServiceInterceptorTypeWrapper(Type interfaceType, Type wrappedType, ServiceInterceptorController serviceInterceptorController)
+        public static Type CreateServiceInterceptorClassWrapper(Type interfaceType, Type wrappedType, ServiceInterceptorController serviceInterceptorController)
         {
             if (!GetAllInterfacesImplementedByType(wrappedType).Any(wrappedInterfaceType => InterfacesAreEquivalent(wrappedInterfaceType, interfaceType)))
             {
@@ -99,7 +99,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             return createdType;
         }
 
-        public static Type CreateServiceInterceptorTypeWrapper(Type interfaceType, ServiceInterceptorController serviceInterceptorController)
+        public static Type CreateServiceInterceptorInterfaceWrapper(Type interfaceType, ServiceInterceptorController serviceInterceptorController)
         {
             var guid = Guid.NewGuid();
             var serviceInterceptorBaseType = typeof(ServiceInterceptor);
@@ -439,7 +439,6 @@ namespace SandboxTest.Hosting.ProxyInterceptor
         {
             var serviceInterceptorControllerType = typeof(ServiceInterceptorController);
             var baseConstructor = serviceInterceptorBaseType.GetConstructor(new[] { typeof(ServiceInterceptorController), typeof(object) }) ?? throw new InvalidOperationException("Could not find proper base constructor of service interceptor type");
-            var wrappedInstanceField = serviceInterceptorBaseType.GetField(nameof(_wrappedInstance), BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException("Could not get wrapped instance field");
             var constructor = serviceInterceptorTypeBuilder.DefineConstructor(baseConstructor.Attributes, baseConstructor.CallingConvention,
                 baseConstructor.GetParameters().Select(param => param.ParameterType).ToArray());
             var ilGenerator = constructor.GetILGenerator();

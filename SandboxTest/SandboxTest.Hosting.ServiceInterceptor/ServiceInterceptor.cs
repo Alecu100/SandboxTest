@@ -74,7 +74,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 {
                     wrappedTypeGenericParametersMap[wrappedTypeGenericArguments[i]] = serviceInterceptorGenericParameters[i];
                 }
-                serviceInterceptorTypeBuilder.AddInterfaceImplementation(ReplaceGenericArgumentsAndConstraintsFromGenericType(interfaceType, serviceInterceptorGenericParametersMap));
+                serviceInterceptorTypeBuilder.AddInterfaceImplementation(ReplaceGenericArgumentsAndConstraintsFromType(interfaceType, serviceInterceptorGenericParametersMap));
             }
             else
             {
@@ -116,13 +116,10 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                     serviceInterceptorGenericParametersMap[interfaceGenericArguments[i]] = serviceInterceptorGenericParameters[i];
                 }
 
-                interfaceType = ReplaceGenericArgumentsAndConstraintsFromGenericType(interfaceType, serviceInterceptorGenericParametersMap);
-                serviceInterceptorTypeBuilder.AddInterfaceImplementation(interfaceType.MakeGenericType(serviceInterceptorGenericParameters.Select(param => param.AsType()).ToArray()));
+                interfaceType = ReplaceGenericArgumentsAndConstraintsFromType(interfaceType, serviceInterceptorGenericParametersMap);
             }
-            else
-            {
-                serviceInterceptorTypeBuilder.AddInterfaceImplementation(interfaceType);
-            }
+
+            serviceInterceptorTypeBuilder.AddInterfaceImplementation(interfaceType);
 
             GenerateConstructor(serviceInterceptorBaseType, serviceInterceptorTypeBuilder);
 
@@ -183,7 +180,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
 
             foreach (var interfaceProperty in interfaceProperties) 
             {
-                var property = serviceInterceptorTypeBuilder.DefineProperty(interfaceProperty.Name, interfaceProperty.Attributes, serviceInterceptorGenericParametersMap?.ContainsKey(interfaceProperty.PropertyType) ?? false ? serviceInterceptorGenericParametersMap[interfaceProperty.PropertyType] : interfaceProperty.PropertyType, Type.EmptyTypes);
+                var property = serviceInterceptorTypeBuilder.DefineProperty(interfaceProperty.Name, interfaceProperty.Attributes, ReplaceGenericArgumentsFromType(interfaceProperty.PropertyType, serviceInterceptorGenericParametersMap), Type.EmptyTypes);
                 var getMethodProperty = builtMethods.FirstOrDefault(builtMethod => builtMethod.Name == $"get_{property.Name}");
                 var setMethodProperty = builtMethods.FirstOrDefault(builtMethod => builtMethod.Name == $"set_{property.Name}");
                 if (getMethodProperty != null)
@@ -230,20 +227,21 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                     {
                         foreach (var contraint in interfaceMethodGenericArgument.GetGenericParameterConstraints())
                         {
-                            var replacedConstraint = ReplaceGenericArgumentsAndConstraintsFromGenericType(contraint, interfaceMethodGenericParametersMap);
+                            var replacedConstraint = ReplaceGenericArgumentsAndConstraintsFromType(contraint, interfaceMethodGenericParametersMap);
                             if (replacedConstraint.IsInterface)
                             {
                                 interfaceMethodGenericParametersMap[interfaceMethodGenericArgument].SetInterfaceConstraints(replacedConstraint);
                                 continue;
                             }
                             interfaceMethodGenericParametersMap[interfaceMethodGenericArgument].SetBaseTypeConstraint(replacedConstraint);
+                            interfaceMethodGenericParametersMap[interfaceMethodGenericArgument].SetGenericParameterAttributes(contraint.GenericParameterAttributes & ~(GenericParameterAttributes.Covariant) & ~(GenericParameterAttributes.Contravariant));
                         }
                     }
                 }
-                interfaceMethodTypeBuilder.SetParameters(interfaceMethod.GetParameters().Select(x => serviceInterceptorGenericParametersMap?.ContainsKey(x.ParameterType) ?? false ? serviceInterceptorGenericParametersMap[x.ParameterType] : x.ParameterType).ToArray());
-                interfaceMethodTypeBuilder.SetReturnType(serviceInterceptorGenericParametersMap?.ContainsKey(interfaceMethod.ReturnType) ?? false ? serviceInterceptorGenericParametersMap[interfaceMethod.ReturnType] : interfaceMethod.ReturnType);
-
                 var interfaceParameters = interfaceMethod.GetParameters();
+                interfaceMethodTypeBuilder.SetParameters(interfaceParameters.Select(x => ReplaceGenericArgumentsFromType(x.ParameterType, serviceInterceptorGenericParametersMap)).ToArray());
+                interfaceMethodTypeBuilder.SetReturnType(ReplaceGenericArgumentsFromType(interfaceMethod.ReturnType, serviceInterceptorGenericParametersMap));
+
                 var ilGenerator = interfaceMethodTypeBuilder.GetILGenerator();
                 var localOjectParamList = ilGenerator.DeclareLocal(typeof(object[]));
                 var localObjectParam = ilGenerator.DeclareLocal(typeof(object));
@@ -466,7 +464,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             {
                 var wrappedTypeConstructorParameters = wrappedTypeConstructor.GetParameters();
                 var constructor = serviceInterceptorTypeBuilder.DefineConstructor(wrappedTypeConstructor.Attributes, wrappedTypeConstructor.CallingConvention,
-                    new[] { serviceInterceptorControllerType }.Concat(wrappedTypeConstructorParameters.Select(param => wrappedTypeGenericParametersMap?.ContainsKey(param.ParameterType) ?? false ? wrappedTypeGenericParametersMap[param.ParameterType] : param.ParameterType)).ToArray());
+                    new[] { serviceInterceptorControllerType }.Concat(wrappedTypeConstructorParameters.Select(param => ReplaceGenericArgumentsFromType(param.ParameterType, wrappedTypeGenericParametersMap))).ToArray());
                 var ilGenerator = constructor.GetILGenerator();
                 var localOjectParamList = ilGenerator.DeclareLocal(typeof(object[]));
                 var localObjectParam = ilGenerator.DeclareLocal(typeof(object));
@@ -582,7 +580,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             }
         }
 
-        private static Type ReplaceGenericArgumentsAndConstraintsFromGenericType(Type type, Dictionary<Type, GenericTypeParameterBuilder> genericParametersMap)
+        private static Type ReplaceGenericArgumentsAndConstraintsFromType(Type type, Dictionary<Type, GenericTypeParameterBuilder> genericParametersMap)
         {
             if (!type.IsGenericTypeDefinition)
             {
@@ -590,7 +588,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 {
                     foreach (var genericConstraint in type.GetGenericParameterConstraints())
                     {
-                        var replacedGenericConstraint = ReplaceGenericArgumentsAndConstraintsFromGenericType(genericConstraint, genericParametersMap);
+                        var replacedGenericConstraint = ReplaceGenericArgumentsAndConstraintsFromType(genericConstraint, genericParametersMap);
                         if (genericParametersMap[type].GetGenericParameterConstraints().Any(constraint => replacedGenericConstraint == constraint))
                         {
                             continue;
@@ -610,10 +608,33 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var replacedGenericParameters = new List<Type>();
             foreach (var genericTypeParameter in type.GetGenericArguments())
             {
-                var processedGenericParameter = ReplaceGenericArgumentsAndConstraintsFromGenericType(genericTypeParameter, genericParametersMap);
+                var processedGenericParameter = ReplaceGenericArgumentsAndConstraintsFromType(genericTypeParameter, genericParametersMap);
                 replacedGenericParameters.Add(processedGenericParameter);
             }
             return type.MakeGenericType(replacedGenericParameters.ToArray());
+        }
+
+        private static Type ReplaceGenericArgumentsFromType(Type type, Dictionary<Type, GenericTypeParameterBuilder>? genericParametersMap)
+        {
+            if (genericParametersMap == null)
+            {
+                return type;
+            }
+
+            if (genericParametersMap.ContainsKey(type))
+            {
+                return genericParametersMap[type];
+            }
+
+            if (type.IsGenericType)
+            {
+                var typeDefinition = type.GetGenericTypeDefinition();
+                var typeGenericArguments = type.GetGenericArguments();
+                var newTypeArguments = typeGenericArguments.Select(arg => ReplaceGenericArgumentsFromType(arg, genericParametersMap)).ToArray();
+                return typeDefinition.MakeGenericType(newTypeArguments);
+            }
+
+            return type;
         }
 
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)

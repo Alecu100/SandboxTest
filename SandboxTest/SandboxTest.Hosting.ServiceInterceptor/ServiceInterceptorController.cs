@@ -14,7 +14,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
     {
         private ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>> _proxyWrapperActions;
         private ConcurrentBag<ServiceInterceptorRecordedCall> _proxyWrapperRecordedCalls;
-        private IServiceCollection _originalServiceCollection;
+        private IServiceCollection? _originalServiceCollection;
         private List<object> _referencesToKeepAlive = new List<object>();
 
         /// <summary>

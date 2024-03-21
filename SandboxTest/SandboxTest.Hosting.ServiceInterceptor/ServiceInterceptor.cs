@@ -45,11 +45,16 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 throw new InvalidOperationException($"Wrapped type {wrappedType.FullName} must implement interface type {interfaceType.FullName}");
             }
             var guid = Guid.NewGuid();
+            var serviceInterceptorTypeName = $"ServiceInterceptor-{MakeSafeName(interfaceType.Name)}-{MakeSafeName(wrappedType.Name)}-{guid}";
+            if (interfaceType.IsGenericTypeDefinition)
+            {
+                serviceInterceptorTypeName = $"ServiceInterceptor-Generic-{MakeSafeName(interfaceType.Name)}-{MakeSafeName(wrappedType.Name)}-{guid}";
+            }
             var serviceInterceptorBaseType = typeof(ServiceInterceptor);
             var assemblyName = new AssemblyName($"ServiceInterceptorProxyAssembly.{MakeSafeName(interfaceType.Name)}.{MakeSafeName(wrappedType.Name)}.{guid}.dll");
-            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run | AssemblyBuilderAccess.RunAndCollect);
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name ?? throw new InvalidOperationException("Could not create assembly name"));
-            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{MakeSafeName(interfaceType.Name)}{MakeSafeName(wrappedType.Name)}-{guid}", TypeAttributes.Public, serviceInterceptorBaseType);
+            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType(serviceInterceptorTypeName, TypeAttributes.Public | TypeAttributes.Class, serviceInterceptorBaseType);
             GenericTypeParameterBuilder[]? serviceInterceptorGenericParameters = null;
             Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap = null;
             Dictionary<Type, GenericTypeParameterBuilder>? wrappedTypeGenericParametersMap = null;
@@ -101,7 +106,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             var assemblyName = new AssemblyName($"ServiceInterceptorProxyAssembly.{MakeSafeName(interfaceType.Name)}");
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name ?? throw new InvalidOperationException("Could not create assembly name"));
-            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor{MakeSafeName(interfaceType.Name)}-{guid}", TypeAttributes.Public | TypeAttributes.Class, serviceInterceptorBaseType);
+            var serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor-{MakeSafeName(interfaceType.Name)}-{guid}", TypeAttributes.Public | TypeAttributes.Class, serviceInterceptorBaseType);
             GenericTypeParameterBuilder[]? serviceInterceptorGenericParameters = null;
             Dictionary<Type, GenericTypeParameterBuilder>? serviceInterceptorGenericParametersMap = null;
             List<MethodBuilder> builtMethods = new List<MethodBuilder>();

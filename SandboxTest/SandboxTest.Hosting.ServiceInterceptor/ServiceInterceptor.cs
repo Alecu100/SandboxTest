@@ -268,8 +268,14 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 }
 
                 ilGenerator.Emit(OpCodes.Ldc_I4, interfaceParameters.Length);
-                ilGenerator.Emit(OpCodes.Call, arrayObjectConstructor);
+                ilGenerator.Emit(OpCodes.Newarr, typeof(object));
                 ilGenerator.Emit(OpCodes.Stloc, localOjectParamList);
+                ilGenerator.Emit(OpCodes.Ldarg_0);
+                ilGenerator.Emit(OpCodes.Ldloc, localMethodInfo);
+                ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
+                ilGenerator.Emit(OpCodes.Callvirt, invokeMethod);
+                ilGenerator.Emit(OpCodes.Ret);
+                continue;
 
                 for (short parameterIndex = 0; parameterIndex < interfaceParameters.Length; parameterIndex++)
                 {

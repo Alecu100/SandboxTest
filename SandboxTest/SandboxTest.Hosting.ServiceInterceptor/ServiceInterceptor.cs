@@ -201,9 +201,6 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         private static void GenerateInterfaceMethods(Type interfaceType, TypeBuilder serviceInterceptorTypeBuilder, Dictionary<Type, GeneraticParameterTypeWithInitialization>? serviceInterceptorGenericParametersMap, List<MethodBuilder> builtMethods)
         {
             var getTypeFromHandle = typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle), new Type[] { typeof(RuntimeTypeHandle) }) ?? throw new InvalidOperationException("Could not get method get type from handle");
-            var arrayObject = typeof(object[]);
-            var arrayObjectConstructor = arrayObject.GetConstructors().First();
-            var arrayObjectSetValueMethod = arrayObject.GetMethod("SetValue", new Type[] { typeof(object), typeof(int) }) ?? throw new InvalidOperationException("Could not get array object set value method");
             var invokeMethod = typeof(ServiceInterceptor).GetMethod(nameof(Invoke), BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException("Could not get current method");
             var getCurrentMethod = typeof(MethodBase).GetMethod(nameof(MethodBase.GetCurrentMethod), BindingFlags.Static | BindingFlags.Public) ?? throw new InvalidOperationException("Could not get current method");
             var interfaceMethods = GetAllInterfaceMethods(interfaceType);
@@ -282,17 +279,19 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                     ilGenerator.Emit(OpCodes.Call, getTypeFromHandle);
                     ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
                     ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
+                    ilGenerator.EmitWriteLine("Detected value type, boxing it");
                     ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
                     ilGenerator.Emit(OpCodes.Box, interfaceMethodParameters[parameterIndex]);
                     ilGenerator.Emit(OpCodes.Stloc, localObjectParam);
                     ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
-                    ilGenerator.Emit(OpCodes.Ldc_I4_4, (int)parameterIndex);
+                    ilGenerator.Emit(OpCodes.Ldc_I4, (int)parameterIndex);
                     ilGenerator.Emit(OpCodes.Ldloc, localObjectParam);
                     ilGenerator.Emit(OpCodes.Stelem_Ref);
                     ilGenerator.Emit(OpCodes.Br, loadNextArgumentLabel);
                     ilGenerator.MarkLabel(loadArgumentLabel);
+                    ilGenerator.EmitWriteLine("Detected reference type,putting it directly in array");
                     ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
-                    ilGenerator.Emit(OpCodes.Ldc_I4_4, (int)parameterIndex);
+                    ilGenerator.Emit(OpCodes.Ldc_I4, (int)parameterIndex);
                     ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
                     ilGenerator.Emit(OpCodes.Stelem_Ref);
 
@@ -369,7 +368,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         private static void GenerateConstructors(Type wrappedType, Type serviceInterceptorBaseType, TypeBuilder serviceInterceptorTypeBuilder, Dictionary<Type, GeneraticParameterTypeWithInitialization>? wrappedTypeGenericParametersMap, ServiceInterceptorController controller)
         {
-            var objectGetTypeMethod = typeof(ServiceInterceptor).GetType().GetMethod(nameof(GetType), BindingFlags.Public | BindingFlags.Instance) ?? throw new InvalidOperationException("Could not get get type object method");
+            var getTypeFromHandle = typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle), new Type[] { typeof(RuntimeTypeHandle) }) ?? throw new InvalidOperationException("Could not get method get type from handle");
             var objectTypeIsValueTypeGetMethod = typeof(ServiceInterceptor).GetType().GetProperty(nameof(Type.IsValueType), BindingFlags.Public | BindingFlags.Instance)?.GetMethod ?? throw new InvalidOperationException("Could not get the method is value type");
             var serviceInterceptorControllerType = typeof(ServiceInterceptorController);
             var baseConstructor = serviceInterceptorBaseType.GetConstructor(new[] { typeof(ServiceInterceptorController), typeof(Type), typeof(object?[]) }) ?? throw new InvalidOperationException("Could not find proper base constructor of service interceptor type");
@@ -381,8 +380,8 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
             foreach (var wrappedTypeConstructor in wrappedTypeConstructors)
             {
-                var wrappedTypeConstructorParameters = wrappedTypeConstructor.GetParameters();
-                var constructorParameters = new[] { serviceInterceptorControllerType }.Concat(wrappedTypeConstructorParameters.Select(param => ReplaceGenericArgumentsFromType(param.ParameterType, wrappedTypeGenericParametersMap))).ToArray();
+                var wrappedTypeConstructorParameters = wrappedTypeConstructor.GetParameters().Select(param => ReplaceGenericArgumentsFromType(param.ParameterType, wrappedTypeGenericParametersMap)).ToArray();
+                var constructorParameters = new[] { serviceInterceptorControllerType }.Concat(wrappedTypeConstructorParameters).ToArray();
                 var constructor = serviceInterceptorTypeBuilder.DefineConstructor(wrappedTypeConstructor.Attributes, wrappedTypeConstructor.CallingConvention, constructorParameters);
                 var ilGenerator = constructor.GetILGenerator();
                 var localOjectParamList = ilGenerator.DeclareLocal(typeof(object[]));
@@ -402,6 +401,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                     ilGenerator.Emit(OpCodes.Nop);
                     ilGenerator.Emit(OpCodes.Nop);
                     ilGenerator.Emit(OpCodes.Ret);
+                    continue;
                 }
 
                 ilGenerator.Emit(OpCodes.Ldc_I4, wrappedTypeConstructorParameters.Length);
@@ -413,24 +413,22 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                     var loadArgumentLabel = ilGenerator.DefineLabel();
                     var loadNextArgumentLabel = ilGenerator.DefineLabel();
 
-                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 2));
-                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
-                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 2));
-                    ilGenerator.Emit(OpCodes.Callvirt, objectGetTypeMethod);
+                    ilGenerator.Emit(OpCodes.Ldtoken, wrappedTypeConstructorParameters[parameterIndex]);
+                    ilGenerator.Emit(OpCodes.Call, getTypeFromHandle);
                     ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
                     ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
-                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 2));
-                    ilGenerator.Emit(OpCodes.Box);
+                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
+                    ilGenerator.Emit(OpCodes.Box, wrappedTypeConstructorParameters[parameterIndex]);
                     ilGenerator.Emit(OpCodes.Stloc, localObjectParam);
                     ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
-                    ilGenerator.Emit(OpCodes.Ldc_I4_4, (int)parameterIndex);
+                    ilGenerator.Emit(OpCodes.Ldc_I4, (int)parameterIndex);
                     ilGenerator.Emit(OpCodes.Ldloc, localObjectParam);
                     ilGenerator.Emit(OpCodes.Stelem_Ref);
                     ilGenerator.Emit(OpCodes.Br, loadNextArgumentLabel);
                     ilGenerator.MarkLabel(loadArgumentLabel);
                     ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
-                    ilGenerator.Emit(OpCodes.Ldc_I4_4, (int)parameterIndex);
-                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 2));
+                    ilGenerator.Emit(OpCodes.Ldc_I4, (int)parameterIndex);
+                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
                     ilGenerator.Emit(OpCodes.Stelem_Ref);
 
                     ilGenerator.MarkLabel(loadNextArgumentLabel);

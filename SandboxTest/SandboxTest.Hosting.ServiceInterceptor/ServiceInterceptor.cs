@@ -200,6 +200,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         private static void GenerateInterfaceMethods(Type interfaceType, TypeBuilder serviceInterceptorTypeBuilder, Dictionary<Type, GeneraticParameterTypeWithInitialization>? serviceInterceptorGenericParametersMap, List<MethodBuilder> builtMethods)
         {
+            var getTypeFromHandle = typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle), new Type[] { typeof(RuntimeTypeHandle) }) ?? throw new InvalidOperationException("Could not get method get type from handle");
             var arrayObject = typeof(object[]);
             var arrayObjectConstructor = arrayObject.GetConstructors().First();
             var arrayObjectSetValueMethod = arrayObject.GetMethod("SetValue", new Type[] { typeof(object), typeof(int) }) ?? throw new InvalidOperationException("Could not get array object set value method");
@@ -276,11 +277,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 {
                     var loadArgumentLabel = ilGenerator.DefineLabel();
                     var loadNextArgumentLabel = ilGenerator.DefineLabel();
-
-                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
-                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
-                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
-                    ilGenerator.Emit(OpCodes.Callvirt, objectGetTypeMethod);
+                    
+                    ilGenerator.Emit(OpCodes.Ldtoken, interfaceMethodParameters[parameterIndex]);
+                    ilGenerator.Emit(OpCodes.Call, getTypeFromHandle);
                     ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
                     ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
                     ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));

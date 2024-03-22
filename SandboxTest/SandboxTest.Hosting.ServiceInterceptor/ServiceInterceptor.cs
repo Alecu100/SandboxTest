@@ -257,15 +257,54 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 ilGenerator.Emit(OpCodes.Call, getCurrentMethod);
                 ilGenerator.Emit(OpCodes.Castclass, typeof(MethodInfo));
                 ilGenerator.Emit(OpCodes.Stloc, localMethodInfo);
-
+                if (!interfaceMethod.GetParameters().Any())
+                {
                     ilGenerator.Emit(OpCodes.Ldarg_0);
                     ilGenerator.Emit(OpCodes.Ldloc, localMethodInfo);
                     ilGenerator.Emit(OpCodes.Ldnull);
                     ilGenerator.Emit(OpCodes.Callvirt, invokeMethod);
                     ilGenerator.Emit(OpCodes.Ret);
                     continue;
+                }
 
+                ilGenerator.Emit(OpCodes.Ldc_I4, interfaceParameters.Length);
+                ilGenerator.Emit(OpCodes.Call, arrayObjectConstructor);
+                ilGenerator.Emit(OpCodes.Stloc, localOjectParamList);
 
+                for (short parameterIndex = 0; parameterIndex < interfaceParameters.Length; parameterIndex++)
+                {
+                    var loadArgumentLabel = ilGenerator.DefineLabel();
+                    var loadNextArgumentLabel = ilGenerator.DefineLabel();
+
+                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
+                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
+                    ilGenerator.Emit(OpCodes.Callvirt, objectGetTypeMethod);
+                    ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
+                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
+                    ilGenerator.Emit(OpCodes.Box);
+                    ilGenerator.Emit(OpCodes.Stloc, localObjectParam);
+                    ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
+                    ilGenerator.Emit(OpCodes.Ldloc, localObjectParam);
+                    ilGenerator.Emit(OpCodes.Ldind_I4, (int)parameterIndex);
+                    ilGenerator.Emit(OpCodes.Callvirt, arrayObjectSetValueMethod);
+                    ilGenerator.Emit(OpCodes.Br, loadNextArgumentLabel);
+                    ilGenerator.MarkLabel(loadArgumentLabel);
+                    ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
+                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
+                    ilGenerator.Emit(OpCodes.Castclass, typeof(object));
+                    ilGenerator.Emit(OpCodes.Ldind_I4, (int)parameterIndex);
+                    ilGenerator.Emit(OpCodes.Callvirt, arrayObjectSetValueMethod);
+
+                    ilGenerator.MarkLabel(loadNextArgumentLabel);
+                }
+
+                ilGenerator.Emit(OpCodes.Ldarg_0);
+                ilGenerator.Emit(OpCodes.Ldloc, localMethodInfo);
+                ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
+                ilGenerator.Emit(OpCodes.Callvirt, invokeMethod);
+                ilGenerator.Emit(OpCodes.Ret);
             }
         }
 
@@ -473,7 +512,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             }
             if (targetMethod == null)
             {
-                return null;
+                throw new InvalidOperationException("Null target method");
             }
             var currentType = GetType();
             var targetMethodGenericParametersFromType = MethodInfoGetGenericParametersFromType(targetMethod);
@@ -483,7 +522,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             }
             if (targetMethod == null)
             {
-                return null;
+                throw new InvalidOperationException("Null target method");
             }
             foreach (var @interface in _implementedInterfaceTypes)
             {
@@ -497,7 +536,6 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                     }
                 }
             }
-
 
             foreach (var interfaceType in _implementedInterfaceTypes)
             {

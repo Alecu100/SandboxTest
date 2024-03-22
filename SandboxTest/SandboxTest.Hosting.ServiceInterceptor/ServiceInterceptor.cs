@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 
@@ -8,12 +9,12 @@ namespace SandboxTest.Hosting.ServiceInterceptor
     {
         protected object? _wrappedInstance;
         protected ServiceInterceptorController _controller;
-        protected List<Type> _interfaceType;
+        protected List<Type> _implementedInterfaceTypes;
 
         public ServiceInterceptor(ServiceInterceptorController controller, Type wrappedType, object?[]? arguments)
         {
             _controller = controller;
-            _interfaceType = GetType().GetInterfaces().ToList();
+            _implementedInterfaceTypes = GetType().GetInterfaces().ToList();
             if (wrappedType.IsGenericTypeDefinition)
             {
                 if (!GetType().IsGenericType)
@@ -33,7 +34,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         {
             _wrappedInstance = wrappedInstance;
             _controller = controller;
-            _interfaceType = GetType().GetInterfaces().ToList();
+            _implementedInterfaceTypes = GetType().GetInterfaces().ToList();
         }
 
         public static Type CreateServiceInterceptorClassWrapper(Type interfaceType, Type wrappedType, ServiceInterceptorController serviceInterceptorController)
@@ -256,54 +257,15 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 ilGenerator.Emit(OpCodes.Call, getCurrentMethod);
                 ilGenerator.Emit(OpCodes.Castclass, typeof(MethodInfo));
                 ilGenerator.Emit(OpCodes.Stloc, localMethodInfo);
-                if (!interfaceMethod.GetParameters().Any())
-                {
+
                     ilGenerator.Emit(OpCodes.Ldarg_0);
                     ilGenerator.Emit(OpCodes.Ldloc, localMethodInfo);
                     ilGenerator.Emit(OpCodes.Ldnull);
                     ilGenerator.Emit(OpCodes.Callvirt, invokeMethod);
                     ilGenerator.Emit(OpCodes.Ret);
                     continue;
-                }
 
-                ilGenerator.Emit(OpCodes.Ldc_I4, interfaceParameters.Length);
-                ilGenerator.Emit(OpCodes.Call, arrayObjectConstructor);
-                ilGenerator.Emit(OpCodes.Stloc, localOjectParamList);
-                
-                for (short parameterIndex = 0; parameterIndex < interfaceParameters.Length; parameterIndex++)
-                {
-                    var loadArgumentLabel = ilGenerator.DefineLabel();
-                    var loadNextArgumentLabel = ilGenerator.DefineLabel();
 
-                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
-                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
-                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
-                    ilGenerator.Emit(OpCodes.Callvirt, objectGetTypeMethod);
-                    ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
-                    ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
-                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
-                    ilGenerator.Emit(OpCodes.Box);
-                    ilGenerator.Emit(OpCodes.Stloc, localObjectParam);
-                    ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
-                    ilGenerator.Emit(OpCodes.Ldloc, localObjectParam);
-                    ilGenerator.Emit(OpCodes.Ldind_I4, (int)parameterIndex);
-                    ilGenerator.Emit(OpCodes.Callvirt, arrayObjectSetValueMethod);
-                    ilGenerator.Emit(OpCodes.Br, loadNextArgumentLabel);
-                    ilGenerator.MarkLabel(loadArgumentLabel);
-                    ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
-                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
-                    ilGenerator.Emit(OpCodes.Castclass, typeof(object));
-                    ilGenerator.Emit(OpCodes.Ldind_I4, (int)parameterIndex);
-                    ilGenerator.Emit(OpCodes.Callvirt, arrayObjectSetValueMethod);
-
-                    ilGenerator.MarkLabel(loadNextArgumentLabel);
-                }
-
-                ilGenerator.Emit(OpCodes.Ldarg_0);
-                ilGenerator.Emit(OpCodes.Ldloc, localMethodInfo);
-                ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
-                ilGenerator.Emit(OpCodes.Callvirt, invokeMethod);
-                ilGenerator.Emit(OpCodes.Ret);
             }
         }
 
@@ -442,8 +404,6 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
                 ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
                 ilGenerator.Emit(OpCodes.Call, baseConstructor);
-                ilGenerator.Emit(OpCodes.Nop);
-                ilGenerator.Emit(OpCodes.Nop);
                 ilGenerator.Emit(OpCodes.Ret);
             }
         }
@@ -507,7 +467,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
         {
-            if (_interfaceType == null || _controller == null || _wrappedInstance == null)
+            if (_implementedInterfaceTypes == null || _controller == null || _wrappedInstance == null)
             {
                 throw new InvalidOperationException("Proxy interceptor not initialized");
             }
@@ -515,7 +475,31 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             {
                 return null;
             }
-            foreach (var interfaceType in _interfaceType)
+            var currentType = GetType();
+            var targetMethodGenericParametersFromType = MethodInfoGetGenericParametersFromType(targetMethod);
+            if (!targetMethod.IsGenericMethodDefinition && targetMethodGenericParametersFromType.Any())
+            {
+                targetMethod = MethodBase.GetMethodFromHandle(targetMethod.MethodHandle, currentType.TypeHandle) as MethodInfo;
+            }
+            if (targetMethod == null)
+            {
+                return null;
+            }
+            foreach (var @interface in _implementedInterfaceTypes)
+            {
+                var interfaceMap = currentType.GetInterfaceMap(@interface);
+                for (int i = 0; i < interfaceMap.TargetMethods.Length; i++) 
+                {
+                    var interfaceImplementedMethod = interfaceMap.TargetMethods[i];
+                    if (interfaceImplementedMethod == targetMethod)
+                    {
+                        targetMethod = interfaceMap.InterfaceMethods[i];
+                    }
+                }
+            }
+
+
+            foreach (var interfaceType in _implementedInterfaceTypes)
             {
                 if (_controller.ProxyWrapperActions.ContainsKey(interfaceType) && _controller.ProxyWrapperActions[interfaceType].ContainsKey(targetMethod))
                 {
@@ -558,6 +542,34 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             required public GenericTypeParameterBuilder GenericTypeParameterBuilder { get; set; }
 
             public bool IsInitialized { get; set; } = false;
+        }
+
+        private static List<Type> MethodInfoGetGenericParametersFromType(MethodInfo method)
+        {
+            var genericParametersFromType = new List<Type>();
+            var parametersTypeStack = new Stack<Type>();
+            parametersTypeStack.Push(method.ReturnType);
+            foreach (var parameter in method.GetParameters()) 
+            {
+                parametersTypeStack.Push(parameter.ParameterType); 
+            }
+            while (parametersTypeStack.Any())
+            {
+                var type = parametersTypeStack.Pop();
+                if (type.IsGenericParameter)
+                {
+                    genericParametersFromType.Add(type);
+                }
+                if (type.IsGenericType)
+                {
+                    var genericParameters = type.GetGenericArguments();
+                    foreach (var genericParameter in genericParameters)
+                    {
+                        parametersTypeStack.Push(genericParameter);
+                    }
+                }
+            }
+            return genericParametersFromType;
         }
     }
 }

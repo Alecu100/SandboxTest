@@ -1,4 +1,4 @@
-﻿namespace SandboxTest.Hosting.ProxyInterceptor
+﻿namespace SandboxTest.Hosting.ServiceInterceptor
 {
     /// <summary>
     /// Static class that offers extension methods to use the <see cref="ServiceInterceptorController"/>.

@@ -1,4 +1,4 @@
-﻿namespace SandboxTest.Hosting.ProxyInterceptor
+﻿namespace SandboxTest.Hosting.ServiceInterceptor
 {
     public class ServiceInterceptorAction
     {

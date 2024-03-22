@@ -1,10 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using System.Collections.Concurrent;
 using System.Reflection;
 
-namespace SandboxTest.Hosting.ProxyInterceptor
+namespace SandboxTest.Hosting.ServiceInterceptor
 {
     /// <summary>
     /// Represents a service proxy wrapper controller that uses the dependency injection mechanism from standard IHost to replace all the implementations with proxy wrappers containing the original instance.
@@ -56,7 +55,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
         public Task ConfigureBuildAsync(IApplicationInstance applicationInstance)
         {
             var hostApplicationRunner = applicationInstance.Runner as IHostApplicationRunner;
-            if (hostApplicationRunner == null) 
+            if (hostApplicationRunner == null)
             {
                 throw new InvalidOperationException($"Target runner for application instance {applicationInstance.Id} must be a host application runner");
             }
@@ -74,6 +73,10 @@ namespace SandboxTest.Hosting.ProxyInterceptor
                 {
                     if (serviceDescriptor.ServiceType.IsInterface && TypeIsAccessible(serviceDescriptor.ServiceType))
                     {
+                        if (serviceDescriptor.ServiceType.Name.StartsWith("IOptionsFactory"))
+                        {
+
+                        }
                         if (serviceDescriptor.IsKeyedService && serviceDescriptor.KeyedImplementationFactory != null)
                         {
                             var serviceProxyInterceptorType = ServiceInterceptor.CreateServiceInterceptorInterfaceWrapper(serviceDescriptor.ServiceType, this);

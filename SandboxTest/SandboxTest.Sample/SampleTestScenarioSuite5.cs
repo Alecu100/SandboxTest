@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SandboxTest.Hosting;
-using SandboxTest.Hosting.ProxyInterceptor;
+using SandboxTest.Hosting.ServiceInterceptor;
 using SandboxTest.Sample.Application3;
 
 namespace SandboxTest.Sample

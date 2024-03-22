@@ -2,14 +2,14 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace SandboxTest.Hosting.ProxyInterceptor
+namespace SandboxTest.Hosting.ServiceInterceptor
 {
     public class ServiceInterceptorConfigurator<TInterface>
     {
         private ServiceInterceptorController _controller;
 
-        public ServiceInterceptorConfigurator(ServiceInterceptorController controller) 
-        { 
+        public ServiceInterceptorConfigurator(ServiceInterceptorController controller)
+        {
             _controller = controller;
         }
 
@@ -58,7 +58,7 @@ namespace SandboxTest.Hosting.ProxyInterceptor
             return new ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9,  TReturn>>>, TReturn> ConfigureMethodCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>>> interfaceMethodFunc)
+        public ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>>>, TReturn> ConfigureMethodCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>>> interfaceMethodFunc)
         {
             return new ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
         }

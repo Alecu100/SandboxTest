@@ -4,6 +4,6 @@
     {
         void Add(T instance);
 
-        T Get(int index);
+        T? Get(int index);
     }
 }

@@ -11,6 +11,8 @@ namespace SandboxTest.Hosting.ServiceInterceptor.ManualDebugger
             var concreteType = serviceInterceptorListType.MakeGenericType(new Type[] { typeof(TestClassDerived) });
             var instance = Activator.CreateInstance(concreteType, new object[] { serviceInterceptorController }) as ITestInterface<TestClassDerived>;
             instance.Get(0);
+            //instance.Add(new TestClassDerived());
+            instance = Activator.CreateInstance(concreteType, new object[] { serviceInterceptorController, new List<TestClassDerived>() { new TestClassDerived { Name = "Asda" } } }) as ITestInterface<TestClassDerived>;
             Console.WriteLine("Hello, World!");
         }
     }

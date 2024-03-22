@@ -246,7 +246,8 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                     }
                 }
                 var interfaceParameters = interfaceMethod.GetParameters();
-                interfaceMethodTypeBuilder.SetParameters(interfaceParameters.Select(x => ReplaceGenericArgumentsFromType(x.ParameterType, serviceInterceptorGenericParametersMap)).ToArray());
+                var interfaceMethodParameters = interfaceParameters.Select(x => ReplaceGenericArgumentsFromType(x.ParameterType, serviceInterceptorGenericParametersMap)).ToArray();
+                interfaceMethodTypeBuilder.SetParameters(interfaceMethodParameters);
                 interfaceMethodTypeBuilder.SetReturnType(ReplaceGenericArgumentsFromType(interfaceMethod.ReturnType, serviceInterceptorGenericParametersMap));
 
                 var ilGenerator = interfaceMethodTypeBuilder.GetILGenerator();
@@ -270,12 +271,6 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 ilGenerator.Emit(OpCodes.Ldc_I4, interfaceParameters.Length);
                 ilGenerator.Emit(OpCodes.Newarr, typeof(object));
                 ilGenerator.Emit(OpCodes.Stloc, localOjectParamList);
-                ilGenerator.Emit(OpCodes.Ldarg_0);
-                ilGenerator.Emit(OpCodes.Ldloc, localMethodInfo);
-                ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
-                ilGenerator.Emit(OpCodes.Callvirt, invokeMethod);
-                ilGenerator.Emit(OpCodes.Ret);
-                continue;
 
                 for (short parameterIndex = 0; parameterIndex < interfaceParameters.Length; parameterIndex++)
                 {
@@ -289,7 +284,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                     ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
                     ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
                     ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
-                    ilGenerator.Emit(OpCodes.Box);
+                    ilGenerator.Emit(OpCodes.Box, interfaceMethodParameters[parameterIndex]);
                     ilGenerator.Emit(OpCodes.Stloc, localObjectParam);
                     ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
                     ilGenerator.Emit(OpCodes.Ldloc, localObjectParam);
@@ -299,7 +294,6 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                     ilGenerator.MarkLabel(loadArgumentLabel);
                     ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
                     ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
-                    ilGenerator.Emit(OpCodes.Castclass, typeof(object));
                     ilGenerator.Emit(OpCodes.Ldind_I4, (int)parameterIndex);
                     ilGenerator.Emit(OpCodes.Callvirt, arrayObjectSetValueMethod);
 

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 
@@ -91,7 +90,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
             GenerateInterfaceProperties(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap, builtMethods);
 
-            GenerateInterfaceEvents(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap);
+            GenerateInterfaceEvents(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap, builtMethods);
 
             var createdType = serviceInterceptorTypeBuilder.CreateType();
             serviceInterceptorController.AddReference(createdType);
@@ -131,7 +130,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
             GenerateInterfaceProperties(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap, builtMethods);
 
-            GenerateInterfaceEvents(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap);
+            GenerateInterfaceEvents(interfaceType, serviceInterceptorTypeBuilder, serviceInterceptorGenericParametersMap, builtMethods);
 
             var createdType = serviceInterceptorTypeBuilder.CreateType();
             serviceInterceptorController.AddReference(createdType);
@@ -168,13 +167,28 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             return false;
         }
 
-        private static void GenerateInterfaceEvents(Type interfaceType, TypeBuilder serviceInterceptorTypeBuilder, Dictionary<Type, GeneraticParameterTypeWithInitialization>? serviceInterceptorGenericParametersMap)
+        private static void GenerateInterfaceEvents(Type interfaceType, TypeBuilder serviceInterceptorTypeBuilder, Dictionary<Type, GeneraticParameterTypeWithInitialization>? serviceInterceptorGenericParametersMap, List<MethodBuilder> builtMethods)
         {
             var interfaceEvents = interfaceType.GetEvents(BindingFlags.Instance);
 
             foreach (var interfaceEvent in interfaceEvents)
             {
-                var e = serviceInterceptorTypeBuilder.DefineEvent(interfaceEvent.Name, interfaceEvent.Attributes, interfaceEvent.EventHandlerType ?? throw new Exception($"Failed to create event {interfaceEvent.Name} for interface {interfaceType.Name}"));
+                if (interfaceEvent.EventHandlerType == null)
+                {
+                    continue;
+                }
+                var interfaceEventImplementationDelegateType = ReplaceGenericArgumentsFromType(interfaceEvent.EventHandlerType, serviceInterceptorGenericParametersMap);
+                var interfaceEventImplementation = serviceInterceptorTypeBuilder.DefineEvent(interfaceEvent.Name, interfaceEvent.Attributes, interfaceEventImplementationDelegateType);
+                var removeEventMethod = builtMethods.FirstOrDefault(method => method.Name == $"remove_{interfaceEvent.Name}");
+                var addEventMethod = builtMethods.FirstOrDefault(method => method.Name == $"add_{interfaceEvent.Name}");
+                if (removeEventMethod != null)
+                {
+                    interfaceEventImplementation.SetRemoveOnMethod(removeEventMethod);
+                }
+                if (addEventMethod != null)
+                {
+                    interfaceEventImplementation.SetAddOnMethod(addEventMethod);
+                }
             }
         }
 

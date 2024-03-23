@@ -26,5 +26,20 @@
             }
             return _list[index];
         }
+
+        public int Count
+        {
+            get
+            {
+                return _list.Count;
+            }
+        }
+
+        public T this[int i]
+        {
+            get { return _list[i]; }
+            set { _list[i] = value; }
+        }
+
     }
 }

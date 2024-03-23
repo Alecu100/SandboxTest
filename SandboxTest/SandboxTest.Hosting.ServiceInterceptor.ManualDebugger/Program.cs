@@ -12,7 +12,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor.ManualDebugger
             var instance = Activator.CreateInstance(concreteType, new object[] { serviceInterceptorController }) as ITestInterface<TestClassDerived>;
             instance.Add(new TestClassDerived());
             var testClass = instance.Get(0);
-            instance = Activator.CreateInstance(concreteType, new object[] { serviceInterceptorController, new List<TestClassDerived>() { new TestClassDerived { Name = "Asda" } } }) as ITestInterface<TestClassDerived>;
+            var count = instance.Count;
             Console.WriteLine("Hello, World!");
         }
     }

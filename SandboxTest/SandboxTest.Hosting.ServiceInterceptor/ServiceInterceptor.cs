@@ -184,7 +184,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
             foreach (var interfaceProperty in interfaceProperties)
             {
-                var property = serviceInterceptorTypeBuilder.DefineProperty(interfaceProperty.Name, interfaceProperty.Attributes, ReplaceGenericArgumentsFromType(interfaceProperty.PropertyType, serviceInterceptorGenericParametersMap), Type.EmptyTypes);
+                var returnType = ReplaceGenericArgumentsFromType(interfaceProperty.PropertyType, serviceInterceptorGenericParametersMap);
+                var parameterTypes = interfaceProperty.GetIndexParameters().Select(param => ReplaceGenericArgumentsFromType(param.ParameterType, serviceInterceptorGenericParametersMap)).ToArray();
+                var property = serviceInterceptorTypeBuilder.DefineProperty(interfaceProperty.Name, interfaceProperty.Attributes, ReplaceGenericArgumentsFromType(interfaceProperty.PropertyType, serviceInterceptorGenericParametersMap), parameterTypes);
                 var getMethodProperty = builtMethods.FirstOrDefault(builtMethod => builtMethod.Name == $"get_{property.Name}");
                 var setMethodProperty = builtMethods.FirstOrDefault(builtMethod => builtMethod.Name == $"set_{property.Name}");
                 if (getMethodProperty != null)
@@ -196,6 +198,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                     property.SetSetMethod(setMethodProperty);
                 }
             }
+
         }
 
         private static void GenerateInterfaceMethods(Type interfaceType, TypeBuilder serviceInterceptorTypeBuilder, Dictionary<Type, GeneraticParameterTypeWithInitialization>? serviceInterceptorGenericParametersMap, List<MethodBuilder> builtMethods)
@@ -347,7 +350,8 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         private static List<PropertyInfo> GetAllInterfaceProperties(Type interfaceType)
         {
-            var interfaceProperties = interfaceType.GetProperties(BindingFlags.Instance).ToList();
+            var interfaceProperties = interfaceType.GetProperties(BindingFlags.Instance | BindingFlags.Public).ToList();
+            interfaceProperties.AddRange(interfaceType.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic));
             var implementedInterfaces = interfaceType.GetInterfaces();
             foreach (var implementedInterface in implementedInterfaces)
             {
@@ -516,8 +520,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 throw new InvalidOperationException("Null target method");
             }
             var currentType = GetType();
-            var targetMethodGenericParametersFromType = MethodInfoGetGenericParametersFromType(targetMethod);
-            if (!targetMethod.IsGenericMethodDefinition && targetMethodGenericParametersFromType.Any())
+            if (!targetMethod.IsGenericMethodDefinition && currentType.IsGenericType)
             {
                 targetMethod = MethodBase.GetMethodFromHandle(targetMethod.MethodHandle, currentType.TypeHandle) as MethodInfo;
             }
@@ -534,6 +537,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                     if (interfaceImplementedMethod == targetMethod)
                     {
                         targetMethod = interfaceMap.InterfaceMethods[i];
+                        break;
                     }
                 }
             }

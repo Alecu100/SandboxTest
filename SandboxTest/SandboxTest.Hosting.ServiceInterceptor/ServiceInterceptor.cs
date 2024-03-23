@@ -212,8 +212,12 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
             foreach (var interfaceMethod in interfaceMethods)
             {
-                var interfaceMethodTypeBuilder = serviceInterceptorTypeBuilder.DefineMethod(interfaceMethod.Name, interfaceMethod.Attributes & ~MethodAttributes.Abstract, interfaceMethod.CallingConvention);
-                builtMethods.Add(interfaceMethodTypeBuilder);
+                if (interfaceMethod == null)
+                {
+                    continue;
+                }
+                var interfaceMethodImplementation = serviceInterceptorTypeBuilder.DefineMethod(interfaceMethod.Name, interfaceMethod.Attributes & ~MethodAttributes.Abstract, interfaceMethod.CallingConvention);
+                builtMethods.Add(interfaceMethodImplementation);
                 var interfaceMethodArgumentsType = new List<Type>();
                 var interfaceMethodGenericArguments = interfaceMethod.GetGenericArguments();
                 var interfaceMethodGenericParametersMap = new Dictionary<Type, GeneraticParameterTypeWithInitialization>();
@@ -226,7 +230,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 }
                 if (interfaceMethodGenericArguments.Any())
                 {
-                    var genericMethodParameters = interfaceMethodTypeBuilder.DefineGenericParameters(interfaceMethodGenericArguments.Select(arg => arg.Name).ToArray());
+                    var genericMethodParameters = interfaceMethodImplementation.DefineGenericParameters(interfaceMethodGenericArguments.Select(arg => arg.Name).ToArray());
                     for (int i = 0; i < genericMethodParameters.Length; i++)
                     {
                         interfaceMethodGenericParametersMap[interfaceMethodGenericArguments[i]] = new GeneraticParameterTypeWithInitialization { GenericTypeParameterBuilder = genericMethodParameters[i] };
@@ -246,49 +250,39 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                         }
                     }
                 }
-                var interfaceParameters = interfaceMethod.GetParameters();
-                var interfaceMethodParameters = interfaceParameters.Select(x => ReplaceGenericArgumentsFromType(x.ParameterType, serviceInterceptorGenericParametersMap)).ToArray();
-                interfaceMethodTypeBuilder.SetParameters(interfaceMethodParameters);
-                interfaceMethodTypeBuilder.SetReturnType(ReplaceGenericArgumentsFromType(interfaceMethod.ReturnType, serviceInterceptorGenericParametersMap));
 
-                var ilGenerator = interfaceMethodTypeBuilder.GetILGenerator();
+                var interfaceMethodImplementationParameters = interfaceMethod.GetParameters().Select(x => ReplaceGenericArgumentsFromType(x.ParameterType, serviceInterceptorGenericParametersMap)).ToArray();
+                var interfaceMethodReturnType = ReplaceGenericArgumentsFromType(interfaceMethod.ReturnType ?? typeof(void), serviceInterceptorGenericParametersMap);
+                interfaceMethodImplementation.SetParameters(interfaceMethodImplementationParameters);
+                interfaceMethodImplementation.SetReturnType(interfaceMethodReturnType);
+
+                var ilGenerator = interfaceMethodImplementation.GetILGenerator();
                 var localOjectParamList = ilGenerator.DeclareLocal(typeof(object[]));
                 var localObjectParam = ilGenerator.DeclareLocal(typeof(object));
                 var localMethodInfo = ilGenerator.DeclareLocal(typeof(MethodInfo));
+                var localInvokeReturnedObject = ilGenerator.DeclareLocal(typeof(object));
+                var localUnboxedInvokeReturnedObject = ilGenerator.DeclareLocal(interfaceMethodReturnType.GetType());
                 ilGenerator.EmitWriteLine("Calling generated interface method");
                 ilGenerator.Emit(OpCodes.Call, getCurrentMethod);
                 ilGenerator.Emit(OpCodes.Castclass, typeof(MethodInfo));
                 ilGenerator.Emit(OpCodes.Stloc, localMethodInfo);
-                if (!interfaceMethod.GetParameters().Any())
-                {
-                    ilGenerator.Emit(OpCodes.Ldarg_0);
-                    ilGenerator.Emit(OpCodes.Ldloc, localMethodInfo);
-                    ilGenerator.Emit(OpCodes.Ldnull);
-                    ilGenerator.Emit(OpCodes.Callvirt, invokeMethod);
-                    if (interfaceMethod.ReturnType == null || interfaceMethod.ReturnType == typeof(void))
-                    {
-                        ilGenerator.Emit(OpCodes.Pop);
-                    }
-                    ilGenerator.Emit(OpCodes.Ret);
-                    continue;
-                }
 
-                ilGenerator.Emit(OpCodes.Ldc_I4, interfaceParameters.Length);
+                ilGenerator.Emit(OpCodes.Ldc_I4, interfaceMethodImplementationParameters.Length);
                 ilGenerator.Emit(OpCodes.Newarr, typeof(object));
                 ilGenerator.Emit(OpCodes.Stloc, localOjectParamList);
 
-                for (short parameterIndex = 0; parameterIndex < interfaceParameters.Length; parameterIndex++)
+                for (short parameterIndex = 0; parameterIndex < interfaceMethodImplementationParameters.Length; parameterIndex++)
                 {
                     var loadArgumentLabel = ilGenerator.DefineLabel();
                     var loadNextArgumentLabel = ilGenerator.DefineLabel();
                     
-                    ilGenerator.Emit(OpCodes.Ldtoken, interfaceMethodParameters[parameterIndex]);
+                    ilGenerator.Emit(OpCodes.Ldtoken, interfaceMethodImplementationParameters[parameterIndex]);
                     ilGenerator.Emit(OpCodes.Call, getTypeFromHandle);
                     ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
                     ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
                     ilGenerator.EmitWriteLine("Detected value type, boxing it");
                     ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
-                    ilGenerator.Emit(OpCodes.Box, interfaceMethodParameters[parameterIndex]);
+                    ilGenerator.Emit(OpCodes.Box, interfaceMethodImplementationParameters[parameterIndex]);
                     ilGenerator.Emit(OpCodes.Stloc, localObjectParam);
                     ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
                     ilGenerator.Emit(OpCodes.Ldc_I4, (int)parameterIndex);
@@ -309,10 +303,48 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 ilGenerator.Emit(OpCodes.Ldloc, localMethodInfo);
                 ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
                 ilGenerator.Emit(OpCodes.Callvirt, invokeMethod);
+                var returnLabel = ilGenerator.DefineLabel();
                 if (interfaceMethod.ReturnType == null || interfaceMethod.ReturnType == typeof(void))
                 {
                     ilGenerator.Emit(OpCodes.Pop);
+                    ilGenerator.Emit(OpCodes.Br, returnLabel);
                 }
+                else 
+                {
+                    var activatorCreateTypeMethod = typeof(Activator).GetMethod(nameof(Activator.CreateInstance), BindingFlags.Static | BindingFlags.Public, new Type[] { typeof(Type) }) 
+                        ?? throw new InvalidOperationException("Could not get activator create instance method");
+                    ilGenerator.Emit(OpCodes.Stloc, localInvokeReturnedObject);
+                    var loadInvokeReturnDirectlyLabel = ilGenerator.DefineLabel();
+                    var loadDefaultValueTypeLabel = ilGenerator.DefineLabel();
+                    ilGenerator.Emit(OpCodes.Ldtoken, interfaceMethodReturnType);
+                    ilGenerator.Emit(OpCodes.Call, getTypeFromHandle);
+                    ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
+                    ilGenerator.Emit(OpCodes.Brfalse, loadInvokeReturnDirectlyLabel);
+                    ilGenerator.Emit(OpCodes.Ldloc, localInvokeReturnedObject);
+                    ilGenerator.Emit(OpCodes.Brfalse, loadDefaultValueTypeLabel);
+                    ilGenerator.EmitWriteLine("Loading unboxed returned object from invoke");
+                    ilGenerator.EmitWriteLine(localInvokeReturnedObject);
+                    ilGenerator.Emit(OpCodes.Ldloc, localInvokeReturnedObject);
+                    ilGenerator.Emit(OpCodes.Unbox_Any, interfaceMethodReturnType);
+                    ilGenerator.Emit(OpCodes.Stloc, localUnboxedInvokeReturnedObject);
+                    ilGenerator.EmitWriteLine("Unboxed returned invoke object:");
+                    ilGenerator.Emit(OpCodes.Ldloc, localUnboxedInvokeReturnedObject);
+                    ilGenerator.Emit(OpCodes.Br, returnLabel);
+                    ilGenerator.MarkLabel(loadInvokeReturnDirectlyLabel);
+                    ilGenerator.EmitWriteLine("Loading returned object from invoke directly");
+                    ilGenerator.EmitWriteLine(localInvokeReturnedObject);
+                    ilGenerator.Emit(OpCodes.Ldloc, localInvokeReturnedObject);
+                    ilGenerator.Emit(OpCodes.Br, returnLabel);
+                    ilGenerator.MarkLabel(loadDefaultValueTypeLabel);
+                    ilGenerator.EmitWriteLine("Loading default value type because invoke returned null");
+                    ilGenerator.Emit(OpCodes.Ldtoken, interfaceMethodReturnType);
+                    ilGenerator.Emit(OpCodes.Call, getTypeFromHandle);
+                    ilGenerator.Emit(OpCodes.Call, activatorCreateTypeMethod);
+                    ilGenerator.Emit(OpCodes.Unbox, interfaceMethodReturnType);
+                    ilGenerator.Emit(OpCodes.Br, returnLabel);
+                }
+
+                ilGenerator.MarkLabel(returnLabel);
                 ilGenerator.Emit(OpCodes.Ret);
             }
         }

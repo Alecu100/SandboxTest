@@ -262,6 +262,10 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                     ilGenerator.Emit(OpCodes.Ldloc, localMethodInfo);
                     ilGenerator.Emit(OpCodes.Ldnull);
                     ilGenerator.Emit(OpCodes.Callvirt, invokeMethod);
+                    if (interfaceMethod.ReturnType == null || interfaceMethod.ReturnType == typeof(void))
+                    {
+                        ilGenerator.Emit(OpCodes.Pop);
+                    }
                     ilGenerator.Emit(OpCodes.Ret);
                     continue;
                 }
@@ -302,6 +306,10 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 ilGenerator.Emit(OpCodes.Ldloc, localMethodInfo);
                 ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
                 ilGenerator.Emit(OpCodes.Callvirt, invokeMethod);
+                if (interfaceMethod.ReturnType == null || interfaceMethod.ReturnType == typeof(void))
+                {
+                    ilGenerator.Emit(OpCodes.Pop);
+                }
                 ilGenerator.Emit(OpCodes.Ret);
             }
         }

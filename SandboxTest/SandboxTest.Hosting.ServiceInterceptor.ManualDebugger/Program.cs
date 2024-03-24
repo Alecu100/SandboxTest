@@ -16,7 +16,10 @@ namespace SandboxTest.Hosting.ServiceInterceptor.ManualDebugger
             var count = instance.Count;
             var serviceInterceptorTypeBuilder2 = new ServiceInterceptorTypeBuilder(typeof(IList<>), typeof(List<>), serviceInterceptorController);
             var listTestClassType = serviceInterceptorTypeBuilder2.Build();
-            var concreteListTestClassType = serviceInterceptorListType.MakeGenericType(new Type[] { typeof(TestClassDerived) });
+            var listTestClassTypeConcrete = listTestClassType.MakeGenericType(new Type[] { typeof(TestClassDerived) });
+            var concreteListTestClass = Activator.CreateInstance(listTestClassTypeConcrete, serviceInterceptorController) as IList<TestClassDerived>;
+            concreteListTestClass.Add(new TestClassDerived());
+            var count2 = concreteListTestClass.Count;
             Console.WriteLine("Hello, World!");
         }
     }

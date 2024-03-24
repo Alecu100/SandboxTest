@@ -1,6 +1,4 @@
-﻿using SandboxTest.Hosting.ServiceInterceptor;
-
-namespace SandboxTest.Hosting.ServiceInterceptor.ManualDebugger
+﻿namespace SandboxTest.Hosting.ServiceInterceptor.ManualDebugger
 {
     internal class Program
     {
@@ -20,8 +18,8 @@ namespace SandboxTest.Hosting.ServiceInterceptor.ManualDebugger
             var concreteListTestClass = Activator.CreateInstance(listTestClassTypeConcrete, serviceInterceptorController) as IList<TestClassDerived>;
             var concreteListTestClass2 = Activator.CreateInstance(listTestClassTypeConcrete, new object[] { serviceInterceptorController, new List<TestClassDerived> { new TestClassDerived() } }) as IList<TestClassDerived>;
 
-            concreteListTestClass.Add(new TestClassDerived());
-            var count2 = concreteListTestClass.Count;
+            concreteListTestClass2.Add(new TestClassDerived());
+            var count2 = concreteListTestClass2.Count;
             Console.WriteLine("Hello, World!");
         }
     }

@@ -292,29 +292,27 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                         {
                             continue;
                         }
-                        if (otherInterfaceMethod.DeclaringType.IsAssignableTo(interfaceMethod.DeclaringType))
-                        {
-                            isExplicitMethodImplementation = true;
-                            if (otherInterfaceMethod.DeclaringType.IsGenericType)
-                            {
-                                var otherInterfaceMethodGenericArguments = otherInterfaceMethod.DeclaringType.GetGenericArguments().Select(arg => ReplaceGenericArgumentsFromType(arg, _serviceInterceptorGenericParametersMap)).ToArray();
-                                var otherInterfaceGenericImplementation = otherInterfaceMethod.DeclaringType.GetGenericTypeDefinition().MakeGenericType(otherInterfaceMethodGenericArguments);
-                                interfaceMethodToExplicitlyImplement = MethodBase.GetMethodFromHandle(otherInterfaceMethod.MethodHandle, otherInterfaceGenericImplementation.TypeHandle) as MethodInfo;
-                            }
-                            else
-                            {
-                                interfaceMethodToExplicitlyImplement = interfaceMethod;
-                            }
-                            break;
-                        }
+                    }
+                    if (!interfaceMethod.DeclaringType.IsAssignableTo(otherInterfaceMethod.DeclaringType))
+                    {
+                        isExplicitMethodImplementation = true;
+                        interfaceMethodToExplicitlyImplement = interfaceMethod;
+                        break;
                     }
                 }
                 if (isExplicitMethodImplementation && (interfaceMethodToExplicitlyImplement == null || interfaceMethodToExplicitlyImplement.DeclaringType == null))
                 {
                     throw new InvalidOperationException("Could not find method to explicitly implement");
                 }
+                var interfaceMethodImplementationAttributes = (interfaceMethod.Attributes & ~MethodAttributes.Abstract) | MethodAttributes.Virtual;
+                if (isExplicitMethodImplementation)
+                {
+                    interfaceMethodImplementationAttributes &= ~MethodAttributes.Public;
+                    interfaceMethodImplementationAttributes |= MethodAttributes.Private;
+                    interfaceMethodImplementationAttributes |= MethodAttributes.Final;
+                }
                 var interfaceMethodImplementationName = isExplicitMethodImplementation ? $"{interfaceMethodToExplicitlyImplement!.DeclaringType!.Name}.{interfaceMethod.Name}" : interfaceMethod.Name;
-                var interfaceMethodImplementation = _serviceInterceptorTypeBuilder!.DefineMethod(interfaceMethodImplementationName, interfaceMethod.Attributes & ~MethodAttributes.Abstract, interfaceMethod.CallingConvention);
+                var interfaceMethodImplementation = _serviceInterceptorTypeBuilder!.DefineMethod(interfaceMethodImplementationName, interfaceMethodImplementationAttributes, interfaceMethod.CallingConvention);
                 _builtMethods.Add(interfaceMethodImplementation);
                 var interfaceMethodArgumentsType = new List<Type>();
                 var interfaceMethodGenericArguments = interfaceMethod.GetGenericArguments();
@@ -354,10 +352,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 interfaceMethodImplementation.SetParameters(interfaceMethodImplementationParameters);
                 interfaceMethodImplementation.SetReturnType(interfaceMethodReturnType);
 
-                if (isExplicitMethodImplementation)
-                {
-                    _serviceInterceptorTypeBuilder.DefineMethodOverride(interfaceMethodImplementation, interfaceMethodToExplicitlyImplement!);
-                }
+                _serviceInterceptorTypeBuilder.DefineMethodOverride(interfaceMethodImplementation, interfaceMethod!);
 
                 var ilGenerator = interfaceMethodImplementation.GetILGenerator();
                 var localOjectParamList = ilGenerator.DeclareLocal(typeof(object[]));
@@ -471,39 +466,65 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             return allInterfaces;
         }
 
-        private static List<MethodInfo> GetAllInterfaceMethods(Type interfaceType)
+        private static List<MethodInfo> GetAllInterfaceMethods(Type interfaceType, HashSet<Type>? scannedInterfaces = null)
         {
+            if (scannedInterfaces == null)
+            {
+                scannedInterfaces = new HashSet<Type>();
+            }
+            if (scannedInterfaces.Contains(interfaceType))
+            {
+                return new List<MethodInfo>();
+            }
+            scannedInterfaces.Add(interfaceType);
             var interfaceMethods = interfaceType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).ToList();
             var implementedInterfaces = interfaceType.GetInterfaces();
             foreach (var implementedInterface in implementedInterfaces)
             {
-                interfaceMethods.AddRange(GetAllInterfaceMethods(implementedInterface));
+                interfaceMethods.AddRange(GetAllInterfaceMethods(implementedInterface, scannedInterfaces));
             }
 
             return interfaceMethods;
         }
 
-        private static List<PropertyInfo> GetAllInterfaceProperties(Type interfaceType)
+        private static List<PropertyInfo> GetAllInterfaceProperties(Type interfaceType, HashSet<Type>? scannedInterfaces = null)
         {
+            if (scannedInterfaces == null)
+            {
+                scannedInterfaces = new HashSet<Type>();
+            }
+            if (scannedInterfaces.Contains(interfaceType))
+            {
+                return new List<PropertyInfo>();
+            }
+            scannedInterfaces.Add(interfaceType);
             var interfaceProperties = interfaceType.GetProperties(BindingFlags.Instance | BindingFlags.Public).ToList();
             interfaceProperties.AddRange(interfaceType.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic));
             var implementedInterfaces = interfaceType.GetInterfaces();
             foreach (var implementedInterface in implementedInterfaces)
             {
-                interfaceProperties.AddRange(GetAllInterfaceProperties(implementedInterface));
+                interfaceProperties.AddRange(GetAllInterfaceProperties(implementedInterface, scannedInterfaces));
             }
 
             return interfaceProperties;
         }
 
-        private static List<EventInfo> GetAllInterfaceEvents(Type interfaceType)
+        private static List<EventInfo> GetAllInterfaceEvents(Type interfaceType, HashSet<Type>? scannedInterfaces = null)
         {
+            if (scannedInterfaces == null)
+            {
+                scannedInterfaces = new HashSet<Type>();
+            }
+            if (scannedInterfaces.Contains(interfaceType))
+            {
+                return new List<EventInfo>();
+            }
             var interfaceEvents = interfaceType.GetEvents(BindingFlags.Instance | BindingFlags.Public).ToList();
             interfaceEvents.AddRange(interfaceType.GetEvents(BindingFlags.Instance | BindingFlags.NonPublic));
             var implementedInterfaces = interfaceType.GetInterfaces();
             foreach (var implementedInterface in implementedInterfaces)
             {
-                interfaceEvents.AddRange(GetAllInterfaceEvents(implementedInterface));
+                interfaceEvents.AddRange(GetAllInterfaceEvents(implementedInterface, scannedInterfaces));
             }
 
             return interfaceEvents;

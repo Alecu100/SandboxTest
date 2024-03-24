@@ -226,11 +226,57 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
             foreach (var interfaceMethod in interfaceMethods)
             {
-                if (interfaceMethod == null)
+                if (interfaceMethod == null || interfaceMethod.DeclaringType == null)
                 {
                     continue;
                 }
-                var interfaceMethodImplementation = serviceInterceptorTypeBuilder.DefineMethod(interfaceMethod.Name, interfaceMethod.Attributes & ~MethodAttributes.Abstract, interfaceMethod.CallingConvention);
+                var isExplicitMethodImplementation = false;
+                MethodInfo? interfaceMethodToExplicitlyImplement = null;
+                foreach (var otherInterfaceMethod in interfaceMethods)
+                {
+                    if (otherInterfaceMethod == interfaceMethod || otherInterfaceMethod.DeclaringType == null)
+                    {
+                        continue;
+                    }
+                    var otherInterfaceMethodParameters = otherInterfaceMethod.GetParameters();
+                    var interfaceMethodParameters = interfaceMethod.GetParameters();
+                    if (otherInterfaceMethodParameters.Length != interfaceMethodParameters.Length)
+                    {
+                        continue;
+                    }
+                    if (otherInterfaceMethod.Name != interfaceMethod.Name)
+                    {
+                        continue;
+                    }
+                    for (int parameterIndex = 0; parameterIndex < otherInterfaceMethodParameters.Length; parameterIndex++)
+                    {
+                        if (otherInterfaceMethodParameters[parameterIndex].ParameterType != interfaceMethodParameters[parameterIndex].ParameterType)
+                        {
+                            continue;
+                        }
+                        if (otherInterfaceMethod.DeclaringType.IsAssignableTo(interfaceMethod.DeclaringType))
+                        {
+                            isExplicitMethodImplementation = true;
+                            if (otherInterfaceMethod.DeclaringType.IsGenericType)
+                            {
+                                var otherInterfaceMethodGenericArguments = otherInterfaceMethod.DeclaringType.GetGenericArguments().Select(arg => ReplaceGenericArgumentsFromType(arg, serviceInterceptorGenericParametersMap)).ToArray();
+                                var otherInterfaceGenericImplementation = otherInterfaceMethod.DeclaringType.GetGenericTypeDefinition().MakeGenericType(otherInterfaceMethodGenericArguments);
+                                interfaceMethodToExplicitlyImplement = MethodBase.GetMethodFromHandle(otherInterfaceMethod.MethodHandle, otherInterfaceGenericImplementation.TypeHandle) as MethodInfo;
+                            }
+                            else
+                            {
+                                interfaceMethodToExplicitlyImplement = interfaceMethod;
+                            }
+                            break;
+                        }
+                    }
+                }
+                if (isExplicitMethodImplementation && (interfaceMethodToExplicitlyImplement == null || interfaceMethodToExplicitlyImplement.DeclaringType == null))
+                {
+                    throw new InvalidOperationException("Could not find method to explicitly implement");
+                }
+                var interfaceMethodImplementationName = isExplicitMethodImplementation ? $"{interfaceMethodToExplicitlyImplement!.DeclaringType!.Name}.{interfaceMethod.Name}" : interfaceMethod.Name;
+                var interfaceMethodImplementation = serviceInterceptorTypeBuilder.DefineMethod(interfaceMethodImplementationName, interfaceMethod.Attributes & ~MethodAttributes.Abstract, interfaceMethod.CallingConvention);
                 builtMethods.Add(interfaceMethodImplementation);
                 var interfaceMethodArgumentsType = new List<Type>();
                 var interfaceMethodGenericArguments = interfaceMethod.GetGenericArguments();
@@ -269,6 +315,11 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 var interfaceMethodReturnType = ReplaceGenericArgumentsFromType(interfaceMethod.ReturnType ?? typeof(void), serviceInterceptorGenericParametersMap);
                 interfaceMethodImplementation.SetParameters(interfaceMethodImplementationParameters);
                 interfaceMethodImplementation.SetReturnType(interfaceMethodReturnType);
+
+                if (isExplicitMethodImplementation)
+                {
+                    serviceInterceptorTypeBuilder.DefineMethodOverride(interfaceMethodImplementation, interfaceMethodToExplicitlyImplement!);
+                }
 
                 var ilGenerator = interfaceMethodImplementation.GetILGenerator();
                 var localOjectParamList = ilGenerator.DeclareLocal(typeof(object[]));
@@ -631,34 +682,6 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             required public GenericTypeParameterBuilder GenericTypeParameterBuilder { get; set; }
 
             public bool IsInitialized { get; set; } = false;
-        }
-
-        private static List<Type> MethodInfoGetGenericParametersFromType(MethodInfo method)
-        {
-            var genericParametersFromType = new List<Type>();
-            var parametersTypeStack = new Stack<Type>();
-            parametersTypeStack.Push(method.ReturnType);
-            foreach (var parameter in method.GetParameters()) 
-            {
-                parametersTypeStack.Push(parameter.ParameterType); 
-            }
-            while (parametersTypeStack.Any())
-            {
-                var type = parametersTypeStack.Pop();
-                if (type.IsGenericParameter)
-                {
-                    genericParametersFromType.Add(type);
-                }
-                if (type.IsGenericType)
-                {
-                    var genericParameters = type.GetGenericArguments();
-                    foreach (var genericParameter in genericParameters)
-                    {
-                        parametersTypeStack.Push(genericParameter);
-                    }
-                }
-            }
-            return genericParametersFromType;
         }
     }
 }

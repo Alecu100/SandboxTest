@@ -212,7 +212,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         private void GenerateInterfaceEvents()
         {
-            var interfaceEvents = _interfaceType.GetEvents(BindingFlags.Instance);
+            var interfaceEvents = GetAllInterfaceEvents(_interfaceType);
 
             foreach (var interfaceEvent in interfaceEvents)
             {
@@ -494,6 +494,19 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             }
 
             return interfaceProperties;
+        }
+
+        private static List<EventInfo> GetAllInterfaceEvents(Type interfaceType)
+        {
+            var interfaceEvents = interfaceType.GetEvents(BindingFlags.Instance | BindingFlags.Public).ToList();
+            interfaceEvents.AddRange(interfaceType.GetEvents(BindingFlags.Instance | BindingFlags.NonPublic));
+            var implementedInterfaces = interfaceType.GetInterfaces();
+            foreach (var implementedInterface in implementedInterfaces)
+            {
+                interfaceEvents.AddRange(GetAllInterfaceEvents(implementedInterface));
+            }
+
+            return interfaceEvents;
         }
 
         private void GenerateConstructor()

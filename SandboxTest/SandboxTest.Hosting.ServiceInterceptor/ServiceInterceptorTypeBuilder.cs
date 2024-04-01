@@ -22,7 +22,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         private Type? _implementedInterfaceType;
         private List<Type>? _allImplementedInterfaces;
         private Type _serviceInterceptorBaseType;
-        private List<MethodBuilder> _builtMethods;
+        private Dictionary<MethodInfo, MethodBuilder>? _builtInterfaceMethods;
 
         public ServiceInterceptorTypeBuilder(Type interfaceType, Type wrappedType, ServiceInterceptorController serviceInterceptorController) 
         {
@@ -68,7 +68,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             _serviceInterceptorTypeBuilder = moduleBuilder.DefineType(serviceInterceptorTypeName, TypeAttributes.Public | TypeAttributes.Class, _serviceInterceptorBaseType);
             GenericTypeParameterBuilder[]? serviceInterceptorGenericParameters = null;
             Dictionary<Type, GeneraticParameterTypeWithInitialization>? wrappedTypeGenericParametersMap = null;
-            _builtMethods = new List<MethodBuilder>();
+            _builtInterfaceMethods = new Dictionary<MethodInfo, MethodBuilder>();
 
             if (_interfaceType.IsGenericTypeDefinition)
             {
@@ -216,21 +216,35 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
             foreach (var interfaceEvent in interfaceEvents)
             {
+                var isExplicitEventImplementation = false;
+
                 if (interfaceEvent.EventHandlerType == null)
                 {
                     continue;
                 }
-                var interfaceEventImplementationDelegateType = ReplaceGenericArgumentsFromType(interfaceEvent.EventHandlerType, _serviceInterceptorGenericParametersMap);
-                var interfaceEventImplementation = _serviceInterceptorTypeBuilder!.DefineEvent(interfaceEvent.Name, interfaceEvent.Attributes, interfaceEventImplementationDelegateType);
-                var removeEventMethod = _builtMethods.FirstOrDefault(method => method.Name == $"remove_{interfaceEvent.Name}");
-                var addEventMethod = _builtMethods.FirstOrDefault(method => method.Name == $"add_{interfaceEvent.Name}");
-                if (removeEventMethod != null)
+                foreach (var otherInterfaceEvent in interfaceEvents)
                 {
-                    interfaceEventImplementation.SetRemoveOnMethod(removeEventMethod);
+                    if (otherInterfaceEvent == interfaceEvent || otherInterfaceEvent.Name != interfaceEvent.Name)
+                    {
+                        continue;
+                    }
+
+                    if (!interfaceEvent!.DeclaringType!.IsAssignableTo(otherInterfaceEvent.DeclaringType))
+                    {
+                        isExplicitEventImplementation = true;
+                        break;
+                    }
                 }
-                if (addEventMethod != null)
+                var implementedInterfaceEventName = isExplicitEventImplementation ? $"{interfaceEvent.DeclaringType}.{interfaceEvent.Name}" : interfaceEvent.Name;
+                var interfaceEventImplementationDelegateType = ReplaceGenericArgumentsFromType(interfaceEvent.EventHandlerType, _serviceInterceptorGenericParametersMap);
+                var interfaceEventImplementation = _serviceInterceptorTypeBuilder!.DefineEvent(implementedInterfaceEventName, interfaceEvent.Attributes, interfaceEventImplementationDelegateType);
+                if (interfaceEvent.RemoveMethod != null && _builtInterfaceMethods!.ContainsKey(interfaceEvent.RemoveMethod))
                 {
-                    interfaceEventImplementation.SetAddOnMethod(addEventMethod);
+                    interfaceEventImplementation.SetRemoveOnMethod(_builtInterfaceMethods[interfaceEvent.RemoveMethod]);
+                }
+                if (interfaceEvent.AddMethod != null && _builtInterfaceMethods!.ContainsKey(interfaceEvent.AddMethod))
+                {
+                    interfaceEventImplementation.SetAddOnMethod(_builtInterfaceMethods[interfaceEvent.AddMethod]);
                 }
             }
         }
@@ -241,18 +255,32 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
             foreach (var interfaceProperty in interfaceProperties)
             {
-                var returnType = ReplaceGenericArgumentsFromType(interfaceProperty.PropertyType, _serviceInterceptorGenericParametersMap);
-                var parameterTypes = interfaceProperty.GetIndexParameters().Select(param => ReplaceGenericArgumentsFromType(param.ParameterType, _serviceInterceptorGenericParametersMap)).ToArray();
-                var property = _serviceInterceptorTypeBuilder!.DefineProperty(interfaceProperty.Name, interfaceProperty.Attributes, ReplaceGenericArgumentsFromType(interfaceProperty.PropertyType, _serviceInterceptorGenericParametersMap), parameterTypes);
-                var getMethodProperty = _builtMethods.FirstOrDefault(builtMethod => builtMethod.Name == $"get_{property.Name}");
-                var setMethodProperty = _builtMethods.FirstOrDefault(builtMethod => builtMethod.Name == $"set_{property.Name}");
-                if (getMethodProperty != null)
+                var isExplicitPropertyImplementation = false;
+
+                foreach (var otherInterfacePropery in interfaceProperties)
                 {
-                    property.SetGetMethod(getMethodProperty);
+                    if (otherInterfacePropery == interfaceProperty || otherInterfacePropery.Name != interfaceProperty.Name)
+                    {
+                        continue;
+                    }
+
+                    if (!interfaceProperty!.DeclaringType!.IsAssignableTo(otherInterfacePropery.DeclaringType))
+                    {
+                        isExplicitPropertyImplementation = true;
+                        break;
+                    }
                 }
-                if (setMethodProperty != null)
+                var implementedInterfacePropertyName = isExplicitPropertyImplementation ? $"{interfaceProperty.DeclaringType}.{interfaceProperty.Name}" : interfaceProperty.Name;
+                var implementedInterfacePropertyReturnType = ReplaceGenericArgumentsFromType(interfaceProperty.PropertyType, _serviceInterceptorGenericParametersMap);
+                var implementedInterfacePropertyParameterTypes = interfaceProperty.GetIndexParameters().Select(param => ReplaceGenericArgumentsFromType(param.ParameterType, _serviceInterceptorGenericParametersMap)).ToArray();
+                var implementedInterfaceProperty = _serviceInterceptorTypeBuilder!.DefineProperty(interfaceProperty.Name, interfaceProperty.Attributes, ReplaceGenericArgumentsFromType(interfaceProperty.PropertyType, _serviceInterceptorGenericParametersMap), implementedInterfacePropertyParameterTypes);
+                if (interfaceProperty.GetMethod != null && _builtInterfaceMethods!.ContainsKey(interfaceProperty.GetMethod))
                 {
-                    property.SetSetMethod(setMethodProperty);
+                    implementedInterfaceProperty.SetGetMethod(_builtInterfaceMethods![interfaceProperty.GetMethod]);
+                }
+                if (interfaceProperty.SetMethod != null && _builtInterfaceMethods!.ContainsKey(interfaceProperty.SetMethod))
+                {
+                    implementedInterfaceProperty.SetGetMethod(_builtInterfaceMethods![interfaceProperty.SetMethod]);
                 }
             }
 
@@ -313,7 +341,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 }
                 var interfaceMethodImplementationName = isExplicitMethodImplementation ? $"{interfaceMethodToExplicitlyImplement!.DeclaringType!.Name}.{interfaceMethod.Name}" : interfaceMethod.Name;
                 var interfaceMethodImplementation = _serviceInterceptorTypeBuilder!.DefineMethod(interfaceMethodImplementationName, interfaceMethodImplementationAttributes, interfaceMethod.CallingConvention);
-                _builtMethods.Add(interfaceMethodImplementation);
+                _builtInterfaceMethods!.Add(interfaceMethod, interfaceMethodImplementation);
                 var interfaceMethodArgumentsType = new List<Type>();
                 var interfaceMethodGenericArguments = interfaceMethod.GetGenericArguments();
                 var interfaceMethodGenericParametersMap = new Dictionary<Type, GeneraticParameterTypeWithInitialization>();

@@ -316,7 +316,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                     }
                     for (int parameterIndex = 0; parameterIndex < otherInterfaceMethodParameters.Length; parameterIndex++)
                     {
-                        if (otherInterfaceMethodParameters[parameterIndex].ParameterType != interfaceMethodParameters[parameterIndex].ParameterType)
+                        if (otherInterfaceMethodParameters[parameterIndex].ParameterType != interfaceMethodParameters[parameterIndex].ParameterType
+                            && !otherInterfaceMethodParameters[parameterIndex].ParameterType.IsGenericMethodParameter
+                            && !interfaceMethodParameters[parameterIndex].ParameterType.IsGenericMethodParameter)
                         {
                             continue;
                         }
@@ -370,13 +372,14 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                                 continue;
                             }
                             interfaceMethodGenericParametersMap[interfaceMethodGenericArgument].GenericTypeParameterBuilder.SetBaseTypeConstraint(replacedConstraint);
-                            interfaceMethodGenericParametersMap[interfaceMethodGenericArgument].GenericTypeParameterBuilder.SetGenericParameterAttributes(contraint.GenericParameterAttributes & ~GenericParameterAttributes.Covariant & ~GenericParameterAttributes.Contravariant);
                         }
+                        interfaceMethodGenericParametersMap[interfaceMethodGenericArgument].GenericTypeParameterBuilder.SetGenericParameterAttributes(interfaceMethodGenericArgument.GenericParameterAttributes & ~GenericParameterAttributes.Covariant & ~GenericParameterAttributes.Contravariant);
+                        interfaceMethodGenericParametersMap[interfaceMethodGenericArgument].IsInitialized = true;
                     }
                 }
 
-                var interfaceMethodImplementationParameters = interfaceMethod.GetParameters().Select(x => ReplaceGenericArgumentsFromType(x.ParameterType, _serviceInterceptorGenericParametersMap)).ToArray();
-                var interfaceMethodReturnType = ReplaceGenericArgumentsFromType(interfaceMethod.ReturnType ?? typeof(void), _serviceInterceptorGenericParametersMap);
+                var interfaceMethodImplementationParameters = interfaceMethod.GetParameters().Select(x => ReplaceGenericArgumentsFromType(x.ParameterType, interfaceMethodGenericParametersMap)).ToArray();
+                var interfaceMethodReturnType = ReplaceGenericArgumentsFromType(interfaceMethod.ReturnType ?? typeof(void), interfaceMethodGenericParametersMap);
                 interfaceMethodImplementation.SetParameters(interfaceMethodImplementationParameters);
                 interfaceMethodImplementation.SetReturnType(interfaceMethodReturnType);
 

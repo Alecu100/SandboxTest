@@ -23,8 +23,8 @@
 
             var serviceInterceptorTypeBuilder3 = new ServiceInterceptorTypeBuilder(typeof(IGenericMethodInterface), typeof(GenericMethodInterfaceClass), serviceInterceptorController);
             var concreteGenericMethodInterface = serviceInterceptorTypeBuilder3.Build();
-            var concreteListTestClass4 = Activator.CreateInstance(concreteGenericMethodInterface, serviceInterceptorController) as IGenericMethodInterface;
-            concreteListTestClass4.PrintToConsoleGeneric(new TestClass {  Name = "Test Generic Method" });
+            var concreteGenericMethodInterfaceClass = Activator.CreateInstance(concreteGenericMethodInterface, serviceInterceptorController) as IGenericMethodInterface;
+            concreteGenericMethodInterfaceClass.PrintToConsoleGeneric(new TestClass {  Name = "Test Generic Method" });
             Console.WriteLine("Hello, World!");
         }
     }

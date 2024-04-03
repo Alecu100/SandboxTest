@@ -173,6 +173,11 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 return false;
             }
 
+            if (!type.IsVisible)
+            {
+                return false;
+            }
+
             return true;
         }
 

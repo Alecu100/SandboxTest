@@ -692,8 +692,8 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                                 continue;
                             }
                             genericParametersMap[type].GenericTypeParameterBuilder.SetBaseTypeConstraint(replacedGenericConstraint);
-                            genericParametersMap[type].GenericTypeParameterBuilder.SetGenericParameterAttributes(type.GenericParameterAttributes & ~GenericParameterAttributes.Covariant & ~GenericParameterAttributes.Contravariant);
                         }
+                        genericParametersMap[type].GenericTypeParameterBuilder.SetGenericParameterAttributes(type.GenericParameterAttributes & ~GenericParameterAttributes.Covariant & ~GenericParameterAttributes.Contravariant);
                     }
 
                     return genericParametersMap[type].GenericTypeParameterBuilder;

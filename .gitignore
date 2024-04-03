@@ -49,3 +49,5 @@ SandboxTest/SandboxTest.Hosting.ServiceInterceptor.ManualDebugger/bin/
 SandboxTest/SandboxTest.Hosting.ServiceInterceptor.ManualDebugger/obj/
 SandboxTest/SandboxTest.Dummies/obj/
 SandboxTest/SandboxTest.Dummies/bin/
+SandboxTest/SandboxTest.Hosting.ServiceInterceptor.Tests/bin/
+SandboxTest/SandboxTest.Hosting.ServiceInterceptor.Tests/obj/

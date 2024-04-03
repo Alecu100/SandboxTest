@@ -2,7 +2,7 @@
 
 namespace SandboxTest.Hosting.ServiceInterceptor
 {
-    public class ServiceInterceptor : DispatchProxy
+    public class ServiceInterceptor
     {
         public const string InvokeMethodName = nameof(Invoke);
 
@@ -37,7 +37,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         }
 
 
-        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
+        protected object? Invoke(MethodInfo? targetMethod, object?[]? args, Type[]? argsTypes)
         {
             if (_implementedInterfaceTypes == null || _controller == null || _wrappedInstance == null)
             {
@@ -48,7 +48,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 throw new InvalidOperationException("Null target method");
             }
             var currentType = GetType();
-            if (!targetMethod.IsGenericMethodDefinition && currentType.IsGenericType)
+            if (currentType.IsGenericType)
             {
                 targetMethod = MethodBase.GetMethodFromHandle(targetMethod.MethodHandle, currentType.TypeHandle) as MethodInfo;
             }
@@ -68,6 +68,14 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                         break;
                     }
                 }
+            }
+            if (targetMethod.IsGenericMethodDefinition)
+            {
+                if (argsTypes == null)
+                {
+                    throw new InvalidOperationException("No generic argument types passed for generic method");
+                }
+                targetMethod = targetMethod.MakeGenericMethod(argsTypes);
             }
 
             foreach (var interfaceType in _implementedInterfaceTypes)

@@ -11,6 +11,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         private static MethodInfo _getCurrentMethod = typeof(MethodBase).GetMethod(nameof(MethodBase.GetCurrentMethod), BindingFlags.Static | BindingFlags.Public) ?? throw new InvalidOperationException("Could not get current method");
         private static MethodInfo _objectGetTypeMethod = typeof(ServiceInterceptor).GetType().GetMethod(nameof(GetType), BindingFlags.Public | BindingFlags.Instance) ?? throw new InvalidOperationException("Could not get get type object method");
         private static MethodInfo _objectTypeIsValueTypeGetMethod = typeof(ServiceInterceptor).GetType().GetProperty(nameof(Type.IsValueType), BindingFlags.Public | BindingFlags.Instance)?.GetMethod ?? throw new InvalidOperationException("Could not get the method is value type");
+        private static Type _serviceInterceptorBaseType = typeof(ServiceInterceptor);
 
         private readonly Type _interfaceType;
         private readonly Type? _wrappedType;
@@ -21,7 +22,6 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         private Dictionary<Type, GeneraticParameterTypeWithInitialization>? _wrappedTypeGenericParametersMap = null;
         private Type? _implementedInterfaceType;
         private List<Type>? _allImplementedInterfaces;
-        private Type _serviceInterceptorBaseType;
         private Dictionary<MethodInfo, MethodBuilder>? _builtInterfaceMethods;
 
         public ServiceInterceptorTypeBuilder(Type interfaceType, Type wrappedType, ServiceInterceptorController serviceInterceptorController) 
@@ -61,7 +61,6 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             {
                 serviceInterceptorTypeName = $"ServiceInterceptor-Generic-{MakeSafeName(_interfaceType.Name)}-{MakeSafeName(_wrappedType.Name)}-{guid}";
             }
-            _serviceInterceptorBaseType = typeof(ServiceInterceptor);
             var assemblyName = new AssemblyName($"ServiceInterceptorProxyAssembly.{MakeSafeName(_interfaceType.Name)}.{MakeSafeName(_wrappedType.Name)}.{guid}.dll");
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run | AssemblyBuilderAccess.RunAndCollect);
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name ?? throw new InvalidOperationException("Could not create assembly name"));
@@ -144,7 +143,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             _serviceInterceptorTypeBuilder = moduleBuilder.DefineType($"ServiceInterceptor-{MakeSafeName(_interfaceType.Name)}-{guid}", TypeAttributes.Public | TypeAttributes.Class, serviceInterceptorBaseType);
             GenericTypeParameterBuilder[]? serviceInterceptorGenericParameters = null;
             Dictionary<Type, GeneraticParameterTypeWithInitialization>? serviceInterceptorGenericParametersMap = null;
-            List<MethodBuilder> builtMethods = new List<MethodBuilder>();
+            _builtInterfaceMethods = new Dictionary<MethodInfo, MethodBuilder>();
 
             if (_interfaceType.IsGenericTypeDefinition)
             {

@@ -18,7 +18,7 @@ namespace SandboxTest.Sample
                 return Task.FromResult(hostBuilder);
             })
             .AddHostApplicationController()
-            .AddProxyIncerpeptorController();
+            .AddServiceIncerpeptorController();
 
 
         [Scenario]

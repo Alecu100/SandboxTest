@@ -11,7 +11,7 @@
         /// <param name="applicationInstance"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static IApplicationInstance AddProxyIncerpeptorController(this IApplicationInstance applicationInstance)
+        public static IApplicationInstance AddServiceIncerpeptorController(this IApplicationInstance applicationInstance)
         {
             var hostBuilderApplicationRunner = applicationInstance.Runner as IHostApplicationRunner;
             if (hostBuilderApplicationRunner == null)
@@ -20,7 +20,7 @@
             }
             if (applicationInstance.Controllers.Any(controller => controller is ServiceInterceptorController))
             {
-                throw new InvalidOperationException("Application instance already has one interceptor controller assigned, only one can be assigned per application instance");
+                throw new InvalidOperationException("Application instance already has one service interceptor controller assigned, only one can be assigned per application instance");
             }
 
             var hostApplicationController = new ServiceInterceptorController();

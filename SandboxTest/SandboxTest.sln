@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandboxTest.Dummies", "Sand
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Hosting.ServiceInterceptor.Tests", "SandboxTest.Hosting.ServiceInterceptor.Tests\SandboxTest.Hosting.ServiceInterceptor.Tests.csproj", "{8C1FC335-5112-4226-ABF8-029FA6785A88}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{6D4445A6-E876-4088-A2E6-7536725136DB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -108,6 +110,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3DB0EBD1-9C51-427B-887B-5E08B534B7C9} = {6D4445A6-E876-4088-A2E6-7536725136DB}
+		{2AF8FDEF-7991-4D5C-BDA8-5392A311B5BE} = {6D4445A6-E876-4088-A2E6-7536725136DB}
+		{D7B1B994-A63B-4EFF-8BD6-1CBF313E5C63} = {6D4445A6-E876-4088-A2E6-7536725136DB}
+		{2515B286-F664-4154-B74E-779030FC900B} = {6D4445A6-E876-4088-A2E6-7536725136DB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {013D8A86-504A-4132-95B5-904FCA5336DF}

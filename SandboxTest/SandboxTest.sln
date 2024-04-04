@@ -31,7 +31,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Sample.Applicat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Hosting.ServiceInterceptor", "SandboxTest.Hosting.ServiceInterceptor\SandboxTest.Hosting.ServiceInterceptor.csproj", "{4CA9BB40-9126-4908-9478-CE8056D1BBC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandboxTest.Dummies", "SandboxTest.Dummies\SandboxTest.Dummies.csproj", "{B0FA0CA4-C99E-40DB-AA16-59D25299FE58}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Dummies", "SandboxTest.Dummies\SandboxTest.Dummies.csproj", "{B0FA0CA4-C99E-40DB-AA16-59D25299FE58}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Hosting.ServiceInterceptor.Tests", "SandboxTest.Hosting.ServiceInterceptor.Tests\SandboxTest.Hosting.ServiceInterceptor.Tests.csproj", "{8C1FC335-5112-4226-ABF8-029FA6785A88}"
 EndProject

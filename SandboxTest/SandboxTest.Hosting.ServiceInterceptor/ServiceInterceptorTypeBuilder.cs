@@ -391,7 +391,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 var localObjectParam = ilGenerator.DeclareLocal(typeof(object));
                 var localMethodInfo = ilGenerator.DeclareLocal(typeof(MethodInfo));
                 var localInvokeReturnedObject = ilGenerator.DeclareLocal(typeof(object));
-                var localUnboxedInvokeReturnedObject = ilGenerator.DeclareLocal(interfaceMethodReturnType.GetType());
+                var localUnboxedInvokeReturnedObject = ilGenerator.DeclareLocal(interfaceMethodReturnType);
                 ilGenerator.EmitWriteLine("Calling generated interface method");
                 ilGenerator.Emit(OpCodes.Call, _getCurrentMethod);
                 ilGenerator.Emit(OpCodes.Castclass, typeof(MethodInfo));

@@ -61,5 +61,24 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Tests
                 return Task.CompletedTask;
             });
         }
+
+        [Scenario]
+        public void Test_InterfaceWithValueTypeReturnMethods_With_ClassWithValueTypeReturnMethods()
+        {
+            _dummyApplicationInstance.AddStep().InvokeController<DummyApplicationController>((controller, context) =>
+            {
+                var serviceInterceptorController = new ServiceInterceptorController();
+                var serviceInterceptorTypeBuilder4 = new ServiceInterceptorTypeBuilder(typeof(IRandomGenerator), typeof(RandomGenerator), serviceInterceptorController);
+                var randomGeneratorInterceptorType = serviceInterceptorTypeBuilder4.Build();
+                var randomGenerator = Activator.CreateInstance(randomGeneratorInterceptorType, serviceInterceptorController) as IRandomGenerator;
+                var randomShort = randomGenerator!.GetRandomShort();
+                var randomInt = randomGenerator!.GetRandomInt();
+                var randomLong = randomGenerator!.GetRandomLong();
+                var randomDouble = randomGenerator!.GetRandomDouble();
+                var randomDecimal = randomGenerator!.GetRandomDecimal();
+                var randomGuid = randomGenerator!.GetRandomGuid();
+                return Task.CompletedTask;
+            });
+        }
     }
 }

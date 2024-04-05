@@ -12,6 +12,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         private static MethodInfo _objectGetTypeMethod = typeof(ServiceInterceptor).GetType().GetMethod(nameof(GetType), BindingFlags.Public | BindingFlags.Instance) ?? throw new InvalidOperationException("Could not get get type object method");
         private static MethodInfo _objectTypeIsValueTypeGetMethod = typeof(ServiceInterceptor).GetType().GetProperty(nameof(Type.IsValueType), BindingFlags.Public | BindingFlags.Instance)?.GetMethod ?? throw new InvalidOperationException("Could not get the method is value type");
         private static Type _serviceInterceptorBaseType = typeof(ServiceInterceptor);
+        private static Type _voidType = typeof(void);
 
         private readonly Type _interfaceType;
         private readonly Type? _wrappedType;
@@ -391,7 +392,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 var localObjectParam = ilGenerator.DeclareLocal(typeof(object));
                 var localMethodInfo = ilGenerator.DeclareLocal(typeof(MethodInfo));
                 var localInvokeReturnedObject = ilGenerator.DeclareLocal(typeof(object));
-                var localUnboxedInvokeReturnedObject = ilGenerator.DeclareLocal(interfaceMethodReturnType);
+                var localUnboxedInvokeReturnedObject = ilGenerator.DeclareLocal(interfaceMethodReturnType == _voidType ? typeof(object) : interfaceMethodReturnType);
                 ilGenerator.EmitWriteLine("Calling generated interface method");
                 ilGenerator.Emit(OpCodes.Call, _getCurrentMethod);
                 ilGenerator.Emit(OpCodes.Castclass, typeof(MethodInfo));

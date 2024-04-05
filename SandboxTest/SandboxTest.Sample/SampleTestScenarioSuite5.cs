@@ -43,6 +43,7 @@ namespace SandboxTest.Sample
                 var guidGenerator = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>();
                 var guid = guidGenerator.GetNewGuid();
                 guid.Should().NotBe(Guid.Parse(ctx["guid"]?.ToString() ?? throw new Exception("Original guid not found")));
+                guid.Should().Be(Guid.Empty);
                 await Task.Delay(6000);
             });
         }

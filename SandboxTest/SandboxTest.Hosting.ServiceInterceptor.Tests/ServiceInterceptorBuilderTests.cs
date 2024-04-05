@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using SandboxTest.Dummies;
-using SandboxTest.Hosting.ServiceInterceptor.ManualDebugger;
 using SandboxTest.WireMock;
 
 namespace SandboxTest.Hosting.ServiceInterceptor.Tests

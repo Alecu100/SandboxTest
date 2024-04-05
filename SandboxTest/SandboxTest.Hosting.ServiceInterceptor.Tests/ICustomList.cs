@@ -1,6 +1,6 @@
-﻿namespace SandboxTest.Hosting.ServiceInterceptor.ManualDebugger
+﻿namespace SandboxTest.Hosting.ServiceInterceptor.Tests
 {
-    public interface ICustomList<T> : IList<T> where T: TestClass
+    public interface ICustomList<T> : IList<T> where T : TestClass
     {
     }
 }

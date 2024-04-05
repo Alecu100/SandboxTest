@@ -1,11 +1,11 @@
-﻿namespace SandboxTest.Hosting.ServiceInterceptor.ManualDebugger
+﻿namespace SandboxTest.Hosting.ServiceInterceptor.Tests
 {
     public class TestInterfaceClass<T> : ITestInterface<T> where T : TestClass
     {
         private readonly List<T> _list = new List<T>();
 
-        public TestInterfaceClass() 
-        { 
+        public TestInterfaceClass()
+        {
         }
 
         public TestInterfaceClass(List<T> list)

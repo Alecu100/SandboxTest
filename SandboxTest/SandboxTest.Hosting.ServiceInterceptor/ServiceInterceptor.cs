@@ -106,8 +106,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                     }
                 }
             }
+            var result = targetMethod.Invoke(_wrappedInstance, args);
 
-            return targetMethod.Invoke(_wrappedInstance, args);
+            return result;
         }
     }
 }

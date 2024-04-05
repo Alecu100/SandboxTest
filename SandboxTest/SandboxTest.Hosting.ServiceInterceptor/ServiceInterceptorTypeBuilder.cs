@@ -493,7 +493,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                     ilGenerator.Emit(OpCodes.Ldtoken, interfaceMethodReturnType);
                     ilGenerator.Emit(OpCodes.Call, _getTypeFromHandle);
                     ilGenerator.Emit(OpCodes.Call, activatorCreateTypeMethod);
-                    ilGenerator.Emit(OpCodes.Unbox, interfaceMethodReturnType);
+                    ilGenerator.Emit(OpCodes.Unbox_Any, interfaceMethodReturnType);
                     ilGenerator.Emit(OpCodes.Br, returnLabel);
                 }
 

@@ -109,11 +109,5 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
             return targetMethod.Invoke(_wrappedInstance, args);
         }
-
-        public void Initialize(ServiceInterceptorController controller, object? wrappedInstance, Type interfaceType)
-        {
-            _wrappedInstance = wrappedInstance;
-            _controller = controller;
-        }
     }
 }

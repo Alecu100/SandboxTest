@@ -51,3 +51,4 @@ SandboxTest/SandboxTest.Dummies/obj/
 SandboxTest/SandboxTest.Dummies/bin/
 SandboxTest/SandboxTest.Hosting.ServiceInterceptor.Tests/bin/
 SandboxTest/SandboxTest.Hosting.ServiceInterceptor.Tests/obj/
+SandboxTest/SandboxTest.AspNetCore.EndpointInterceptor/obj/

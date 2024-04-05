@@ -37,6 +37,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Hosting.Service
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{6D4445A6-E876-4088-A2E6-7536725136DB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandboxTest.AspNetCore.EndpointInterceptor", "SandboxTest.AspNetCore.EndpointInterceptor\SandboxTest.AspNetCore.EndpointInterceptor.csproj", "{670DF7D0-BEC5-4CB9-BBB1-BE82D7058400}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -107,6 +109,10 @@ Global
 		{8C1FC335-5112-4226-ABF8-029FA6785A88}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C1FC335-5112-4226-ABF8-029FA6785A88}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C1FC335-5112-4226-ABF8-029FA6785A88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{670DF7D0-BEC5-4CB9-BBB1-BE82D7058400}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{670DF7D0-BEC5-4CB9-BBB1-BE82D7058400}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{670DF7D0-BEC5-4CB9-BBB1-BE82D7058400}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{670DF7D0-BEC5-4CB9-BBB1-BE82D7058400}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

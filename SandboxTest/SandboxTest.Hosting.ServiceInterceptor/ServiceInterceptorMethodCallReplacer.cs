@@ -1,6 +1,6 @@
 ﻿namespace SandboxTest.Hosting.ServiceInterceptor
 {
-    public class ServiceInterceptorAction
+    public class ServiceInterceptorMethodCallReplacer
     {
         required public Func<object?[]?, bool> ArgumentsMatcher { get; set; }
 
@@ -13,5 +13,10 @@
         /// Replaces the call to a specific method for specific arguments with another call that can optionally throw exception.
         /// </summary>
         public Action<object, object?[]?>? CallReplaceAction { get; set; }
+
+        /// <summary>
+        /// The amounts of times to replace a call.
+        /// </summary>
+        public int Times;
     }
 }

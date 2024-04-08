@@ -80,30 +80,69 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
             foreach (var interfaceType in _implementedInterfaceTypes)
             {
-                if (_controller.ProxyWrapperActions.ContainsKey(interfaceType) && _controller.ProxyWrapperActions[interfaceType].ContainsKey(targetMethod))
+                if (_controller.MethodInterceptors.ContainsKey(interfaceType) && _controller.MethodInterceptors[interfaceType].ContainsKey(targetMethod))
                 {
-                    var methodActions = _controller.ProxyWrapperActions[interfaceType][targetMethod];
-                    for (int actionIndex = methodActions.Count - 1; actionIndex >= 0; actionIndex--)
+                    var methodInterceptor = _controller.MethodInterceptors[interfaceType][targetMethod];
+
+                    if (methodInterceptor.RecordsCall)
                     {
-                        ServiceInterceptorAction? action = methodActions[actionIndex];
-                        if (action.ArgumentsMatcher(args))
-                        {
-                            if (targetMethod.ReturnParameter.ParameterType != typeof(void))
-                            {
-                                if (action.CallReplaceFunc == null)
-                                {
-                                    return targetMethod.Invoke(_wrappedInstance, args);
-                                }
-                                return action.CallReplaceFunc(_wrappedInstance, args);
-                            }
-                            if (action.CallReplaceAction == null)
-                            {
-                                targetMethod.Invoke(_wrappedInstance, args);
-                                return null;
-                            }
-                            action.CallReplaceAction(_wrappedInstance, args);
-                        }
+                        methodInterceptor.RecordedCalls.Add(args);
                     }
+
+                    do
+                    {
+                        if (methodInterceptor.CallReplacers.TryPeek(out var callReplacer))
+                        {
+                            if (callReplacer.Times == int.MinValue)
+                            {
+                                if (callReplacer.CallReplaceFunc != null)
+                                {
+                                    return callReplacer.CallReplaceFunc(_wrappedInstance, args);
+                                }
+                                else if (callReplacer.CallReplaceAction != null)
+                                {
+                                    callReplacer.CallReplaceAction(_wrappedInstance, args);
+                                    return null;
+                                }
+                                else
+                                {
+                                    throw new InvalidOperationException("No action or func set for call replacer");
+                                }
+                            }
+
+                            int times = callReplacer.Times;
+                            int remainingTimes = times--;
+                            if (remainingTimes <= 0)
+                            {
+                                methodInterceptor.CallReplacers.TryDequeue(out _);
+                                continue;
+                            }
+                            if (!(Interlocked.CompareExchange(ref callReplacer.Times, remainingTimes, times) == times))
+                            {
+                                continue;
+                            }
+                            if (callReplacer.Times == int.MinValue)
+                            {
+                                if (callReplacer.CallReplaceFunc != null)
+                                {
+                                    return callReplacer.CallReplaceFunc(_wrappedInstance, args);
+                                }
+                                else if (callReplacer.CallReplaceAction != null)
+                                {
+                                    callReplacer.CallReplaceAction(_wrappedInstance, args);
+                                    return null;
+                                }
+                                else
+                                {
+                                    throw new InvalidOperationException("No action or func set for call replacer");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    } while (true);
                 }
             }
             var result = targetMethod.Invoke(_wrappedInstance, args);

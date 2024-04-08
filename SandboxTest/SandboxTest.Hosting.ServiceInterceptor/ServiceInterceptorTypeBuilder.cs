@@ -20,7 +20,6 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         private TypeBuilder? _serviceInterceptorTypeBuilder;
         private Dictionary<Type, GeneraticParameterTypeWithInitialization>? _serviceInterceptorGenericParametersMap = null;
-        private Dictionary<Type, GeneraticParameterTypeWithInitialization>? _wrappedTypeGenericParametersMap = null;
         private Type? _implementedInterfaceType;
         private List<Type>? _allImplementedInterfaces;
         private Dictionary<MethodInfo, MethodBuilder>? _builtInterfaceMethods;

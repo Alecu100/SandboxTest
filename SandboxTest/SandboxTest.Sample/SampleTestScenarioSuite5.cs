@@ -35,7 +35,7 @@ namespace SandboxTest.Sample
             });
             var thirdStep = _applicationInstance51.AddStep().AddPreviousStep(secondStep).InvokeController<ServiceInterceptorController>((controller, ctx) =>
             {
-                controller.ConfigureInterceptor<IRandomGuidGenerator>().ConfigureMethodCall<Guid>(x =>x.GetNewGuid).RecordsCall().ReturnsValue(Guid.Empty);
+                controller.UseInterceptor<IRandomGuidGenerator>().Intercept<Guid>(x =>x.GetNewGuid).RecordsCall().ReturnsValue(Guid.Empty);
                 return Task.CompletedTask;
             });
             var forthStep = _applicationInstance51.AddStep().AddPreviousStep(thirdStep).InvokeController<HostApplicationController>(async (controller, ctx) =>

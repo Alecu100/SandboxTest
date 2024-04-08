@@ -13,212 +13,373 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             _controller = controller;
         }
 
-        public ProxyWrapperConfiguratorFunc<TInterface, TReturn> ConfigureMethodCall<TReturn>(Expression<Func<TInterface, Func<TReturn>>> interfaceMethodFunc)
+        /// <summary>
+        /// Configures service interceptor to intercept a method without parameters that just returns a value.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, TReturn> Intercept<TReturn>(Expression<Func<TInterface, Func<object, TReturn>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorFunc<TInterface, TReturn>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, TReturn>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorFunc<TInterface, Func<T1, TReturn>, Func<T1, bool>, Expression<Func<TInterface, Func<T1, TReturn>>>, TReturn> ConfigureMethodCall<T1, TReturn>(Expression<Func<TInterface, Func<T1, TReturn>>> interfaceMethodFunc)
+        /// <summary>
+        /// Configures service interceptor to intercept a method with one parameter that returns a value.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Func<object, T1, TReturn>, Func<T1, bool>, Expression<Func<TInterface, Func<T1, TReturn>>>, TReturn> Intercept<T1, TReturn>(Expression<Func<TInterface, Func<T1, TReturn>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorFunc<TInterface, Func<T1, TReturn>, Func<T1, bool>, Expression<Func<TInterface, Func<T1, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Func<object, T1, TReturn>, Func<T1, bool>, Expression<Func<TInterface, Func<T1, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, TReturn>, Func<T1, T2, bool>, Expression<Func<TInterface, Func<T1, T2, TReturn>>>, TReturn> ConfigureMethodCall<T1, T2, TReturn>(Expression<Func<TInterface, Func<T1, T2, TReturn>>> interfaceMethodFunc)
+        /// <summary>
+        /// Configures service interceptor to intercept a method with 2 parameters that returns a value.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, TReturn>, Func<T1, T2, bool>, Expression<Func<TInterface, Func<T1, T2, TReturn>>>, TReturn> Intercept<T1, T2, TReturn>(Expression<Func<TInterface, Func<T1, T2, TReturn>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, TReturn>, Func<T1, T2, bool>, Expression<Func<TInterface, Func<T1, T2, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, TReturn>, Func<T1, T2, bool>, Expression<Func<TInterface, Func<T1, T2, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, TReturn>, Func<T1, T2, T3, bool>, Expression<Func<TInterface, Func<T1, T2, T3, TReturn>>>, TReturn> ConfigureMethodCall<T1, T2, T3, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, TReturn>>> interfaceMethodFunc)
+        /// <summary>
+        /// Configures service interceptor to intercept a method with 3 parameters that returns a value.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, T3, TReturn>, Func<T1, T2, T3, bool>, Expression<Func<TInterface, Func<T1, T2, T3, TReturn>>>, TReturn> Intercept<T1, T2, T3, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, TReturn>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, TReturn>, Func<T1, T2, T3, bool>, Expression<Func<TInterface, Func<T1, T2, T3, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, T3, TReturn>, Func<T1, T2, T3, bool>, Expression<Func<TInterface, Func<T1, T2, T3, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, TReturn>, Func<T1, T2, T3, T4, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, TReturn>>>, TReturn> ConfigureMethodCall<T1, T2, T3, T4, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, T4, TReturn>>> interfaceMethodFunc)
+        /// <summary>
+        /// Configures service interceptor to intercept a method with 4 parameters that returns a value.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, T3, T4, TReturn>, Func<T1, T2, T3, T4, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, TReturn>>>, TReturn> Intercept<T1, T2, T3, T4, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, T4, TReturn>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, TReturn>, Func<T1, T2, T3, T4, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, T3, T4, TReturn>, Func<T1, T2, T3, T4, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, T5, TReturn>, Func<T1, T2, T3, T4, T5, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, TReturn>>>, TReturn> ConfigureMethodCall<T1, T2, T3, T4, T5, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, TReturn>>> interfaceMethodFunc)
+        /// <summary>
+        /// Configures service interceptor to intercept a method with 5 parameters that returns a value.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, T3, T4, T5, TReturn>, Func<T1, T2, T3, T4, T5, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, TReturn>>>, TReturn> Intercept<T1, T2, T3, T4, T5, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, TReturn>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, T5, TReturn>, Func<T1, T2, T3, T4, T5, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, T3, T4, T5, TReturn>, Func<T1, T2, T3, T4, T5, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, T5, T6, TReturn>, Func<T1, T2, T3, T4, T5, T6, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, TReturn>>>, TReturn> ConfigureMethodCall<T1, T2, T3, T4, T5, T6, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, TReturn>>> interfaceMethodFunc)
+        /// <summary>
+        /// Configures service interceptor to intercept a method with 6 parameters that returns a value.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, T3, T4, T5, T6, TReturn>, Func<T1, T2, T3, T4, T5, T6, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, TReturn>>>, TReturn> Intercept<T1, T2, T3, T4, T5, T6, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, TReturn>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, T5, T6, TReturn>, Func<T1, T2, T3, T4, T5, T6, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, T3, T4, T5, T6, TReturn>, Func<T1, T2, T3, T4, T5, T6, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, TReturn>>>, TReturn> ConfigureMethodCall<T1, T2, T3, T4, T5, T6, T7, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, TReturn>>> interfaceMethodFunc)
+        /// <summary>
+        /// Configures service interceptor to intercept a method with 7 parameters that returns a value.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, T3, T4, T5, T6, T7, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, TReturn>>>, TReturn> Intercept<T1, T2, T3, T4, T5, T6, T7, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, TReturn>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, T3, T4, T5, T6, T7, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>>, TReturn> ConfigureMethodCall<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>> interfaceMethodFunc)
+        /// <summary>
+        /// Configures service interceptor to intercept a method with 8 parameters that returns a value.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, T3, T4, T5, T6, T7, T8, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>>, TReturn> Intercept<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, T3, T4, T5, T6, T7, T8, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>>>, TReturn> ConfigureMethodCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>>> interfaceMethodFunc)
+        /// <summary>
+        /// Configures service interceptor to intercept a method with 9 parameters that returns a value.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>>>, TReturn> Intercept<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>(Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorFunc<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Func<object, T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>, Expression<Func<TInterface, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>>>, TReturn>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorAction<TInterface> ConfigureMethodCall<TReturn>(Expression<Func<TInterface, Action>> interfaceMethodFunc)
+        /// <summary>
+        /// Configures service interceptor to intercept a method without any return values and any parameters.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface> Intercept<TReturn>(Expression<Func<TInterface, Action<object>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorAction<TInterface>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorAction<TInterface, Action<T1>, Func<T1, bool>, Expression<Func<TInterface, Action<T1>>>> ConfigureMethodCall<T1>(Expression<Func<TInterface, Action<T1>>> interfaceMethodFunc)
+        /// <summary>
+        /// Configures service interceptor to intercept a method without any return values and one parameter.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Action<object, T1>, Func<T1, bool>, Expression<Func<TInterface, Action<T1>>>> Intercept<T1>(Expression<Func<TInterface, Action<T1>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorAction<TInterface, Action<T1>, Func<T1, bool>, Expression<Func<TInterface, Action<T1>>>>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Action<object, T1>, Func<T1, bool>, Expression<Func<TInterface, Action<T1>>>>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorAction<TInterface, Action<T1, T2>, Func<T1, T2, bool>, Expression<Func<TInterface, Action<T1, T2>>>> ConfigureMethodCall<T1, T2>(Expression<Func<TInterface, Action<T1, T2>>> interfaceMethodFunc)
+        /// <summary>
+        /// Configures service interceptor to intercept a method without any return values and 2 parameters.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Action<object, T1, T2>, Func<T1, T2, bool>, Expression<Func<TInterface, Action<T1, T2>>>> Intercept<T1, T2>(Expression<Func<TInterface, Action<T1, T2>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorAction<TInterface, Action<T1, T2>, Func<T1, T2, bool>, Expression<Func<TInterface, Action<T1, T2>>>>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Action<object, T1, T2>, Func<T1, T2, bool>, Expression<Func<TInterface, Action<T1, T2>>>>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorAction<TInterface, Action<T1, T2, T3>, Func<T1, T2, T3, bool>, Expression<Func<TInterface, Action<T1, T2, T3>>>> ConfigureMethodCall<T1, T2, T3>(Expression<Func<TInterface, Action<T1, T2, T3>>> interfaceMethodFunc)
+
+        /// <summary>
+        /// Configures service interceptor to intercept a method without any return values and 3 parameters.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Action<object, T1, T2, T3>, Func<T1, T2, T3, bool>, Expression<Func<TInterface, Action<T1, T2, T3>>>> Intercept<T1, T2, T3>(Expression<Func<TInterface, Action<T1, T2, T3>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorAction<TInterface, Action<T1, T2, T3>, Func<T1, T2, T3, bool>, Expression<Func<TInterface, Action<T1, T2, T3>>>>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Action<object, T1, T2, T3>, Func<T1, T2, T3, bool>, Expression<Func<TInterface, Action<T1, T2, T3>>>>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorAction<TInterface, Action<T1, T2, T3, T4>, Func<T1, T2, T3, T4, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4>>>> ConfigureMethodCall<T1, T2, T3, T4>(Expression<Func<TInterface, Action<T1, T2, T3, T4>>> interfaceMethodFunc)
+
+        /// <summary>
+        /// Configures service interceptor to intercept a method without any return values and 4 parameters.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Action<object, T1, T2, T3, T4>, Func<T1, T2, T3, T4, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4>>>> Intercept<T1, T2, T3, T4>(Expression<Func<TInterface, Action<T1, T2, T3, T4>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorAction<TInterface, Action<T1, T2, T3, T4>, Func<T1, T2, T3, T4, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4>>>>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Action<object, T1, T2, T3, T4>, Func<T1, T2, T3, T4, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4>>>>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorAction<TInterface, Action<T1, T2, T3, T4, T5>, Func<T1, T2, T3, T4, T5, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5>>>> ConfigureMethodCall<T1, T2, T3, T4, T5>(Expression<Func<TInterface, Action<T1, T2, T3, T4, T5>>> interfaceMethodFunc)
+
+        /// <summary>
+        /// Configures service interceptor to intercept a method without any return values and 5 parameters.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Action<object, T1, T2, T3, T4, T5>, Func<T1, T2, T3, T4, T5, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5>>>> Intercept<T1, T2, T3, T4, T5>(Expression<Func<TInterface, Action<T1, T2, T3, T4, T5>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorAction<TInterface, Action<T1, T2, T3, T4, T5>, Func<T1, T2, T3, T4, T5, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5>>>>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Action<object, T1, T2, T3, T4, T5>, Func<T1, T2, T3, T4, T5, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5>>>>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorAction<TInterface, Action<T1, T2, T3, T4, T5, T6>, Func<T1, T2, T3, T4, T5, T6, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6>>>> ConfigureMethodCall<T1, T2, T3, T4, T5, T6>(Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6>>> interfaceMethodFunc)
+
+        /// <summary>
+        /// Configures service interceptor to intercept a method without any return values and 6 parameters.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Action<object, T1, T2, T3, T4, T5, T6>, Func<T1, T2, T3, T4, T5, T6, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6>>>> Intercept<T1, T2, T3, T4, T5, T6>(Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorAction<TInterface, Action<T1, T2, T3, T4, T5, T6>, Func<T1, T2, T3, T4, T5, T6, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6>>>>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Action<object, T1, T2, T3, T4, T5, T6>, Func<T1, T2, T3, T4, T5, T6, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6>>>>(_controller, interfaceMethodFunc);
         }
 
-        public ProxyWrapperConfiguratorAction<TInterface, Action<T1, T2, T3, T4, T5, T6, T7>, Func<T1, T2, T3, T4, T5, T6, T7, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6, T7>>>> ConfigureMethodCall<T1, T2, T3, T4, T5, T6, T7>(Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6, T7>>> interfaceMethodFunc)
+
+        /// <summary>
+        /// Configures service interceptor to intercept a method without any return values and 7 parameters.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Action<object, T1, T2, T3, T4, T5, T6, T7>, Func<T1, T2, T3, T4, T5, T6, T7, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6, T7>>>> Intercept<T1, T2, T3, T4, T5, T6, T7>(Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6, T7>>> interfaceMethodFunc)
         {
-            return new ProxyWrapperConfiguratorAction<TInterface, Action<T1, T2, T3, T4, T5, T6, T7>, Func<T1, T2, T3, T4, T5, T6, T7, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6, T7>>>>(_controller, interfaceMethodFunc);
+            return new MethodInterceptorConfigurator<TInterface, Action<object, T1, T2, T3, T4, T5, T6, T7>, Func<T1, T2, T3, T4, T5, T6, T7, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6, T7>>>>(_controller, interfaceMethodFunc);
+        }
+
+
+        /// <summary>
+        /// Configures service interceptor to intercept a method without any return values and 8 parameters.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Action<object, T1, T2, T3, T4, T5, T6, T7, T8>, Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6, T7, T8>>>> Intercept<T1, T2, T3, T4, T5, T6, T7, T8>(Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6, T7, T8>>> interfaceMethodFunc)
+        {
+            return new MethodInterceptorConfigurator<TInterface, Action<object, T1, T2, T3, T4, T5, T6, T7, T8>, Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6, T7, T8>>>>(_controller, interfaceMethodFunc);
+        }
+
+        /// <summary>
+        /// Configures service interceptor to intercept a method without any return values and 9 parameters.
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="interfaceMethodFunc"></param>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, Action<object, T1, T2, T3, T4, T5, T6, T7, T8, T9>, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6, T7, T8, T9>>>> Intercept<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6, T7, T8, T9>>> interfaceMethodFunc)
+        {
+            return new MethodInterceptorConfigurator<TInterface, Action<object, T1, T2, T3, T4, T5, T6, T7, T8, T9>, Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>, Expression<Func<TInterface, Action<T1, T2, T3, T4, T5, T6, T7, T8, T9>>>>(_controller, interfaceMethodFunc);
         }
     }
 
-    public class ProxyWrapperConfiguratorFunc<TInterface, TReturn>
+    public class MethodInterceptorConfigurator<TInterface, TReturn>
     {
         private ServiceInterceptorController _controller;
-        private Expression<Func<TInterface, Func<TReturn>>> _interfaceMethodFunc;
-        private Action<object>? _recordFunc;
+        private Expression<Func<TInterface, Func<object, TReturn>>> _interfaceMethodFunc;
+        private ServiceInterceptedMethod _interceptedMethod;
+        private Type _interfaceType;
 
-        public ProxyWrapperConfiguratorFunc(ServiceInterceptorController controller, Expression<Func<TInterface, Func<TReturn>>> interfaceMethodFunc)
+        public MethodInterceptorConfigurator(ServiceInterceptorController controller, Expression<Func<TInterface, Func<object, TReturn>>> interfaceMethodFunc)
         {
             _controller = controller;
             _interfaceMethodFunc = interfaceMethodFunc;
+            _interfaceType = typeof(TInterface);
+
+            var interceptedMethod = GetInterfaceInterceptedMethod();
+
+            if (!_controller.MethodInterceptors.ContainsKey(_interfaceType))
+            {
+                _controller.MethodInterceptors.TryAdd(_interfaceType, new ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>());
+            }
+            if (!_controller.MethodInterceptors[_interfaceType].ContainsKey(interceptedMethod))
+            {
+                var serviceInterceptorMethod = new ServiceInterceptedMethod(interceptedMethod);
+                if (_controller.MethodInterceptors[_interfaceType].TryAdd(interceptedMethod, serviceInterceptorMethod))
+                {
+                    _interceptedMethod = serviceInterceptorMethod;
+                }
+                else
+                {
+                    _interceptedMethod = _controller.MethodInterceptors[_interfaceType][interceptedMethod];
+                }
+            }
+            else
+            {
+                _interceptedMethod = _controller.MethodInterceptors[_interfaceType][interceptedMethod];
+            }
         }
 
-        public ProxyWrapperConfiguratorFunc<TInterface, TReturn> RecordsCall()
+        /// <summary>
+        /// Resets the configured method interception, including recorded calls.
+        /// </summary>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, TReturn> Reset()
         {
-            _recordFunc = (target) =>
-            {
-                _controller.ProxyWrapperRecordedCalls.Add(new ServiceInterceptorRecordedCall(typeof(TInterface), GetInterfaceMethod(), null));
-            };
+            _interceptedMethod.RecordsCall = false;
+            _interceptedMethod.CallReplacers.Clear();
+            _interceptedMethod.RecordedCalls.Clear();
+
             return this;
         }
 
-        public void Throws<TException>(TException exception) where TException : Exception
+        /// <summary>
+        /// Configures the interceptor to record calls to the specified method.
+        /// </summary>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, TReturn> RecordsCall()
         {
-            var methodInfo = GetInterfaceMethod();
-            var interfaceType = typeof(TInterface);
-            if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
-            {
-                _controller.ProxyWrapperActions.TryAdd(interfaceType, new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>());
-            }
-
-            if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
-            {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
-            }
-
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
-            {
-                ArgumentsMatcher = (args) =>
-                {
-                    return true;
-                },
-                CallReplaceFunc = (target, args) =>
-                {
-                    if (_recordFunc != null)
-                    {
-                        _recordFunc(target);
-                    }
-                    throw exception;
-                }
-            });
+            _interceptedMethod.RecordsCall = true;
+            return this;
         }
 
-        public void ReturnsValue(TReturn value)
+        /// <summary>
+        /// Checks that the specified method was called according to the timesFunc predicate. 
+        /// </summary>
+        /// <param name="timesFunc"></param>
+        /// <returns></returns>
+        public bool RecordedCall(Func<int, bool> timesFunc)
         {
-            var methodInfo = GetInterfaceMethod();
-            var interfaceType = typeof(TInterface);
-            if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
-            {
-                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
-            }
-
-            if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
-            {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
-            }
-
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
-            {
-                ArgumentsMatcher = (args) =>
-                {
-                    return true;
-                },
-                CallReplaceFunc = (target, args) =>
-                {
-                    if (_recordFunc != null)
-                    {
-                        _recordFunc(target);
-                    }
-                    return value;
-                }
-            });
+            var count = _interceptedMethod.RecordedCalls.Count();
+            return timesFunc(count);
         }
 
-        public void Calls(Func<object, TReturn> callFunc)
+        /// <summary>
+        /// Checks that the specified method was called once.
+        /// </summary>
+        /// <param name="timesFunc"></param>
+        /// <returns></returns>
+        public bool RecordedCallOnce()
         {
-            var methodInfo = GetInterfaceMethod();
-            var interfaceType = typeof(TInterface);
-            if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
-            {
-                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
-            }
-
-            if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
-            {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
-            }
-
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
-            {
-                ArgumentsMatcher = (args) =>
-                {
-                    return true;
-                },
-                CallReplaceFunc = (target, args) =>
-                {
-                    if (_recordFunc != null)
-                    {
-                        _recordFunc(target);
-                    }
-                    return callFunc.Method.Invoke(target, null);
-                }
-            });
+            return RecordedCall(times => times == 1);
         }
 
-        private MethodInfo GetInterfaceMethod()
+        /// <summary>
+        /// Checks that the specified method was never called.
+        /// </summary>
+        /// <param name="timesFunc"></param>
+        /// <returns></returns>
+        public bool RecordedCallNever()
+        {
+            return RecordedCall(times => times == 0);
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TReturn> Throws<TException>(TException exception) where TException : Exception
+        {
+            return Throws(exception, int.MinValue);
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TReturn> Throws<TException>(TException exception, int times) where TException : Exception
+        {
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            {
+                ArgumentsMatcher = args => true,
+                CallReplaceFunc = (target, args) => throw exception,
+                Times = times
+            });
+            return this;
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TReturn> ReturnsValue(TReturn value)
+        {
+            return ReturnsValue(value, int.MinValue);
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TReturn> ReturnsValue(TReturn value, int times)
+        {
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            {
+                ArgumentsMatcher = args => true,
+                CallReplaceFunc = (target, args) => value,
+                Times = times
+            });
+            return this;
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TReturn> Calls(Func<object, TReturn> callFunc)
+        {
+            return Calls(callFunc, int.MinValue);
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TReturn> Calls(Func<object, TReturn> callFunc, int times)
+        {
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            {
+                ArgumentsMatcher = args => true,
+                CallReplaceFunc = (target, args) => callFunc(target),
+                Times = times
+            });
+            return this;
+        }
+
+        private MethodInfo GetInterfaceInterceptedMethod()
         {
             var interfaceExpressionBody = _interfaceMethodFunc.Body as UnaryExpression;
             var interfaceOperandExpression = interfaceExpressionBody?.Operand;
@@ -229,7 +390,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         }
     }
 
-    public class ProxyWrapperConfiguratorFunc<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn>
+    public class MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn>
         where TCallFunc : Delegate
         where TArgumentFunc : Delegate
         where TExpressionFunc : LambdaExpression
@@ -237,140 +398,168 @@ namespace SandboxTest.Hosting.ServiceInterceptor
     {
         private ServiceInterceptorController _controller;
         private TArgumentFunc? _argumentsFunc;
-        private Action<object, object?[]?>? _recordFunc;
         private TExpressionFunc _interfaceMethodFunc;
+        private Type _interfaceType;
+        private ServiceInterceptedMethod _interceptedMethod;
 
-        public ProxyWrapperConfiguratorFunc(ServiceInterceptorController controller, TExpressionFunc interfaceMethodFunc)
+        public MethodInterceptorConfigurator(ServiceInterceptorController controller, TExpressionFunc interfaceMethodFunc)
         {
             _controller = controller;
             _interfaceMethodFunc = interfaceMethodFunc;
+            _interfaceType = typeof(TInterface);
+
+            var interceptedMethod = GetInterfaceInterceptedMethod();
+
+            if (!_controller.MethodInterceptors.ContainsKey(_interfaceType))
+            {
+                _controller.MethodInterceptors.TryAdd(_interfaceType, new ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>());
+            }
+            if (!_controller.MethodInterceptors[_interfaceType].ContainsKey(interceptedMethod))
+            {
+                var serviceInterceptorMethod = new ServiceInterceptedMethod(interceptedMethod);
+                if (_controller.MethodInterceptors[_interfaceType].TryAdd(interceptedMethod, serviceInterceptorMethod))
+                {
+                    _interceptedMethod = serviceInterceptorMethod;
+                }
+                else
+                {
+                    _interceptedMethod = _controller.MethodInterceptors[_interfaceType][interceptedMethod];
+                }
+            }
+            else
+            {
+                _interceptedMethod = _controller.MethodInterceptors[_interfaceType][interceptedMethod];
+            }
         }
 
-        public ProxyWrapperConfiguratorFunc<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> WithArguments(TArgumentFunc argumentsFunc)
+        /// <summary>
+        /// Resets the configured method interception, including recorded calls.
+        /// </summary>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> Reset()
+        {
+            _interceptedMethod.RecordsCall = false;
+            _interceptedMethod.CallReplacers.Clear();
+            _interceptedMethod.RecordedCalls.Clear();
+
+            return this;
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> WithArguments(TArgumentFunc argumentsFunc)
         {
             _argumentsFunc = argumentsFunc;
             return this;
         }
 
-
-        public ProxyWrapperConfiguratorFunc<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> RecordsCall()
+        public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> WithAnyArguments()
         {
-            _recordFunc = (target, args) =>
-            {
-                _controller.ProxyWrapperRecordedCalls.Add(new ServiceInterceptorRecordedCall(typeof(TInterface), GetInterfaceMethod(), args));
-            };
+            _argumentsFunc = null;
             return this;
         }
 
-        public void Calls(TCallFunc callFunc)
+        /// <summary>
+        /// Configures the interceptor to record calls to the specified method.
+        /// </summary>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> RecordsCall()
         {
-            var methodInfo = GetInterfaceMethod();
-            var interfaceType = typeof(TInterface);
-            if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
-            {
-                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
-            }
-
-            if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
-            {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
-            }
-
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
-            {
-                ArgumentsMatcher = (args) =>
-                {
-                    if (_argumentsFunc != null)
-                    {
-                        return (bool)(_argumentsFunc.Method.Invoke(null, args) ?? throw new InvalidOperationException("Could not invoke proxy argument filter function"));
-
-                    }
-                    return true;
-                },
-                CallReplaceFunc = (target, args) =>
-                {
-                    if (_recordFunc != null)
-                    {
-                        _recordFunc(target, args);
-                    }
-                    return callFunc.Method.Invoke(target, args);
-                }
-            });
+            _interceptedMethod.RecordsCall = true;
+            return this;
         }
 
-        public void Throws<TException>(TException exception) where TException : Exception
+        /// <summary>
+        /// Checks that the specified method was called according to the timesFunc predicate.
+        /// Optionally, arguments can be specified beforehand using the <see cref="WithArguments"/> method.
+        /// </summary>
+        /// <param name="timesFunc"></param>
+        /// <returns></returns>
+        public bool RecordedCall(Func<int, bool> timesFunc)
         {
-            var methodInfo = GetInterfaceMethod();
-            var interfaceType = typeof(TInterface);
-            if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
+            int count = 0;
+            if (_argumentsFunc != null)
             {
-                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
+                count = _interceptedMethod.RecordedCalls.Count(x => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, x)!);
+                return timesFunc(count);
+            }
+            else
+            {
+                count = _interceptedMethod.RecordedCalls.Count()!;
             }
 
-            if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
-            {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
-            }
-
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
-            {
-                ArgumentsMatcher = (args) =>
-                {
-                    if (_argumentsFunc != null)
-                    {
-                        return (bool)(_argumentsFunc.Method.Invoke(null, args) ?? throw new InvalidOperationException("Could not invoke proxy argument filter function"));
-
-                    }
-                    return true;
-                },
-                CallReplaceFunc = (target, args) =>
-                {
-                    if (_recordFunc != null)
-                    {
-                        _recordFunc(target, args);
-                    }
-                    throw exception;
-                }
-            });
+            return timesFunc(count);
         }
 
-        public void ReturnsValue(TReturn value)
+        /// <summary>
+        /// Checks that the specified method was called once.
+        /// Optionally, arguments can be specified beforehand using the <see cref="WithArguments"/> method.
+        /// </summary>
+        /// <param name="timesFunc"></param>
+        /// <returns></returns>
+        public bool RecordedCallOnce()
         {
-            var methodInfo = GetInterfaceMethod();
-            var interfaceType = typeof(TInterface);
-            if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
-            {
-                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
-            }
-
-            if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
-            {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
-            }
-
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
-            {
-                ArgumentsMatcher = (args) =>
-                {
-                    if (_argumentsFunc != null)
-                    {
-                        return (bool)(_argumentsFunc.Method.Invoke(null, args) ?? throw new InvalidOperationException("Could not invoke proxy argument filter function"));
-
-                    }
-                    return true;
-                },
-                CallReplaceFunc = (target, args) =>
-                {
-                    if (_recordFunc != null)
-                    {
-                        _recordFunc(target, args);
-                    }
-                    return value;
-                }
-            });
+            return RecordedCall(times => times == 1);
         }
 
-        private MethodInfo GetInterfaceMethod()
+        /// <summary>
+        /// Checks that the specified method was never called.
+        /// Optionally, arguments can be specified beforehand using the <see cref="WithArguments"/> method.
+        /// </summary>
+        /// <param name="timesFunc"></param>
+        /// <returns></returns>
+        public bool RecordedCallNever()
+        {
+            return RecordedCall(times => times == 0);
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> Calls(TCallFunc callFunc)
+        {
+            return Calls(callFunc, int.MinValue);
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> Calls(TCallFunc callFunc, int times)
+        {
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            {
+                ArgumentsMatcher = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
+                CallReplaceFunc = (target, args) => callFunc.Method.Invoke(callFunc.Target, GetCallFuncArguments(target, args)),
+                Times = times
+            });
+            return this;
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> Throws<TException>(TException exception) where TException : Exception
+        {
+            return Throws(exception, int.MinValue);
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> Throws<TException>(TException exception, int times) where TException : Exception
+        {
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            {
+                ArgumentsMatcher = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
+                CallReplaceFunc = (target, args) => throw exception,
+                Times = times
+            });
+            return this;
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> ReturnsValue(TReturn value)
+        {
+            return ReturnsValue(value, int.MinValue);
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> ReturnsValue(TReturn value, int times)
+        {
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            {
+                ArgumentsMatcher = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
+                CallReplaceFunc = (target, args) => value,
+                Times = times
+            });
+            return this;
+        }
+
+        private MethodInfo GetInterfaceInterceptedMethod()
         {
             var interfaceExpressionBody = _interfaceMethodFunc.Body as UnaryExpression;
             var interfaceOperandExpression = interfaceExpressionBody?.Operand;
@@ -379,92 +568,145 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
             return methodInfo?.Value as MethodInfo ?? throw new InvalidOperationException("Failed to get interface method to execute proxy actions on");
         }
+
+        private static object?[] GetCallFuncArguments(object target, object?[]? args)
+        {
+            var filledArgs = new List<object?>();
+            filledArgs.Add(target);
+
+            foreach (var arg in (args ?? Enumerable.Empty<object?>()))
+            {
+                filledArgs.Add(arg);
+            }
+
+            return filledArgs.ToArray();
+        }
     }
 
-    public class ProxyWrapperConfiguratorAction<TInterface>
+    public class MethodInterceptorConfigurator<TInterface>
     {
         private ServiceInterceptorController _controller;
-        private Expression<Func<TInterface, Action>> _interfaceMethodFunc;
-        private Action<object>? _recordAction;
+        private Expression<Func<TInterface, Action<object>>> _interfaceMethodFunc;
+        private Type _interfaceType;
+        private ServiceInterceptedMethod _interceptedMethod;
 
-        public ProxyWrapperConfiguratorAction(ServiceInterceptorController controller, Expression<Func<TInterface, Action>> interfaceMethodFunc)
+        public MethodInterceptorConfigurator(ServiceInterceptorController controller, Expression<Func<TInterface, Action<object>>> interfaceMethodFunc)
         {
             _controller = controller;
             _interfaceMethodFunc = interfaceMethodFunc;
+            _interfaceType = typeof(TInterface);
+
+            var interceptedMethod = GetInterfaceInterceptedMethod();
+
+            if (!_controller.MethodInterceptors.ContainsKey(_interfaceType))
+            {
+                _controller.MethodInterceptors.TryAdd(_interfaceType, new ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>());
+            }
+            if (!_controller.MethodInterceptors[_interfaceType].ContainsKey(interceptedMethod))
+            {
+                var serviceInterceptorMethod = new ServiceInterceptedMethod(interceptedMethod);
+                if (_controller.MethodInterceptors[_interfaceType].TryAdd(interceptedMethod, serviceInterceptorMethod))
+                {
+                    _interceptedMethod = serviceInterceptorMethod;
+                }
+                else
+                {
+                    _interceptedMethod = _controller.MethodInterceptors[_interfaceType][interceptedMethod];
+                }
+            }
+            else
+            {
+                _interceptedMethod = _controller.MethodInterceptors[_interfaceType][interceptedMethod];
+            }
         }
 
-        public ProxyWrapperConfiguratorAction<TInterface> RecordsCall()
+        /// <summary>
+        /// Resets the configured method interception, including recorded calls.
+        /// </summary>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface> Reset()
         {
-            _recordAction = (target) =>
-            {
-                _controller.ProxyWrapperRecordedCalls.Add(new ServiceInterceptorRecordedCall(typeof(TInterface), GetInterfaceMethod(), null));
-            };
+            _interceptedMethod.RecordsCall = false;
+            _interceptedMethod.CallReplacers.Clear();
+            _interceptedMethod.RecordedCalls.Clear();
+
             return this;
         }
 
-        public void Throws<TException>(TException exception) where TException : Exception
+        /// <summary>
+        /// Configures the interceptor to record calls to the specified method.
+        /// </summary>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface> RecordsCall()
         {
-            var methodInfo = GetInterfaceMethod();
-            var interfaceType = typeof(TInterface);
-            if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
-            {
-                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
-            }
-
-            if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
-            {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
-            }
-
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
-            {
-                ArgumentsMatcher = (args) =>
-                {
-                    return true;
-                },
-                CallReplaceAction = (target, args) =>
-                {
-                    if (_recordAction != null)
-                    {
-                        _recordAction(target);
-                    }
-                    throw exception;
-                }
-            });
+            _interceptedMethod.RecordsCall = true;
+            return this;
         }
 
-        public void Calls(Action<object> callAction)
+        /// <summary>
+        /// Checks that the specified method was called according to the timesFunc predicate.
+        /// </summary>
+        /// <param name="timesFunc"></param>
+        /// <returns></returns>
+        public bool RecordedCall(Func<int, bool> timesFunc)
         {
-            var methodInfo = GetInterfaceMethod();
-            var interfaceType = typeof(TInterface);
-            if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
-            {
-                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
-            }
-
-            if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
-            {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
-            }
-
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
-            {
-                ArgumentsMatcher = (args) =>
-                {
-                    return true;
-                },
-                CallReplaceAction = (target, args) =>
-                {
-                    if (_recordAction != null)
-                    {
-                        _recordAction(target);
-                    }
-                    callAction.Method.Invoke(target, null);
-                }
-            });
+            var count = _interceptedMethod.RecordedCalls.Count()!;
+            return timesFunc(count);
         }
 
-        private MethodInfo GetInterfaceMethod()
+        /// <summary>
+        /// Checks that the specified method was called once.
+        /// </summary>
+        /// <param name="timesFunc"></param>
+        /// <returns></returns>
+        public bool RecordedCallOnce()
+        {
+            return RecordedCall(times => times == 1);
+        }
+
+        /// <summary>
+        /// Checks that the specified method was never called.
+        /// </summary>
+        /// <param name="timesFunc"></param>
+        /// <returns></returns>
+        public bool RecordedCallNever()
+        {
+            return RecordedCall(times => times == 0);
+        }
+
+        public MethodInterceptorConfigurator<TInterface> Throws<TException>(TException exception) where TException : Exception
+        {
+            return Throws(exception, int.MinValue);
+        }
+
+        public MethodInterceptorConfigurator<TInterface> Throws<TException>(TException exception, int times) where TException : Exception
+        {
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            {
+                ArgumentsMatcher = args => true,
+                CallReplaceFunc = (target, args) => throw exception,
+                Times = times
+            });
+            return this;
+        }
+
+        public MethodInterceptorConfigurator<TInterface> Calls(Action<object> callAction)
+        {
+            return Calls(callAction, int.MinValue);
+        }
+
+        public MethodInterceptorConfigurator<TInterface> Calls(Action<object> callAction, int times)
+        {
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            {
+                ArgumentsMatcher = args => true,
+                CallReplaceAction = (target, args) => callAction.Method.Invoke(callAction.Target, new object[] { target }),
+                Times = times
+            });
+            return this;
+        }
+
+        private MethodInfo GetInterfaceInterceptedMethod()
         {
             var interfaceExpressionBody = _interfaceMethodFunc.Body as UnaryExpression;
             var interfaceOperandExpression = interfaceExpressionBody?.Operand;
@@ -475,7 +717,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         }
     }
 
-    public class ProxyWrapperConfiguratorAction<TInterface, TCallAction, TArgumentAction, TExpressionAction>
+    public class MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction>
     where TCallAction : Delegate
     where TArgumentAction : Delegate
     where TExpressionAction : LambdaExpression
@@ -483,101 +725,149 @@ namespace SandboxTest.Hosting.ServiceInterceptor
     {
         private ServiceInterceptorController _controller;
         private TArgumentAction? _argumentsFunc;
-        private Action<object, object?[]?>? _recordFunc;
         private TExpressionAction _interfaceMethodAction;
+        private Type _interfaceType;
+        private ServiceInterceptedMethod _interceptedMethod;
 
-        public ProxyWrapperConfiguratorAction(ServiceInterceptorController controller, TExpressionAction interfaceMethodAction)
+        public MethodInterceptorConfigurator(ServiceInterceptorController controller, TExpressionAction interfaceMethodAction)
         {
             _controller = controller;
             _interfaceMethodAction = interfaceMethodAction;
+            _interfaceType = typeof(TInterface);
+
+            var interceptedMethod = GetInterfaceMethod();
+
+            if (!_controller.MethodInterceptors.ContainsKey(_interfaceType))
+            {
+                _controller.MethodInterceptors.TryAdd(_interfaceType, new ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>());
+            }
+            if (!_controller.MethodInterceptors[_interfaceType].ContainsKey(interceptedMethod))
+            {
+                var serviceInterceptorMethod = new ServiceInterceptedMethod(interceptedMethod);
+                if (_controller.MethodInterceptors[_interfaceType].TryAdd(interceptedMethod, serviceInterceptorMethod))
+                {
+                    _interceptedMethod = serviceInterceptorMethod;
+                }
+                else
+                {
+                    _interceptedMethod = _controller.MethodInterceptors[_interfaceType][interceptedMethod];
+                }
+            }
+            else
+            {
+                _interceptedMethod = _controller.MethodInterceptors[_interfaceType][interceptedMethod];
+            }
         }
 
-        public ProxyWrapperConfiguratorAction<TInterface, TCallAction, TArgumentAction, TExpressionAction> WithArguments(TArgumentAction argumentsFunc)
+        /// <summary>
+        /// Resets the configured method interception, including recorded calls.
+        /// </summary>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> Reset()
+        {
+            _interceptedMethod.RecordsCall = false;
+            _interceptedMethod.CallReplacers.Clear();
+            _interceptedMethod.RecordedCalls.Clear();
+
+            return this;
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> WithArguments(TArgumentAction argumentsFunc)
         {
             _argumentsFunc = argumentsFunc;
             return this;
         }
 
-
-        public ProxyWrapperConfiguratorAction<TInterface, TCallAction, TArgumentAction, TExpressionAction> RecordsCall()
+        public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> WithAnyArguments()
         {
-            _recordFunc = (target, args) =>
-            {
-                _controller.ProxyWrapperRecordedCalls.Add(new ServiceInterceptorRecordedCall(typeof(TInterface), GetInterfaceMethod(), args));
-            };
+            _argumentsFunc = null;
             return this;
         }
 
-        public void Calls(TCallAction callAction)
+        /// <summary>
+        /// Configures the interceptor to record calls to the specified method.
+        /// </summary>
+        /// <returns></returns>
+        public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> RecordsCall()
         {
-            var methodInfo = GetInterfaceMethod();
-            var interfaceType = typeof(TInterface);
-            if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
-            {
-                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
-            }
-
-            if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
-            {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
-            }
-
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
-            {
-                ArgumentsMatcher = (args) =>
-                {
-                    if (_argumentsFunc != null)
-                    {
-                        return (bool)(_argumentsFunc.Method.Invoke(null, args) ?? throw new InvalidOperationException("Could not invoke proxy argument filter function"));
-
-                    }
-                    return true;
-                },
-                CallReplaceAction = (target, args) =>
-                {
-                    if (_recordFunc != null)
-                    {
-                        _recordFunc(target, args);
-                    }
-                    callAction.Method.Invoke(target, args);
-                }
-            });
+            _interceptedMethod.RecordsCall = true;
+            return this;
         }
 
-        public void Throws<TException>(TException exception) where TException : Exception
+        /// <summary>
+        /// Checks that the specified method was called according to the timesFunc predicate.
+        /// Optionally, arguments can be specified beforehand using the <see cref="WithArguments"/> method.
+        /// </summary>
+        /// <param name="timesFunc"></param>
+        /// <returns></returns>
+        public bool RecordedCall(Func<int, bool> timesFunc)
         {
-            var methodInfo = GetInterfaceMethod();
-            var interfaceType = typeof(TInterface);
-            if (!_controller.ProxyWrapperActions.ContainsKey(interfaceType))
+            int count = 0;
+            if (_argumentsFunc != null)
             {
-                _controller.ProxyWrapperActions[interfaceType] = new ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>();
+                count = _interceptedMethod.RecordedCalls.Count(x => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, x)!);
+                return timesFunc(count);
+            }
+            else
+            {
+                count = _interceptedMethod.RecordedCalls.Count()!;
             }
 
-            if (!_controller.ProxyWrapperActions[interfaceType].ContainsKey(methodInfo))
-            {
-                _controller.ProxyWrapperActions[interfaceType][methodInfo] = new List<ServiceInterceptorAction>();
-            }
+            return timesFunc(count);
+        }
 
-            _controller.ProxyWrapperActions[interfaceType][methodInfo].Add(new ServiceInterceptorAction
-            {
-                ArgumentsMatcher = (args) =>
-                {
-                    if (_argumentsFunc != null)
-                    {
-                        return (bool)(_argumentsFunc.Method.Invoke(null, args) ?? throw new InvalidOperationException("Could not invoke proxy argument filter function"));
+        /// <summary>
+        /// Checks that the specified method was called once.
+        /// Optionally, arguments can be specified beforehand using the <see cref="WithArguments"/> method.
+        /// </summary>
+        /// <param name="timesFunc"></param>
+        /// <returns></returns>
+        public bool RecordedCallOnce()
+        {
+            return RecordedCall(times => times == 1);
+        }
 
-                    }
-                    return true;
-                },
-                CallReplaceAction = (target, args) =>
-                {
-                    if (_recordFunc != null)
-                    {
-                        _recordFunc(target, args);
-                    }
-                    throw exception;
-                }
+        /// <summary>
+        /// Checks that the specified method was never called.
+        /// Optionally, arguments can be specified beforehand using the <see cref="WithArguments"/> method.
+        /// </summary>
+        /// <param name="timesFunc"></param>
+        /// <returns></returns>
+        public bool RecordedCallNever()
+        {
+            return RecordedCall(times => times == 0);
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> Calls(TCallAction callAction)
+        {
+            return Calls(callAction, int.MinValue);
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> Calls(TCallAction callAction, int times)
+        {
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            {
+                ArgumentsMatcher = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
+                CallReplaceAction = (target, args) => callAction.Method.Invoke(callAction.Target, GetCallFuncArguments(target, args)),
+                Times = times
             });
+            return this;
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> Throws<TException>(TException exception) where TException : Exception
+        {
+            return Throws(exception, int.MinValue);
+        }
+
+        public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> Throws<TException>(TException exception, int times) where TException : Exception
+        {
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            {
+                ArgumentsMatcher = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
+                CallReplaceAction = (target, args) => throw exception,
+                Times = times
+            });
+            return this;
         }
 
         private MethodInfo GetInterfaceMethod()
@@ -588,6 +878,18 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             var methodInfo = methodCallExpression?.Object as ConstantExpression;
 
             return methodInfo?.Value as MethodInfo ?? throw new InvalidOperationException("Failed to get interface method to execute proxy actions on");
+        }
+
+        private static object?[] GetCallFuncArguments(object target, object?[]? args)
+        {
+            var filledArgs = new List<object?>();
+            filledArgs.Add(target);
+
+            foreach (var arg in (args ?? Enumerable.Empty<object?>()))
+            {
+                filledArgs.Add(arg);
+            }
+            return filledArgs.ToArray();
         }
     }
 }

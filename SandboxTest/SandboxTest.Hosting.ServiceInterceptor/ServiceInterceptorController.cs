@@ -11,7 +11,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
     /// </summary>
     public class ServiceInterceptorController : IApplicationController
     {
-        private ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>> _proxyWrapperActions;
+        private ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>> _methodInterceptors;
         private ConcurrentBag<ServiceInterceptorRecordedCall> _proxyWrapperRecordedCalls;
         private IServiceCollection? _originalServiceCollection;
         private List<object> _referencesToKeepAlive = new List<object>();
@@ -22,7 +22,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         public ServiceInterceptorController()
         {
-            _proxyWrapperActions = new ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>>();
+            _methodInterceptors = new ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>>();
             _proxyWrapperRecordedCalls = new ConcurrentBag<ServiceInterceptorRecordedCall>();
         }
 
@@ -31,7 +31,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <typeparam name="TInterface"></typeparam>
         /// <returns></returns>
-        public ServiceInterceptorConfigurator<TInterface> ConfigureInterceptor<TInterface>()
+        public ServiceInterceptorConfigurator<TInterface> UseInterceptor<TInterface>()
         {
             return new ServiceInterceptorConfigurator<TInterface>(this);
         }
@@ -188,7 +188,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// <returns></returns>
         public Task ResetAsync(ApplicationInstance applicationInstance)
         {
-            _proxyWrapperActions.Clear();
+            _methodInterceptors.Clear();
             _proxyWrapperRecordedCalls.Clear();
             return Task.CompletedTask;
         }
@@ -198,7 +198,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             _referencesToKeepAlive.Add(reference);
         }
 
-        public ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, List<ServiceInterceptorAction>>> ProxyWrapperActions { get => _proxyWrapperActions; }
+        public ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>> MethodInterceptors { get => _methodInterceptors; }
 
         /// <summary>
         /// Returns a list of all the recored proxy wrapper calls.

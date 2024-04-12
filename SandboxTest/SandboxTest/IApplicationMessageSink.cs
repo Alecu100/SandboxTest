@@ -2,6 +2,8 @@
 {
     /// <summary>
     /// Interface used to establish the communication channel for each application instance to send commands to
+    /// This is used to send commands to application instances to load a scenario, run a step or reset. The default behavior must be blocking, so if no message is available it should block execution
+    /// until a message is received.
     /// </summary>
     public interface IApplicationMessageSink
     {

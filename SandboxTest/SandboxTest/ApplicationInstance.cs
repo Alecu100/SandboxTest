@@ -62,7 +62,7 @@
             {
                 if (_messageSink == null)
                 {
-                    _messageSink = new PipeApplicationMessageSink();
+                    _messageSink = new ApplicationMessageSink();
                 }
                 return _messageSink;
             }

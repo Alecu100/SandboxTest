@@ -6,8 +6,10 @@ namespace SandboxTest
 {
     /// <summary>
     /// Represents the default pipe application message sink using the operating system pipes to send messages from and to application instances.
+    /// This is used to send commands to application instances to load a scenario, run a step or reset. The default behavior must be blocking, so if no message is available it should block execution
+    /// until a message is received.
     /// </summary>
-    public class PipeApplicationMessageSink : IApplicationMessageSink
+    public class ApplicationMessageSink : IApplicationMessageSink
     {
         /// <summary>
         /// Gets the name of a pipe used to communicate with child application hosts to send commands like executing a step.
@@ -30,7 +32,7 @@ namespace SandboxTest
         /// </summary>
         private static byte[] MessageSeparatorBytes;
 
-        static PipeApplicationMessageSink()
+        static ApplicationMessageSink()
         {
             MessageSeparatorBytes = Guid.Parse(MessageSeparator).ToByteArray();
         }

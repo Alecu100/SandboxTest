@@ -40,7 +40,7 @@ namespace SandboxTest.Hosting
             var executableApplicationRunner = applicationInstance.Runner as ExecutableApplicationRunner;
             if (executableApplicationRunner == null)
             {
-                throw new InvalidOperationException("Invalid application runner configured on application instance, expected HostBuilderApplicationRunner");
+                throw new InvalidOperationException("Invalid application runner configured on application instance, expected ExecutableApplicationRunner");
             }
 
             executableApplicationRunner.OnConfigureBuildSandbox(configureBuildSandboxFunc);
@@ -48,13 +48,20 @@ namespace SandboxTest.Hosting
             return applicationInstance;
         }
 
+        /// <summary>
+        /// Configures a reset function for <see cref="ExecutableApplicationRunner"/>.
+        /// </summary>
+        /// <param name="applicationInstance"></param>
+        /// <param name="resetFunc"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public static IApplicationInstance ConfigureExecutableApplicationRunnerReset(this IApplicationInstance applicationInstance,
             Func<Process, Task> resetFunc)
         {
             var executableApplicationRunner = applicationInstance.Runner as ExecutableApplicationRunner;
             if (executableApplicationRunner == null)
             {
-                throw new InvalidOperationException("Invalid application runner configured on application instance, expected HostBuilderApplicationRunner");
+                throw new InvalidOperationException("Invalid application runner configured on application instance, expected ExecutableApplicationRunner");
             }
             executableApplicationRunner.OnConfigureReset(resetFunc);
             return applicationInstance;

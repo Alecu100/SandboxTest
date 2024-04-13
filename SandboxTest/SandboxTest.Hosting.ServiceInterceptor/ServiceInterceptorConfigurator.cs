@@ -19,7 +19,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// <typeparam name="TReturn"></typeparam>
         /// <param name="interfaceMethodFunc"></param>
         /// <returns></returns>
-        public MethodInterceptorConfigurator<TInterface, TReturn> Intercept<TReturn>(Expression<Func<TInterface, Func<object, TReturn>>> interfaceMethodFunc)
+        public MethodInterceptorConfigurator<TInterface, TReturn> Intercept<TReturn>(Expression<Func<TInterface, Func<TReturn>>> interfaceMethodFunc)
         {
             return new MethodInterceptorConfigurator<TInterface, TReturn>(_controller, interfaceMethodFunc);
         }
@@ -243,11 +243,11 @@ namespace SandboxTest.Hosting.ServiceInterceptor
     public class MethodInterceptorConfigurator<TInterface, TReturn>
     {
         private ServiceInterceptorController _controller;
-        private Expression<Func<TInterface, Func<object, TReturn>>> _interfaceMethodFunc;
+        private Expression<Func<TInterface, Func<TReturn>>> _interfaceMethodFunc;
         private ServiceInterceptedMethod _interceptedMethod;
         private Type _interfaceType;
 
-        public MethodInterceptorConfigurator(ServiceInterceptorController controller, Expression<Func<TInterface, Func<object, TReturn>>> interfaceMethodFunc)
+        public MethodInterceptorConfigurator(ServiceInterceptorController controller, Expression<Func<TInterface, Func<TReturn>>> interfaceMethodFunc)
         {
             _controller = controller;
             _interfaceMethodFunc = interfaceMethodFunc;

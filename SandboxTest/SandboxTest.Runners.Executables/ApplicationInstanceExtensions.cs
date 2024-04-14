@@ -66,5 +66,25 @@ namespace SandboxTest.Hosting
             executableApplicationRunner.OnConfigureReset(resetFunc);
             return applicationInstance;
         }
+
+        /// <summary>
+        /// Adds an application controller of type <see cref="ExecutableApplicationController"/> to the given application instance.
+        /// </summary>
+        /// <param name="applicationInstance"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static IApplicationInstance AddExecutableApplicationControllerr(this IApplicationInstance applicationInstance, string? name = default)
+        {
+            var executableApplicationRunner = applicationInstance.Runner as IExecutableApplicationRunner;
+            if (executableApplicationRunner == null)
+            {
+                throw new InvalidOperationException("Invalid application runner configured on application instance, expected WireMockApplicationRunner");
+            }
+
+            var executableApplicationController = new ExecutableApplicationController(name);
+            applicationInstance.AddController(executableApplicationController);
+            return applicationInstance;
+        }
     }
 }

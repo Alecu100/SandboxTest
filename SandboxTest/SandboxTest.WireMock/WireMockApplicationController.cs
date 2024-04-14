@@ -35,7 +35,7 @@ namespace SandboxTest.WireMock
         /// <exception cref="InvalidOperationException"></exception>
         public virtual Task BuildAsync(IApplicationInstance applicationInstance)
         {
-            var wireMockRunner = applicationInstance.Runner as WireMockApplicationRunner;
+            var wireMockRunner = applicationInstance.Runner as IWireMockApplicationRunner;
             if (wireMockRunner == null)
             {
                 throw new InvalidOperationException("WireMock application controller can only be used with a WireMock application runnner");

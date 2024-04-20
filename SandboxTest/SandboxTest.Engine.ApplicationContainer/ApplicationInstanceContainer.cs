@@ -1,10 +1,8 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SandboxTest.Engine.ChildTestEngine;
 using SandboxTest.Engine.Operations;
 using SandboxTest.Engine.Utils;
 using System.ComponentModel;
-using System.Threading.Tasks;
 
 namespace SandboxTest.Engine.ApplicationContainer
 {
@@ -79,7 +77,7 @@ namespace SandboxTest.Engine.ApplicationContainer
             try
             {
                 var messageSink = _childTestEngine.RunningInstance.MessageSink;
-                await messageSink.ConfigureAsync(_applicationInstanceId, _runId, true);
+                await messageSink.StartAsync(_applicationInstanceId, _runId, true);
                 while (!_runFinishedTaskCompletionSource.Task.IsCompleted)
                 {
                     var messageJson = await messageSink.ReceiveMessageAsync();

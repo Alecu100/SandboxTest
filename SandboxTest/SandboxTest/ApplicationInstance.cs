@@ -1,13 +1,13 @@
 ﻿namespace SandboxTest
 {
-    public class ApplicationInstance : IApplicationInstance
+    public class ApplicationInstance : IInstance
     {
         protected readonly string _id;
-        protected IApplicationRunner? _runner;
-        protected List<IApplicationController> _controllers;
+        protected IRunner? _runner;
+        protected List<IController> _controllers;
         protected List<ScenarioStep> _steps;
         protected int _currentStepIndex;
-        protected IApplicationMessageSink? _messageSink;
+        protected IMessageChannel? _messageSink;
         protected bool _isRunning;
 
         /// <summary>
@@ -15,7 +15,7 @@
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static ApplicationInstance CreateEmptyInstance(string id)
+        public static IInstance CreateEmptyInstance(string id)
         {
             return new ApplicationInstance(id);
         }
@@ -23,7 +23,7 @@
         public ApplicationInstance(string id)
         {
             _id = id;
-            _controllers = new List<IApplicationController>();
+            _controllers = new List<IController>();
             _steps = new List<ScenarioStep>();
             _currentStepIndex = 0;
         }
@@ -31,12 +31,12 @@
         /// <summary>
         /// Gets the application runner associated to the application instance that actually starts the application instance.
         /// </summary>
-        public virtual IApplicationRunner? Runner { get => _runner; }
+        public virtual IRunner? Runner { get => _runner; }
 
         /// <summary>
         /// Gets all the application controllers associated to the application instance
         /// </summary>
-        public virtual IReadOnlyList<IApplicationController> Controllers { get => _controllers; }
+        public virtual IReadOnlyList<IController> Controllers { get => _controllers; }
 
         /// <summary>
         /// Gets all the scenario steps configured for this application instance.
@@ -56,13 +56,13 @@
         /// <summary>
         /// Returns the 
         /// </summary>
-        public virtual IApplicationMessageSink MessageSink
+        public virtual IMessageChannel MessageSink
         {
             get
             {
                 if (_messageSink == null)
                 {
-                    _messageSink = new ApplicationMessageSink();
+                    _messageSink = new ApplicationMessageChannel();
                 }
                 return _messageSink;
             }
@@ -75,7 +75,7 @@
         /// <param name="applicationRunner"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual ApplicationInstance UseRunner<TRunner>(TRunner applicationRunner) where TRunner : IApplicationRunner
+        public virtual IInstance UseRunner<TRunner>(TRunner applicationRunner) where TRunner : IRunner
         {
             if (_runner != null) 
             {
@@ -86,9 +86,9 @@
             return this;
         }
 
-        public virtual ApplicationInstance AddController<TApplicationController>(TApplicationController controller, string? name = default) where TApplicationController : IApplicationController
+        public virtual IInstance AddController<TController>(TController controller, string? name = default) where TController : IController
         {
-            if (_controllers.Any(c => c.Name == name && c.GetType() == typeof(TApplicationController)))
+            if (_controllers.Any(c => c.Name == name && c.GetType() == typeof(TController)))
             {
                 throw new InvalidOperationException($"Already defined an application controller with the name {name} and the same type.");
             }

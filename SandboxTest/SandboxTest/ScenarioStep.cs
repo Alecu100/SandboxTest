@@ -7,7 +7,7 @@ namespace SandboxTest
         private readonly ScenarioStepId _id;
         private readonly List<Func<ScenarioStepContext, Task>> _configuredActions;
         private readonly List<ScenarioStepId> _previousStepsIds;
-        private readonly IApplicationInstance _applicationInstance;
+        private readonly IInstance _applicationInstance;
 
         /// <summary>
         /// Gets the id of the scenario step.
@@ -23,7 +23,7 @@ namespace SandboxTest
         /// Creates a new instance of a scenario step.
         /// </summary>
         /// <param name="applicationInstance"></param>
-        public ScenarioStep(IApplicationInstance applicationInstance) 
+        public ScenarioStep(IInstance applicationInstance) 
             : this(applicationInstance, new ScenarioStepId(applicationInstance.Id, applicationInstance.CurrentStepIndex))
         {
         }
@@ -33,7 +33,7 @@ namespace SandboxTest
         /// </summary>
         /// <param name="applicationInstance"></param>
         /// <param name="name"></param>
-        public ScenarioStep(IApplicationInstance applicationInstance, string name)
+        public ScenarioStep(IInstance applicationInstance, string name)
             : this(applicationInstance, new ScenarioStepId(applicationInstance.Id, name))
         {
         }
@@ -43,7 +43,7 @@ namespace SandboxTest
         /// </summary>
         /// <param name="applicationInstance"></param>
         /// <param name="id"></param>
-        public ScenarioStep(IApplicationInstance applicationInstance, ScenarioStepId id)
+        public ScenarioStep(IInstance applicationInstance, ScenarioStepId id)
         {
             _id = id;
             _applicationInstance = applicationInstance;
@@ -75,7 +75,7 @@ namespace SandboxTest
             }
         }
 
-        public ScenarioStep InvokeController<TController>(Func<TController, ScenarioStepContext, Task> invokeFunc, string? name = default) where TController: IApplicationController
+        public ScenarioStep InvokeController<TController>(Func<TController, ScenarioStepContext, Task> invokeFunc, string? name = default) where TController: IController
         {
             if (!_applicationInstance.Controllers.Any(controller => ((controller.Name == null && name == null) || (controller.Name != null && controller.Name.Equals(name))) &&
                 controller.GetType() == typeof(TController)))

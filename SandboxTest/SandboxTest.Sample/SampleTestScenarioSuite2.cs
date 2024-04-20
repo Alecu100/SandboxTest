@@ -9,25 +9,25 @@ namespace SandboxTest.Sample
     [ScenarioSuite]
     public class SampleTestScenarioSuite2
     {
-        public readonly IApplicationInstance _applicationInstance21 = ApplicationInstance.CreateEmptyInstance("Instance21")
-            .UseHostApplicationRunner(args =>
+        public readonly IInstance _applicationInstance21 = ApplicationInstance.CreateEmptyInstance("Instance21")
+            .UseHostRunner(args =>
             {
                 var hostBuilder = Host.CreateDefaultBuilder(args);
                 hostBuilder.ConfigureHost();
                 return Task.FromResult(hostBuilder);
             })
-            .AddHostApplicationController();
+            .AddHostController();
 
 
         [Scenario]
         public void TestScenario2()
         {
-            var firstStep = _applicationInstance21.AddStep().InvokeController<HostApplicationController>((controller, ctx) =>
+            var firstStep = _applicationInstance21.AddStep().InvokeController<HostController>((controller, ctx) =>
             {
                 ctx["FirstGuid"] = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>().GetNewGuid();
                 return Task.CompletedTask;
             });
-            var secondStep = _applicationInstance21.AddStep().AddPreviousStep(firstStep).InvokeController<HostApplicationController>((controller, ctx) =>
+            var secondStep = _applicationInstance21.AddStep().AddPreviousStep(firstStep).InvokeController<HostController>((controller, ctx) =>
             {
                 var newGuid = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>();
                 newGuid.GetNewGuid().Should().NotBe(ctx["FirstGuid"].ToString());
@@ -38,12 +38,12 @@ namespace SandboxTest.Sample
         [Scenario]
         public void TestScenario3_Should_Fail()
         {
-            var firstStep = _applicationInstance21.AddStep().InvokeController<HostApplicationController>((controller, ctx) =>
+            var firstStep = _applicationInstance21.AddStep().InvokeController<HostController>((controller, ctx) =>
             {
                 ctx["FirstGuid"] = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>().GetNewGuid();
                 return Task.CompletedTask;
             });
-            var secondStep = _applicationInstance21.AddStep().AddPreviousStep(firstStep).InvokeController<HostApplicationController>((controller, ctx) =>
+            var secondStep = _applicationInstance21.AddStep().AddPreviousStep(firstStep).InvokeController<HostController>((controller, ctx) =>
             {
                 var newGuid = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>();
                 newGuid.GetNewGuid().Should().Be(ctx["FirstGuid"].ToString());

@@ -8,10 +8,10 @@ namespace SandboxTest.Engine.ChildTestEngine
         private Type? _scenarioSuiteType;
         private ScenariosAssemblyLoadContext? _scenariosAssemblyLoadContext;
         private Assembly? _scenarioSuiteAssembly;
-        private IApplicationInstance? _runningInstance;
+        private IInstance? _runningInstance;
         private object? _scenarioSuiteInstance;
 
-        public IApplicationInstance? RunningInstance { get => _runningInstance; }
+        public IInstance? RunningInstance { get => _runningInstance; }
 
         public async virtual Task<OperationResult> LoadScenarioAsync(string scenarioMethodName)
         {
@@ -98,9 +98,9 @@ namespace SandboxTest.Engine.ChildTestEngine
                 allFields.AddRange(_scenarioSuiteType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic));
                 foreach (var field in allFields) 
                 {
-                    if (field.FieldType.IsAssignableTo(typeof(IApplicationInstance)))
+                    if (field.FieldType.IsAssignableTo(typeof(IInstance)))
                     {
-                        var applicationInstance = field.GetValue(_scenarioSuiteInstance) as IApplicationInstance;
+                        var applicationInstance = field.GetValue(_scenarioSuiteInstance) as IInstance;
                         if (applicationInstance != null && applicationInstance.Id == applicationInstanceId)
                         {
                             _runningInstance = applicationInstance;

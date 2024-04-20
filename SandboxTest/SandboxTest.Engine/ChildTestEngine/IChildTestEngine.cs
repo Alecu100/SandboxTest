@@ -7,7 +7,7 @@ namespace SandboxTest.Engine.ChildTestEngine
         /// <summary>
         /// Gets the currently running application instace.
         /// </summary>
-        IApplicationInstance? RunningInstance { get; }
+        IInstance? RunningInstance { get; }
 
         /// <summary>
         /// Runs an application instance

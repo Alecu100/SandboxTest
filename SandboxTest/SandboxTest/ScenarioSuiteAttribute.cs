@@ -1,5 +1,8 @@
 ﻿namespace SandboxTest
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class ScenarioSuiteAttribute : Attribute
     {

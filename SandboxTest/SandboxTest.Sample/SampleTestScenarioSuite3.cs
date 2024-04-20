@@ -10,23 +10,23 @@ namespace SandboxTest.Sample
     [ScenarioSuite]
     public class SampleTestScenarioSuite3
     {
-        public readonly IApplicationInstance _applicationInstance31 = ApplicationInstance.CreateEmptyInstance("Instance31")
-            .UseWireMockApplicationRunner()
-            .ConfigureWireMockApplicationRunner(6677, false, false)
-            .AddWireMockApplicationController()
-            .AddHttpClientApplicationController("http://localhost:6677");
+        public readonly IInstance _applicationInstance31 = ApplicationInstance.CreateEmptyInstance("Instance31")
+            .UseWireMockRunner()
+            .ConfigureWireMockRunner(6677, false, false)
+            .AddWireMockController()
+            .AddHttpClientController("http://localhost:6677");
 
         [Scenario]
         public void TestScenario5()
         {
-            var firstStep = _applicationInstance31.AddStep().InvokeController<WireMockApplicationController>((controller, ctx) =>
+            var firstStep = _applicationInstance31.AddStep().InvokeController<WireMockController>((controller, ctx) =>
             {
                 var message = new Message { Name = "test_message", Description = "test_description" };
                 controller.WireMockServer.Given(Request.Create().WithPath("/test")).RespondWith(Response.Create().WithBodyAsJson(message));
                 ctx["message"] = message;
                 return Task.CompletedTask;
             });
-            var secondStep = _applicationInstance31.AddStep().AddPreviousStep(firstStep).InvokeController<HttpClientApplicationController>(async (controller, ctx) =>
+            var secondStep = _applicationInstance31.AddStep().AddPreviousStep(firstStep).InvokeController<HttpClientController>(async (controller, ctx) =>
             {
                 var httpRequest = new HttpRequestMessage(HttpMethod.Get, "/test");
                 var httpResponse = await controller.HttpClient.SendAsync(httpRequest);

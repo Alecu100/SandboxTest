@@ -59,3 +59,13 @@ SandboxTest/SandboxTest.WireMock/obj/
 SandboxTest/SandboxTest.Runners.Executables/bin/
 SandboxTest/SandboxTest.AspNetCore.EndpointInterceptor/bin/
 SandboxTest/SandboxTest.Runners.Node/bin/
+SandboxTest/SandboxTest.Dummy/obj/
+SandboxTest/SandboxTest.Executable/bin/
+SandboxTest/SandboxTest.Executable/obj/
+SandboxTest/SandboxTest.Node/bin/
+SandboxTest/SandboxTest.Node/obj/
+SandboxTest/SandboxTest.Sample.Application4.Server/obj/
+SandboxTest/SandboxTest.WebServer/obj/
+SandboxTest/SandboxTest.WebServer/bin/
+SandboxTest/SandboxTest.Sample.Application4.Server/bin/
+SandboxTest/SandboxTest.Dummy/bin/

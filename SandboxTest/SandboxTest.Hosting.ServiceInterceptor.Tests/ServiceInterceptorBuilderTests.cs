@@ -1,20 +1,19 @@
 ﻿using FluentAssertions;
-using SandboxTest.Dummies;
-using SandboxTest.WireMock;
+using SandboxTest.Dummy;
 
 namespace SandboxTest.Hosting.ServiceInterceptor.Tests
 {
     [ScenarioSuite]
     public class ServiceInterceptorBuilderTests
     {
-        public readonly IApplicationInstance _dummyApplicationInstance = ApplicationInstance.CreateEmptyInstance("DummyApplication")
-            .UseDummyApplicationRunner()
-            .AddDummyApplicationController();
+        public readonly IInstance _dummyApplicationInstance = ApplicationInstance.CreateEmptyInstance("DummyApplication")
+            .UseDummyRunner()
+            .AddDummyController();
 
         [Scenario]
         public void Test_Simple_GenericInterface_WithMethodAndProperty()
         {
-            _dummyApplicationInstance.AddStep().InvokeController<DummyApplicationController>((controller, context) =>
+            _dummyApplicationInstance.AddStep().InvokeController<DummyController>((controller, context) =>
             {
                 var serviceInterceptorController = new ServiceInterceptorController();
                 var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(typeof(ITestInterface<>), typeof(TestInterfaceClass<>), serviceInterceptorController);
@@ -33,7 +32,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Tests
         [Scenario]
         public void Test_ListClass_With_ListInterface()
         {
-            _dummyApplicationInstance.AddStep().InvokeController<DummyApplicationController>((controller, context) =>
+            _dummyApplicationInstance.AddStep().InvokeController<DummyController>((controller, context) =>
             {
                 var serviceInterceptorController = new ServiceInterceptorController();
                 var serviceInterceptorTypeBuilder2 = new ServiceInterceptorTypeBuilder(typeof(IList<>), typeof(List<>), serviceInterceptorController);
@@ -50,7 +49,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Tests
         [Scenario]
         public void Test_InterfaceWithGenericMethod_With_ClassWithGenericMethod()
         {
-            _dummyApplicationInstance.AddStep().InvokeController<DummyApplicationController>((controller, context) =>
+            _dummyApplicationInstance.AddStep().InvokeController<DummyController>((controller, context) =>
             {
                 var serviceInterceptorController = new ServiceInterceptorController();
                 var serviceInterceptorTypeBuilder3 = new ServiceInterceptorTypeBuilder(typeof(IGenericMethodInterface), typeof(GenericMethodInterfaceClass), serviceInterceptorController);
@@ -64,7 +63,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Tests
         [Scenario]
         public void Test_InterfaceWithValueTypeReturnMethods_With_ClassWithValueTypeReturnMethods()
         {
-            _dummyApplicationInstance.AddStep().InvokeController<DummyApplicationController>((controller, context) =>
+            _dummyApplicationInstance.AddStep().InvokeController<DummyController>((controller, context) =>
             {
                 var serviceInterceptorController = new ServiceInterceptorController();
                 var serviceInterceptorTypeBuilder4 = new ServiceInterceptorTypeBuilder(typeof(IRandomGenerator), typeof(RandomGenerator), serviceInterceptorController);

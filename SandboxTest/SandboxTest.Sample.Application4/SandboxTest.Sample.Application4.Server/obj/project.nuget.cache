@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "V79++j9S+2dw7pwydvA8vGgJd0RVPvTDr/oQX4s0hZlHFwBi5lGatvl89sw5ZrrAKQUom5zjBOPeTQMHXC+Ttw==",
+  "success": true,
+  "projectFilePath": "D:\\SandboxTest\\SandboxTest\\SandboxTest.Sample.Application4\\SandboxTest.Sample.Application4.Server\\SandboxTest.Sample.Application4.Server.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\alecs\\.nuget\\packages\\microsoft.aspnetcore.spaproxy\\8.0.4\\microsoft.aspnetcore.spaproxy.8.0.4.nupkg.sha512",
+    "C:\\Users\\alecs\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
+    "C:\\Users\\alecs\\.nuget\\packages\\microsoft.openapi\\1.2.3\\microsoft.openapi.1.2.3.nupkg.sha512",
+    "C:\\Users\\alecs\\.nuget\\packages\\swashbuckle.aspnetcore\\6.4.0\\swashbuckle.aspnetcore.6.4.0.nupkg.sha512",
+    "C:\\Users\\alecs\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.4.0\\swashbuckle.aspnetcore.swagger.6.4.0.nupkg.sha512",
+    "C:\\Users\\alecs\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.4.0\\swashbuckle.aspnetcore.swaggergen.6.4.0.nupkg.sha512",
+    "C:\\Users\\alecs\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\6.4.0\\swashbuckle.aspnetcore.swaggerui.6.4.0.nupkg.sha512"
+  ],
+  "logs": []
+}

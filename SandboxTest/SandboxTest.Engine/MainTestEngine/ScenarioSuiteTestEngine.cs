@@ -319,7 +319,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 throw new InvalidOperationException("No scenario suite loaded in scenario suite test engine");
             }
 
-            var applicationInstanceInterfaceType = typeof(IApplicationInstance);
+            var applicationInstanceInterfaceType = typeof(IInstance);
             var applicationInstanceFields = new List<FieldInfo>();
             var allFields = new List<FieldInfo>();
             allFields.AddRange(_scenarioSuiteType.GetFields(BindingFlags.Instance | BindingFlags.Public));
@@ -343,7 +343,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 throw new InvalidOperationException("No scenario suite loaded in scenario suite test engine");
             }
 
-            var applicationInstance = applicationInstanceField.GetValue(_scenarioSuiteInstance) as IApplicationInstance;
+            var applicationInstance = applicationInstanceField.GetValue(_scenarioSuiteInstance) as IInstance;
             if (applicationInstance == null)
             {
                 _scenarioFailedErrors.Add($"Application instance for field {applicationInstanceField.Name} is missing");

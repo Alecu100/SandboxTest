@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SandboxTest.Executable\SandboxTest.Executable.csproj" />
+    <ProjectReference Include="..\SandboxTest.WebServer\SandboxTest.WebServer.csproj" />
+  </ItemGroup>
+
+</Project>

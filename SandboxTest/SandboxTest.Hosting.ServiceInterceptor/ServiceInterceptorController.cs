@@ -9,7 +9,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
     /// Represents a service proxy wrapper controller that uses the dependency injection mechanism from standard IHost to replace all the implementations with proxy wrappers containing the original instance.
     /// These proxies intercept calls to them by default passing them to the original instance but also allows to intercept and verify these calls, return alternative values or even throw exceptions.
     /// </summary>
-    public class ServiceInterceptorController : IApplicationController
+    public class ServiceInterceptorController : IController
     {
         private ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>> _methodInterceptors;
         private ConcurrentBag<ServiceInterceptorRecordedCall> _proxyWrapperRecordedCalls;
@@ -41,7 +41,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         public string? Name { get => null; }
 
-        public Task BuildAsync(IApplicationInstance applicationInstance)
+        public Task BuildAsync(IInstance applicationInstance)
         {
             return Task.CompletedTask;
         }
@@ -52,9 +52,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// <param name="applicationInstance"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public Task ConfigureBuildAsync(IApplicationInstance applicationInstance)
+        public Task ConfigureBuildAsync(IInstance applicationInstance)
         {
-            var hostApplicationRunner = applicationInstance.Runner as IHostApplicationRunner;
+            var hostApplicationRunner = applicationInstance.Runner as IHostRunner;
             if (hostApplicationRunner == null)
             {
                 throw new InvalidOperationException($"Target runner for application instance {applicationInstance.Id} must be a host application runner");
@@ -186,7 +186,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <param name="applicationInstance"></param>
         /// <returns></returns>
-        public Task ResetAsync(ApplicationInstance applicationInstance)
+        public Task ResetAsync(IInstance applicationInstance)
         {
             _methodInterceptors.Clear();
             _proxyWrapperRecordedCalls.Clear();

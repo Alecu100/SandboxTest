@@ -1,5 +1,8 @@
 ﻿namespace SandboxTest
 {
+    /// <summary>
+    /// Interface that denotes a container of steps, enabling operations such as adding a step or getting the added steps.
+    /// </summary>
     public interface IScenarioStepContainer
     {
         /// <summary>

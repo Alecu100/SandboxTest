@@ -8,7 +8,7 @@ namespace SandboxTest.Engine.MainTestEngine
     public class ScenarioSuiteTestEngineApplicationHandler
     {
         private readonly Guid _runId;
-        private readonly IApplicationInstance _instance;
+        private readonly IInstance _instance;
         private readonly IMainTestEngineRunContext _mainTestEngineRunContext;
         private readonly Type _scenarioSuiteType;
         private Process? _applicationInstanceProcess;
@@ -16,9 +16,9 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <summary>
         /// Returns the current application instance assigned to the scenario suite application instance.
         /// </summary>
-        public IApplicationInstance Instance { get { return _instance; } }
+        public IInstance Instance { get { return _instance; } }
 
-        public ScenarioSuiteTestEngineApplicationHandler(Guid runId, IApplicationInstance instance, Type scenarioSuiteType, IMainTestEngineRunContext mainTestEngineRunContext)
+        public ScenarioSuiteTestEngineApplicationHandler(Guid runId, IInstance instance, Type scenarioSuiteType, IMainTestEngineRunContext mainTestEngineRunContext)
         {
             _runId = runId;
             _instance = instance;
@@ -39,7 +39,7 @@ namespace SandboxTest.Engine.MainTestEngine
             var arguments = $"-{Constants.MainPathArgument}=\"{mainPath}\"  -{Constants.AssemblySourceNameArgument}=\"{assemblySourceName}\"  " +
                 $"-{Constants.ScenarioSuiteTypeFullNameArgument}=\"{_scenarioSuiteType.FullName}\"  -{Constants.RunIdArgument}=\"{_runId}\"  -{Constants.ApplicationInstanceIdArgument}=\"{_instance.Id}\"  ";
             _applicationInstanceProcess = await _mainTestEngineRunContext.LaunchProcessAsync(applicationRunnerPath, _mainTestEngineRunContext.IsBeingDebugged, mainPath, arguments);
-            await _instance.MessageSink.ConfigureAsync(_instance.Id, _runId, false);
+            await _instance.MessageSink.StartAsync(_instance.Id, _runId, false);
         }
 
         /// <summary>

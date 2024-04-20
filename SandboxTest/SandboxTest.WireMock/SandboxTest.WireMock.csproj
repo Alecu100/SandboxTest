@@ -15,6 +15,7 @@
 
 
   <ItemGroup>
+    <ProjectReference Include="..\SandboxTest.WebServer\SandboxTest.WebServer.csproj" />
     <ProjectReference Include="..\SandboxTest\SandboxTest.csproj" />
   </ItemGroup>
 

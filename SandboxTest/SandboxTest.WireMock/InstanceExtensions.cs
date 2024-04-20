@@ -34,13 +34,7 @@ namespace SandboxTest.WireMock
             {
                 throw new InvalidOperationException("Instance doesn't use the WireMock runner");
             }
-            wireMockRunner.OnConfigureBuild(runner =>
-            {
-                runner.UseSsl = useSsl;
-                runner.UseAdminInterface = useAdminInterface;
-                runner.Port = port;
-                return Task.CompletedTask;
-            });
+            wireMockRunner.OnConfigureBuild(port, useSsl, useAdminInterface);
             return instance;
         }
 

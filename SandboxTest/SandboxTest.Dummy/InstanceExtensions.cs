@@ -1,6 +1,4 @@
-﻿using SandboxTest.Dummy;
-
-namespace SandboxTest.Dummy
+﻿namespace SandboxTest.Dummy
 {
     public static class InstanceExtensions
     {
@@ -16,7 +14,7 @@ namespace SandboxTest.Dummy
         }
 
         /// <summary>
-        /// Adds an application controller of type <see cref="DummyController"/> to the given application instance.
+        /// Adds an application controller of type <see cref="DummyController"/> to the given instance.
         /// </summary>
         /// <param name="instance"></param>
         /// <param name="name"></param>

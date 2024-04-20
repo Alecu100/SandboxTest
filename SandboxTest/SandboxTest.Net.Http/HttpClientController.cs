@@ -1,4 +1,6 @@
-﻿namespace SandboxTest.Net.Http
+﻿using SandboxTest.WebServer;
+
+namespace SandboxTest.Net.Http
 {
     /// <summary>
     /// Represents an application controller that exposes a <see cref="System.Net.Http.HttpClient"/> to control an instance via http requests.
@@ -6,7 +8,7 @@
     public class HttpClientController : IController
     {
         protected readonly string? _name;
-        protected readonly Uri _baseAddress;
+        protected Uri? _baseAddress;
         protected HttpClient? _httpClient;
 
         /// <summary>
@@ -14,10 +16,9 @@
         /// </summary>
         /// <param name="baseAddress"></param>
         /// <param name="name"></param>
-        public HttpClientController(string baseAddress, string? name) 
+        public HttpClientController(string? name) 
         {
             _name = name;
-            _baseAddress = new Uri(baseAddress, UriKind.Absolute);
         }
 
         ///<inheritdoc/>
@@ -42,6 +43,12 @@
 
         public virtual Task ConfigureBuildAsync(IInstance applicationInstance)
         {
+            var webServerRunner = applicationInstance.Runner as IWebServerRunner;
+            if (webServerRunner == null)
+            {
+                throw new InvalidOperationException("Instance has no web server runner assigned");
+            }
+            _baseAddress = new Uri(webServerRunner.Url);
             return Task.CompletedTask;
         }
 

@@ -11,8 +11,13 @@ namespace SanboxTest.Runners.WireMock
         protected int _port = 80;
         protected bool _useSsl = true;
         protected bool _useAdminInterface = false;
-        protected Func<WireMockRunner, Task>? _configureBuildAction;
         protected WireMockServer? _wireMockServer;
+        protected string _url;
+
+        public WireMockRunner()
+        {
+            _url = "https://127.0.0.1:80";
+        }
 
         /// <summary>
         /// Returns the WireMock server set up for the application runner.
@@ -22,17 +27,20 @@ namespace SanboxTest.Runners.WireMock
         /// <summary>
         /// Gets or sets the port to use start the WireMock server on.
         /// </summary>
-        public int Port { get => _port; set => _port = value; }
+        public int Port { get => _port; }
 
         /// <summary>
         /// Gets or sets whether to use ssl or not.
         /// </summary>
-        public bool UseSsl { get => _useSsl; set => _useSsl = value; }
+        public bool UseSsl { get => _useSsl; }
 
         /// <summary>
         /// Gets or sets whether to use the admin interface.
         /// </summary>
-        public bool UseAdminInterface { get => _useAdminInterface; set => _useAdminInterface = value; }
+        public bool UseAdminInterface { get => _useAdminInterface; }
+
+        ///<inheritdoc/>
+        public string Url => _url;
 
         /// <summary>
         /// BuildAsync is used to start WireMockRunner because the WireMockServer starts directly without any kind of build step aside from port and a couple of other things.
@@ -55,12 +63,9 @@ namespace SanboxTest.Runners.WireMock
         /// ConfigureBuildAsync is  not used for WireMockRunner because the WireMockServer starts directly without any kind of build step aside from port and a couple of other things.
         /// </summary>
         /// <returns></returns>
-        public async Task ConfigureBuildAsync()
+        public Task ConfigureBuildAsync()
         {
-            if (_configureBuildAction != null)
-            {
-                await _configureBuildAction(this);
-            }
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -76,9 +81,12 @@ namespace SanboxTest.Runners.WireMock
         /// Sets the configure run function to configure on what port to start the WireMock server and if it should use ssl or admin interface.
         /// </summary>
         /// <param name="configureBuildFunc"></param>
-        public void OnConfigureBuild(Func<WireMockRunner, Task>? configureBuildFunc)
+        public void OnConfigureBuild(int port, bool useSsl, bool useAdminInterface)
         {
-            _configureBuildAction = configureBuildFunc;
+            _port = port;
+            _useSsl = useSsl;
+            _useAdminInterface = useAdminInterface;
+            _url = $"{(_useSsl ? "https" : "http")}://127.0.0.1:{_port}";
         }
 
         /// <summary>

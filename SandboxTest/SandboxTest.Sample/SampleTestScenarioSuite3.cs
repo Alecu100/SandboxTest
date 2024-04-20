@@ -14,7 +14,7 @@ namespace SandboxTest.Sample
             .UseWireMockRunner()
             .ConfigureWireMockRunner(6677, false, false)
             .AddWireMockController()
-            .AddHttpClientController("http://localhost:6677");
+            .AddHttpClientController();
 
         [Scenario]
         public void TestScenario5()

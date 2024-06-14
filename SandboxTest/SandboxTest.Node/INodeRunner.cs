@@ -6,7 +6,7 @@ namespace SandboxTest.Node
     /// <summary>
     /// Interface for node runners that start a web server hosted by node.js.
     /// </summary>
-    public interface INodeRunner : IExecutableRunner, IWebServerRunner
+    public interface INodeRunner : IWebServerRunner
     {
         /// <summary>
         /// Gets the base address of the node.js web server without port.

@@ -5,7 +5,7 @@ namespace SandboxTest.Hosting
     /// <summary>
     /// Represents a runner that exposes a IHost and a IHostBuilder properties to be used by various application controllers.
     /// </summary>
-    public interface IHostRunner : IRunner
+    public interface IHostRunner : IBuildableRunner
     {
         /// <summary>
         /// Returns the host.

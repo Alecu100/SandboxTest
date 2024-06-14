@@ -2,10 +2,13 @@
 
 namespace SandboxTest
 {
+    /// <summary>
+    /// Represents a scenario step used to executed the configured controller invocations for it when the test is ran.
+    /// </summary>
     public class ScenarioStep
     {
         private readonly ScenarioStepId _id;
-        private readonly List<Func<ScenarioStepContext, Task>> _configuredActions;
+        private readonly List<Func<ScenarioStepData, Task>> _configuredActions;
         private readonly List<ScenarioStepId> _previousStepsIds;
         private readonly IInstance _applicationInstance;
 
@@ -48,7 +51,7 @@ namespace SandboxTest
             _id = id;
             _applicationInstance = applicationInstance;
             _previousStepsIds = new List<ScenarioStepId>();
-            _configuredActions = new List<Func<ScenarioStepContext, Task>>();
+            _configuredActions = new List<Func<ScenarioStepData, Task>>();
         }
 
         /// <summary>
@@ -67,7 +70,7 @@ namespace SandboxTest
             return this;
         }
 
-        public async Task RunAsync(ScenarioStepContext stepContext)
+        public async Task RunAsync(ScenarioStepData stepContext)
         {
             foreach (var configuredAction in _configuredActions)
             {
@@ -75,14 +78,14 @@ namespace SandboxTest
             }
         }
 
-        public ScenarioStep InvokeController<TController>(Func<TController, ScenarioStepContext, Task> invokeFunc, string? name = default) where TController: IController
+        public ScenarioStep InvokeController<TController>(Func<TController, ScenarioStepData, Task> invokeFunc, string? name = default) where TController: IController
         {
             if (!_applicationInstance.Controllers.Any(controller => ((controller.Name == null && name == null) || (controller.Name != null && controller.Name.Equals(name))) &&
                 controller.GetType() == typeof(TController)))
             {
                 throw new InvalidOperationException($"Controller with name {name} and type {typeof(TController).Name} not found in the application instance with id {_applicationInstance.Id}");
             }
-            _configuredActions.Add(async (ScenarioStepContext context) =>
+            _configuredActions.Add(async (ScenarioStepData context) =>
             {
                 var applicationController = (TController)_applicationInstance.Controllers.First(controller => ((controller.Name == null && name == null) || (controller.Name != null && controller.Name.Equals(name))) &&
                     controller.GetType() == typeof(TController));

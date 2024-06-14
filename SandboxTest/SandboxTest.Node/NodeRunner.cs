@@ -1,10 +1,10 @@
-﻿using SandboxTest.Executable;
-
-namespace SandboxTest.Node
+﻿namespace SandboxTest.Node
 {
-    public class NodeRunner : ExecutableRunner, INodeRunner
+    public class NodeRunner : INodeRunner
     {
-        public NodeRunner(string executablePath, Func<string?, bool> isRunningFunc, string? workDirectory = null, List<string>? executableArguments = null, IDictionary<string, string>? environmentVariables = null) : base(executablePath, isRunningFunc, workDirectory, executableArguments, environmentVariables)
+        protected NodeServerTypes _serverType;
+
+        public NodeRunner(NodeServerTypes serverType)
         {
         }
 
@@ -15,5 +15,35 @@ namespace SandboxTest.Node
         public NodeServerTypes ServerType => throw new NotImplementedException();
 
         public string Url => throw new NotImplementedException();
+
+        public Task BuildAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ConfigureBuildAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ConfigureRunAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ResetAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RunAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task StopAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

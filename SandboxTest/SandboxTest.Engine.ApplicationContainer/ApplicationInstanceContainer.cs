@@ -68,7 +68,7 @@ namespace SandboxTest.Engine.ApplicationContainer
 
         private async Task HandleMessages()
         {
-            if (_childTestEngine == null || _childTestEngine?.RunningInstance?.MessageSink == null || _applicationInstanceId == null)
+            if (_childTestEngine == null || _childTestEngine?.RunningInstance?.MessageChannel == null || _applicationInstanceId == null)
             {
                 _runFinishedTaskCompletionSource.SetResult(-1);
                 return;
@@ -76,7 +76,7 @@ namespace SandboxTest.Engine.ApplicationContainer
 
             try
             {
-                var messageSink = _childTestEngine.RunningInstance.MessageSink;
+                var messageSink = _childTestEngine.RunningInstance.MessageChannel;
                 await messageSink.StartAsync(_applicationInstanceId, _runId, true);
                 while (!_runFinishedTaskCompletionSource.Task.IsCompleted)
                 {

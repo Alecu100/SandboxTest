@@ -31,7 +31,7 @@ namespace SandboxTest.Engine.ChildTestEngine
         /// <param name="stepId">The id of the step to run.</param>
         /// <param name="stepContext">The index of the step to run.</param>
         /// <returns></returns>
-        Task<OperationResult> RunStepAsync(ScenarioStepId stepId, ScenarioStepContext stepContext);
+        Task<OperationResult> RunStepAsync(ScenarioStepId stepId, ScenarioStepData stepContext);
 
         /// <summary>
         /// Resets the current application instance preparing it to run another scenario.

@@ -32,6 +32,10 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <returns></returns>
         public async Task StartInstanceAsync()
         {
+            if (_instance is IHostedInstance)
+            {
+                
+            }
             var mainAssemblyPath = _scenarioSuiteType.Assembly.Location;
             var assemblySourceName = Path.GetFileName(mainAssemblyPath);
             var mainPath = Path.GetDirectoryName(mainAssemblyPath);
@@ -39,7 +43,7 @@ namespace SandboxTest.Engine.MainTestEngine
             var arguments = $"-{Constants.MainPathArgument}=\"{mainPath}\"  -{Constants.AssemblySourceNameArgument}=\"{assemblySourceName}\"  " +
                 $"-{Constants.ScenarioSuiteTypeFullNameArgument}=\"{_scenarioSuiteType.FullName}\"  -{Constants.RunIdArgument}=\"{_runId}\"  -{Constants.ApplicationInstanceIdArgument}=\"{_instance.Id}\"  ";
             _applicationInstanceProcess = await _mainTestEngineRunContext.LaunchProcessAsync(applicationRunnerPath, _mainTestEngineRunContext.IsBeingDebugged, mainPath, arguments);
-            await _instance.MessageSink.StartAsync(_instance.Id, _runId, false);
+            await _instance.MessageChannel.StartAsync(_instance.Id, _runId, false);
         }
 
         /// <summary>
@@ -61,7 +65,7 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <param name="scenarioStep"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<OperationResult?> ExecuteStepAsync(ScenarioStep scenarioStep, ScenarioStepContext stepContext, CancellationToken cancellationToken)
+        public async Task<OperationResult?> ExecuteStepAsync(ScenarioStep scenarioStep, ScenarioStepData stepContext, CancellationToken cancellationToken)
         {
             var operation = new RunScenarioStepOperation(scenarioStep.Id, stepContext);
             return await ExecuteOperationAsync(operation, cancellationToken);
@@ -103,9 +107,9 @@ namespace SandboxTest.Engine.MainTestEngine
             try
             {
                 var json = JsonConvert.SerializeObject(operation, JsonUtils.JsonSerializerSettings);
-                await _instance.MessageSink.SendMessageAsync(json);
+                await _instance.MessageChannel.SendMessageAsync(json);
 
-                var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _instance.MessageSink.ReceiveMessageAsync(), JsonUtils.JsonSerializerSettings);
+                var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _instance.MessageChannel.ReceiveMessageAsync(), JsonUtils.JsonSerializerSettings);
                 return operationResult;
             }
             catch (Exception ex)

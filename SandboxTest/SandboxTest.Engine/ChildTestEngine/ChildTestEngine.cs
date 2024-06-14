@@ -113,7 +113,7 @@ namespace SandboxTest.Engine.ChildTestEngine
                 {
                     throw new InvalidOperationException($"Could not find an application instance with id {applicationInstanceId} in scenario suite type {_scenarioSuiteType.FullName}");
                 }
-                if (_runningInstance.MessageSink == null)
+                if (_runningInstance.MessageChannel == null)
                 {
                     throw new InvalidOperationException($"Application instance with id {applicationInstanceId} has no message sink assigned");
                 }
@@ -127,7 +127,7 @@ namespace SandboxTest.Engine.ChildTestEngine
             }
         }
 
-        public async virtual Task<OperationResult> RunStepAsync(ScenarioStepId stepId, ScenarioStepContext stepContext)
+        public async virtual Task<OperationResult> RunStepAsync(ScenarioStepId stepId, ScenarioStepData stepContext)
         {
             if (_runningInstance == null)
             {

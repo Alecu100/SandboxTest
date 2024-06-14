@@ -228,7 +228,7 @@ namespace SandboxTest.Engine.MainTestEngine
                     return;
                 }
 
-                var scenarioStepContext = new ScenarioStepContext();
+                var scenarioStepContext = new ScenarioStepData();
                 while (_stepsExecutionStages.Any())
                 {
                     var currentStageApplicationSteps = _stepsExecutionStages.Dequeue();
@@ -301,7 +301,7 @@ namespace SandboxTest.Engine.MainTestEngine
             }
         }
 
-        private async Task<List<RunScenarioStepOperationResult?>> RunStepsForApplicationInstanceAsync(KeyValuePair<ScenarioSuiteTestEngineApplicationHandler, List<ScenarioStep>> applicationInstanceSteps, ScenarioStepContext scenarioStepContext, CancellationToken token)
+        private async Task<List<RunScenarioStepOperationResult?>> RunStepsForApplicationInstanceAsync(KeyValuePair<ScenarioSuiteTestEngineApplicationHandler, List<ScenarioStep>> applicationInstanceSteps, ScenarioStepData scenarioStepContext, CancellationToken token)
         {
             var allStepsResults = new List<RunScenarioStepOperationResult?>();
             foreach (var instanceStep in applicationInstanceSteps.Value)

@@ -9,18 +9,18 @@ namespace SandboxTest.Executable
     {
         protected Process? _buildProcess;
         protected TaskCompletionSource<bool>? _isDoneBuildingTaskCompletionSource;
-        protected string? _executableBuildPath;
+        protected string? _executableBuildCommand;
         protected List<string>? _buildArguments;
         protected string? _buildWorkDirectory;
         protected IDictionary<string, string>? _buildEnvironmentVariables;
-        protected Func<Task>? _configureBuildSandboxFunc;
+        protected Func<Task>? _configureBuildFunc;
 
         protected Process? _executableProcess;
-        protected Func<string?, bool> _isRunningFunc;
-        protected string _executablePath;
+        protected Func<string?, bool>? _isRunningFunc;
+        protected string? _executableName;
         protected string? _runWorkDirectory;
         protected IDictionary<string, string>? _executableEnvironmentVariables;
-        protected Func<Task>? _configureRunSandboxFunc;
+        protected Func<Task>? _configureRunFunc;
         protected TaskCompletionSource<bool>? _isRunningTaskCompletionSource;
         protected List<string>? _executableArguments;
         protected Func<Process, Task>? _resetFunc;
@@ -29,19 +29,19 @@ namespace SandboxTest.Executable
         public Process ExecutableProcess => _executableProcess ?? throw new InvalidOperationException("Executable not started");
 
         ///<inheritdoc/>
-        public string ExecutablePath => _executablePath ?? throw new InvalidOperationException("Executable path not set");
+        public string ExecutablePath => _executableName ?? throw new InvalidOperationException("Executable path not set");
 
         /// <summary>
         /// Creates a new instance of <see cref="ExecutableRunner"/>
         /// </summary>
-        /// <param name="executablePath">The full path of the executable to run </param>
+        /// <param name="executableName">The full path or just the name of the executable to run </param>
         /// <param name="isRunningFunc">A method that receives the console output of the executable to check when it was finished starting</param>
         /// <param name="workDirectory">Optionally a working directory for the executable can be specified</param>
         /// <param name="executableArguments">Optionally environment variables can be specified for the executable</param>
         /// <param name="environmentVariables">Optionally environment variables can be specified for the executable</param>
-        public ExecutableRunner(string executablePath, Func<string?, bool> isRunningFunc, string? workDirectory = null, List<string>? executableArguments = null, IDictionary<string, string>? environmentVariables = null)
+        public ExecutableRunner(string executableName, Func<string?, bool> isRunningFunc, string? workDirectory = null, List<string>? executableArguments = null, IDictionary<string, string>? environmentVariables = null)
         {
-            _executablePath = executablePath;
+            _executableName = executableName;
             _runWorkDirectory = workDirectory;
             _isRunningFunc = isRunningFunc;
             _executableArguments = executableArguments;
@@ -49,18 +49,18 @@ namespace SandboxTest.Executable
         }
 
         /// <summary>
-        /// Provides a way to set the build configuration so that the application can be ran in a sandbox,
-        /// Such as editing application configurations files or even source code before building it.
+        /// Provides a way to set the build configuration so that the application can be ran in a scenario
+        /// such as editing application configurations files or even source code before building it.
         /// </summary>
-        /// <param name="configureBuildSandboxFunc"></param>
+        /// <param name="configureBuildFunc"></param>
         /// <exception cref="InvalidOperationException"></exception>
-        public void OnConfigureBuild(Func<Task> configureBuildSandboxFunc)
+        public void OnConfigureBuild(Func<Task> configureBuildFunc)
         {
-            if (_configureBuildSandboxFunc != null)
+            if (_configureBuildFunc != null)
             {
                 throw new InvalidOperationException("ConfigureBuildFunc already set.");
             }
-            _configureBuildSandboxFunc = configureBuildSandboxFunc;
+            _configureBuildFunc = configureBuildFunc;
         }
 
         /// <summary>
@@ -69,6 +69,10 @@ namespace SandboxTest.Executable
         /// <param name="resetFunc"></param>
         public void OnConfigureReset(Func<Process, Task> resetFunc)
         {
+            if (_resetFunc != null)
+            {
+                throw new InvalidOperationException("ResetFunc already set.");
+            }
             _resetFunc = resetFunc;
         }
 
@@ -78,14 +82,14 @@ namespace SandboxTest.Executable
         /// <returns></returns>
         public virtual async Task BuildAsync()
         {
-            if (_executableBuildPath == null)
+            if (_executableBuildCommand == null)
             {
                 return;
             }
             _isDoneBuildingTaskCompletionSource = new TaskCompletionSource<bool>();
             var buildProcessStartupInfo = new ProcessStartInfo
             {
-                FileName = _executableBuildPath,
+                FileName = _executableBuildCommand,
             };
             buildProcessStartupInfo.RedirectStandardOutput = true;
             buildProcessStartupInfo.RedirectStandardInput = true;
@@ -133,28 +137,28 @@ namespace SandboxTest.Executable
         /// <exception cref="InvalidOperationException"></exception>
         public void OnConfigureRun(Func<Task>? configureRunFunc)
         {
-            if (_configureRunSandboxFunc != null)
+            if (_configureRunFunc != null)
             {
                 throw new InvalidOperationException("Configure run function already set.");
             }
-            _configureRunSandboxFunc = configureRunFunc;
+            _configureRunFunc = configureRunFunc;
         }
 
         ///<inheritdoc/>
         public async virtual Task ConfigureBuildAsync()
         {
-            if (_configureRunSandboxFunc != null)
+            if (_configureRunFunc != null)
             {
-                await _configureRunSandboxFunc();
+                await _configureRunFunc();
             }
         }
 
         ///<inheritdoc/>
         public async virtual Task ConfigureRunAsync()
         {
-            if (_configureRunSandboxFunc != null)
+            if (_configureRunFunc != null)
             {
-                await _configureRunSandboxFunc();
+                await _configureRunFunc();
             }
         }
 
@@ -177,7 +181,7 @@ namespace SandboxTest.Executable
             _isRunningTaskCompletionSource = new TaskCompletionSource<bool>();
             var executableProcessStartupInfo = new ProcessStartInfo
             {
-                FileName = _executableBuildPath,
+                FileName = _executableBuildCommand,
             };
             executableProcessStartupInfo.RedirectStandardOutput = true;
             executableProcessStartupInfo.RedirectStandardInput = true;
@@ -211,7 +215,7 @@ namespace SandboxTest.Executable
 
         private void _executableProcess_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
-            if (_isRunningFunc(e.Data))
+            if (_isRunningFunc!(e.Data))
             {
                 _isRunningTaskCompletionSource!.SetResult(true);
             }

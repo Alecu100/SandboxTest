@@ -56,7 +56,7 @@
         /// <summary>
         /// Returns the 
         /// </summary>
-        public virtual IMessageChannel MessageSink
+        public virtual IMessageChannel MessageChannel
         {
             get
             {

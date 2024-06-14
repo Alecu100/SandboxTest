@@ -8,26 +8,7 @@
         string Id { get; }
 
         /// <summary>
-        /// Gets the communication sink used to send message from and to the application instance.
-        /// </summary>
-        IMessageChannel MessageSink { get; }
-
-        /// <summary>
-        /// Starts the current application instance.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        Task StartAsync();
-
-        /// <summary>
-        /// Stops the current application instance.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        Task StopAsync();
-
-        /// <summary>
-        /// Resets the instance of the application so that it can be reused for another test scenario, clearing all the registered steps and calling any reset functionality configured for the runner.
+        /// Resets the instance of the application so that it can be reused for another test scenario, clearing all the registered steps.
         /// </summary>
         /// <returns></returns>
         Task ResetAsync();

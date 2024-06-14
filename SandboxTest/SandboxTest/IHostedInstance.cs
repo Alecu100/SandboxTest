@@ -1,5 +1,9 @@
 ﻿namespace SandboxTest
 {
+    /// <summary>
+    /// Represents an instance that is hosted and runs separately from the scenario and scenario suite,
+    /// receiving messages from message channel used for various commands.
+    /// </summary>
     public interface IHostedInstance : IInstance
     {
         /// <summary>

@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SandboxTest.AspNetCore\SandboxTest.AspNetCore.csproj" />
-    <ProjectReference Include="..\SandboxTest.Engine.ApplicationContainer\SandboxTest.Engine.ApplicationContainer.csproj" />
+    <ProjectReference Include="..\SandboxTest.Engine.ApplicationContainer\SandboxTest.Application.csproj" />
     <ProjectReference Include="..\SandboxTest.Hosting.ServiceInterceptor\SandboxTest.Hosting.ServiceInterceptor.csproj" />
     <ProjectReference Include="..\SandboxTest.Net.Http\SandboxTest.Net.Http.csproj" />
     <ProjectReference Include="..\SandboxTest.Sample.Application1\SandboxTest.Sample.Application1.csproj" />

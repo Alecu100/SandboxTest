@@ -3,7 +3,7 @@
 namespace SandboxTest
 {
     /// <summary>
-    /// Represents a
+    /// Represents the context in which a hosted instances runs enabling it to start another process.
     /// </summary>
     public interface IHostedInstanceContext
     {

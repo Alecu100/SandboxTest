@@ -2,7 +2,7 @@
 using System.IO.Pipes;
 using System.Text;
 
-namespace SandboxTest
+namespace SandboxTest.Application
 {
     /// <summary>
     /// Represents the default message channel using the operating system pipes to send messages from and to application instances.
@@ -120,7 +120,7 @@ namespace SandboxTest
             {
                 throw new InvalidOperationException("Pipe application message sink not started");
             }
- 
+
             await pipeStream.WriteAsync(Encoding.UTF8.GetBytes(message));
             await pipeStream.WriteAsync(MessageSeparatorBytes);
             await pipeStream.FlushAsync();

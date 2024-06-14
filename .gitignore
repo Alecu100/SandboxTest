@@ -69,3 +69,5 @@ SandboxTest/SandboxTest.WebServer/obj/
 SandboxTest/SandboxTest.WebServer/bin/
 SandboxTest/SandboxTest.Sample.Application4.Server/bin/
 SandboxTest/SandboxTest.Dummy/bin/
+SandboxTest/SandboxTest.Application/obj/
+SandboxTest/SandboxTest.Application/bin/

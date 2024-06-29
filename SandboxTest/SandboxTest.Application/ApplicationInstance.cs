@@ -1,5 +1,8 @@
 ﻿namespace SandboxTest
 {
+    /// <summary>
+    /// Represents a normal application instances hosted in the same process as the actual scenario suite and scenario.
+    /// </summary>
     public class ApplicationInstance : IInstance
     {
         protected readonly string _id;
@@ -7,7 +10,6 @@
         protected List<IController> _controllers;
         protected List<ScenarioStep> _steps;
         protected int _currentStepIndex;
-        protected IMessageChannel? _messageSink;
         protected bool _isRunning;
 
         /// <summary>
@@ -52,21 +54,6 @@
         /// Returns the current step index used that will be assigned to the next step.
         /// </summary>
         public virtual int CurrentStepIndex { get => _currentStepIndex; }
-
-        /// <summary>
-        /// Returns the 
-        /// </summary>
-        public virtual IMessageChannel MessageChannel
-        {
-            get
-            {
-                if (_messageSink == null)
-                {
-                    _messageSink = new ApplicationMessageChannel();
-                }
-                return _messageSink;
-            }
-        }
 
         /// <summary>
         /// Assigns a specific runner to the application instance.
@@ -123,67 +110,15 @@
         }
 
         /// <summary>
-        /// Starts the current application instance, running all the required steps in order to run it.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public virtual async Task StartAsync()
-        {
-            if (_runner == null)
-            {
-                throw new InvalidOperationException("Application instance has no assigned runner.");
-            }
-
-            await _runner.ConfigureBuildAsync();
-            foreach (var controller in _controllers)
-            {
-                await controller.ConfigureBuildAsync(this);
-            }
-            await _runner.BuildAsync();
-            foreach (var controller in _controllers)
-            {
-                await controller.BuildAsync(this);
-            }
-            await _runner.ConfigureRunAsync();
-            await _runner.RunAsync();
-            _isRunning = true;
-        }
-
-        /// <summary>
-        /// Stops the current application instance.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public virtual async Task StopAsync()
-        {
-            if (_runner == null)
-            {
-                throw new InvalidOperationException("Application instance has no assigned runner.");
-            }
-            await _runner.StopAsync();
-        }
-
-        /// <summary>
         /// Resets the current application instance, removing all the configured steps for it.
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual async Task ResetAsync()
+        public virtual Task ResetAsync()
         {
-            if (_runner == null)
-            {
-                throw new InvalidOperationException("Application instance has no assigned runner.");
-            }
-            if (_isRunning)
-            {
-                await _runner.ResetAsync();
-                foreach (var controller in _controllers)
-                {
-                    await controller.ResetAsync(this);
-                }
-            }
             _currentStepIndex = 0;
             _steps.Clear();
+            return Task.CompletedTask;
         }
     }
 }

@@ -16,10 +16,10 @@ namespace SandboxTest.Engine.ChildTestEngine
         /// <param name="scenarioContainerFullyQualifiedName"></param>
         /// <param name="applicationInstanceId"></param>
         /// <returns></returns>
-        Task<OperationResult> RunApplicationInstanceAsync(string sourceAssemblyNameFulPath, string scenarioSuiteTypeFullName, string applicationInstanceId);
+        Task<OperationResult> LoadInstanceAsync(string sourceAssemblyNameFulPath, string scenarioSuiteTypeFullName, string applicationInstanceId);
 
         /// <summary>
-        /// Loads a specific scenario adding the configured steps to the current application instance
+        /// Loads a specific scenario adding the configured steps to the current application instance.
         /// </summary>
         /// <param name="scenarioMethodName"></param>
         /// <returns></returns>
@@ -37,12 +37,13 @@ namespace SandboxTest.Engine.ChildTestEngine
         /// Resets the current application instance preparing it to run another scenario.
         /// </summary>
         /// <returns></returns>
-        Task<OperationResult> ResetApplicationInstanceAsync();
+        Task<OperationResult> ResetInstanceAsync();
 
         /// <summary>
-        /// Closes the current application instance.
+        /// Stops the runner.
         /// </summary>
         /// <returns></returns>
-        Task<OperationResult> CloseApplicationInstanceAsync();
+        Task<OperationResult> StopInstanceAsync();
+        Task<OperationResult> RunInstanceAsync();
     }
 }

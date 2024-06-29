@@ -5,7 +5,7 @@
     /// This is used mostly to send commands to application instances to load a scenario, run a step or reset for a given scenario suite. 
     /// The default behavior must be blocking, so if no message is available it should block and wait until a message which contains a command is received.
     /// </summary>
-    public interface IMessageChannel
+    public interface IHostedInstanceMessageChannel
     {
         /// <summary>
         /// Starts the message channel before sending messages

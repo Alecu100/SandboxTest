@@ -1,13 +1,13 @@
 ﻿namespace SandboxTest.Engine.Operations
 {
-    public class ReadyOperation : Operation
+    public class RunInstanceOperation : Operation
     {
         /// <summary>
-        /// Create a new instance of <see cref="ResetApplicationInstanceOperation"/>
+        /// Create a new instance of <see cref="ResetInstanceOperation"/>
         /// </summary>
-        public ReadyOperation(string applicationInstanceId)
+        public RunInstanceOperation(string applicationInstanceId)
         {
-            TypeName = nameof(ReadyOperation);
+            TypeName = nameof(RunInstanceOperation);
             InstanceId = applicationInstanceId;
         }
 

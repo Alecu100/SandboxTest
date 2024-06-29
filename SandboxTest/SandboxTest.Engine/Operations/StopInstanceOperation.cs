@@ -1,13 +1,13 @@
 ﻿namespace SandboxTest.Engine.Operations
 {
-    public class StopApplicationInstanceOperation : Operation
+    public class StopInstanceOperation : Operation
     {
         /// <summary>
-        /// Create a new instance of <see cref="StopApplicationInstanceOperation"/>
+        /// Create a new instance of <see cref="StopInstanceOperation"/>
         /// </summary>
-        public StopApplicationInstanceOperation(string applicationInstanceId)
+        public StopInstanceOperation(string applicationInstanceId)
         {
-            TypeName = nameof(StopApplicationInstanceOperation);
+            TypeName = nameof(StopInstanceOperation);
             InstanceId = applicationInstanceId;
         }
 

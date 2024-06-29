@@ -5,16 +5,16 @@
     /// </summary>
     public class ScenarioSuiteStepsStage
     {
-        private Dictionary<ScenarioSuiteTestEngineApplicationHandler, List<ScenarioStep>> _instanceHandlersSteps;
+        private Dictionary<ScenarioSuiteTestEngineInstanceHandler, List<ScenarioStep>> _instanceHandlersSteps;
         private List<ScenarioStep> _allInstanceSteps;
 
         public ScenarioSuiteStepsStage()
         {
-            _instanceHandlersSteps = new Dictionary<ScenarioSuiteTestEngineApplicationHandler, List<ScenarioStep>>();
+            _instanceHandlersSteps = new Dictionary<ScenarioSuiteTestEngineInstanceHandler, List<ScenarioStep>>();
             _allInstanceSteps = new List<ScenarioStep>();
         }
 
-        public void AddApplicationInstanceStep(ScenarioSuiteTestEngineApplicationHandler instanceHandler, ScenarioStep scenarioStep)
+        public void AddApplicationInstanceStep(ScenarioSuiteTestEngineInstanceHandler instanceHandler, ScenarioStep scenarioStep)
         {
             if (!_instanceHandlersSteps.ContainsKey(instanceHandler))
             {
@@ -24,7 +24,7 @@
             _allInstanceSteps.Add(scenarioStep);
         }
 
-        public IReadOnlyDictionary<ScenarioSuiteTestEngineApplicationHandler, List<ScenarioStep>> InstanceHandlersSteps { get => _instanceHandlersSteps; }
+        public IReadOnlyDictionary<ScenarioSuiteTestEngineInstanceHandler, List<ScenarioStep>> InstanceHandlersSteps { get => _instanceHandlersSteps; }
 
         public IReadOnlyList<ScenarioStep> AllInstanceSteps {  get => _allInstanceSteps; }
 

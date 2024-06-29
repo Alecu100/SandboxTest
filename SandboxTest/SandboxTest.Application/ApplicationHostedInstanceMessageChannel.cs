@@ -5,11 +5,11 @@ using System.Text;
 namespace SandboxTest.Application
 {
     /// <summary>
-    /// Represents the default message channel using the operating system pipes to send messages from and to application instances.
-    /// This is used to send commands to application instances to load a scenario, run a step or reset. The default behavior must be blocking, so if no message is available it should block execution
+    /// Represents the default message channel using the operating system pipes to send messages from and to hosted application instances.
+    /// This is used to send commands to hosted application instances to load a scenario, run a step or reset. The default behavior must be blocking, so if no message is available it should block execution
     /// until a message is received.
     /// </summary>
-    public class ApplicationMessageChannel : IMessageChannel
+    public class ApplicationHostedInstanceMessageChannel : IHostedInstanceMessageChannel
     {
         /// <summary>
         /// Gets the name of a pipe used to communicate with child application hosts to send commands like executing a step.
@@ -32,7 +32,7 @@ namespace SandboxTest.Application
         /// </summary>
         private static byte[] MessageSeparatorBytes;
 
-        static ApplicationMessageChannel()
+        static ApplicationHostedInstanceMessageChannel()
         {
             MessageSeparatorBytes = Guid.Parse(MessageSeparator).ToByteArray();
         }

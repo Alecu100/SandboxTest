@@ -7,22 +7,25 @@
     public interface IHostedInstance : IInstance
     {
         /// <summary>
-        /// Gets the communication channel used to send messages from and to the application instance.
+        /// Gets and sets the communication channel used to send messages from and to the application instance.
         /// </summary>
-        IMessageChannel MessageChannel { get; }
+        IHostedInstanceMessageChannel? MessageChannel { get; set; }
 
         /// <summary>
         /// Starts the host for the instance to run it inside the host.
         /// </summary>
+        /// <param name="instanceContext"></param>
+        /// <param name="instanceData"></param>
+        /// <param name="token"></param>
         /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        Task StartAsync(IHostedInstanceContext instanceContext, HostedInstanceData instanceData);
+        Task StartAsync(IHostedInstanceContext instanceContext, HostedInstanceData instanceData, CancellationToken token);
 
         /// <summary>
         /// Stops the current host for the application instance.
         /// </summary>
+        /// <param name="instanceContext"></param>
+        /// <param name="instanceData"></param>
         /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
         Task StopAsync(IHostedInstanceContext instanceContext, HostedInstanceData instanceData);
     }
 }

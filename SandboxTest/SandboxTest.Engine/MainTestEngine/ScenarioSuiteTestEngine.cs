@@ -6,7 +6,7 @@ namespace SandboxTest.Engine.MainTestEngine
 {
     public class ScenarioSuiteTestEngine : IScenarioSuiteTestEngine
     {
-        protected List<ScenarioSuiteTestEngineApplicationHandler> _scenarioSuiteApplicationInstances;
+        protected List<ScenarioSuiteTestEngineInstanceHandler> _scenarioSuiteApplicationInstances;
         protected IMainTestEngineRunContext? _mainTestEngineRunContext;
         protected Guid _runId;
         protected List<string> _scenarioFailedErrors;
@@ -17,7 +17,7 @@ namespace SandboxTest.Engine.MainTestEngine
 
         public ScenarioSuiteTestEngine()
         {
-            _scenarioSuiteApplicationInstances = new List<ScenarioSuiteTestEngineApplicationHandler>();
+            _scenarioSuiteApplicationInstances = new List<ScenarioSuiteTestEngineInstanceHandler>();
             _stepsExecutionStages = new Queue<ScenarioSuiteStepsStage>();
             _allStepsIdsToExecute = new HashSet<ScenarioStepId>();
             _scenarioFailedErrors = new List<string>();
@@ -301,7 +301,7 @@ namespace SandboxTest.Engine.MainTestEngine
             }
         }
 
-        private async Task<List<RunScenarioStepOperationResult?>> RunStepsForApplicationInstanceAsync(KeyValuePair<ScenarioSuiteTestEngineApplicationHandler, List<ScenarioStep>> applicationInstanceSteps, ScenarioStepData scenarioStepContext, CancellationToken token)
+        private async Task<List<RunScenarioStepOperationResult?>> RunStepsForApplicationInstanceAsync(KeyValuePair<ScenarioSuiteTestEngineInstanceHandler, List<ScenarioStep>> applicationInstanceSteps, ScenarioStepData scenarioStepContext, CancellationToken token)
         {
             var allStepsResults = new List<RunScenarioStepOperationResult?>();
             foreach (var instanceStep in applicationInstanceSteps.Value)
@@ -350,10 +350,10 @@ namespace SandboxTest.Engine.MainTestEngine
                 return;
             }
 
-            var scenarioSuiteTestEngineApplicationInstance = new ScenarioSuiteTestEngineApplicationHandler(_runId, applicationInstance, _scenarioSuiteType, _mainTestEngineRunContext);
+            var scenarioSuiteTestEngineApplicationInstance = new ScenarioSuiteTestEngineInstanceHandler(_runId, applicationInstance, _scenarioSuiteType, _mainTestEngineRunContext);
             try
             {
-                await scenarioSuiteTestEngineApplicationInstance.StartInstanceAsync();
+                await scenarioSuiteTestEngineApplicationInstance.LoadInstanceAsync(token);
             }
             catch(Exception ex)
             {
@@ -361,8 +361,8 @@ namespace SandboxTest.Engine.MainTestEngine
                 return;
             }
             await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Waiting for ready by application instance {applicationInstance.Id}");
-            var readyResult = await scenarioSuiteTestEngineApplicationInstance.ReadyInstanceAsync(token);
-            if (readyResult == null || readyResult.IsSuccesful == false)
+            var runInstanceResult = await scenarioSuiteTestEngineApplicationInstance.RunInstanceAsync(token);
+            if (runInstanceResult == null || runInstanceResult.IsSuccesful == false)
             {
                 _scenarioFailedErrors.Add($"Failed to start application instanfce with id {applicationInstance.Id}");
             }

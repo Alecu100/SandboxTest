@@ -19,7 +19,7 @@ namespace SandboxTest.TestAdapter
 
         public bool IsBeingDebugged { get => _runContext?.IsBeingDebugged ?? false; }
 
-        public Task<Process> LaunchProcessAsync(string filePath, bool debug, string? workingDirectory, string? arguments, IDictionary<string, string?>? environmentVariables)
+        public Task<Process> LaunchProcessAsync(string filePath, bool debug, string? workingDirectory, string? arguments, IDictionary<string, string?>? environmentVariables, CancellationToken token)
         {
             if (_frameworkHandle == null)
             {

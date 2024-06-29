@@ -8,5 +8,11 @@
         /// <param name="hostedInstanceData"></param>
         /// <returns></returns>
         Task InitalizeAsync(HostedInstanceData hostedInstanceData);
+
+        /// <summary>
+        /// Waits for the instance to be stopped.
+        /// </summary>
+        /// <returns></returns>
+        Task<int> WaitToFinishAsync();
     }
 }

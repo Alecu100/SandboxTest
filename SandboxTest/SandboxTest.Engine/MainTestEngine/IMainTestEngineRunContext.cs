@@ -2,7 +2,7 @@
 
 namespace SandboxTest.Engine.MainTestEngine
 {
-    public interface IMainTestEngineRunContext
+    public interface IMainTestEngineRunContext : IHostedInstanceContext
     {
         /// <summary>
         /// Called when a scenarion has finished running.
@@ -25,17 +25,5 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <param name="message"></param>
         /// <returns></returns>
         Task LogMessage(LogLevel logLevel, string message);
-
-        /// <summary>
-        /// Whether the scenario is being debugged or not.
-        /// </summary>
-        bool IsBeingDebugged { get; }
-
-        /// <summary>
-        /// Launches a new process
-        /// </summary>
-        /// <param name="debug"></param>
-        /// <returns></returns>
-        Task<Process> LaunchProcessAsync(string filePath, bool debug, string? workingDirectory = null, string? arguments = null, IDictionary<string, string?>? environmentVariables = null);
     }
 }

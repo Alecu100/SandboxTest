@@ -12,6 +12,6 @@
         /// <param name="includedStepTypes"></param>
         /// <param name="targetMethod"></param>
         /// <returns></returns>
-        Task ExecutedMethods(IEnumerable<object> instances, IEnumerable<AttachedMethodType> includedStepTypes, Delegate targetMethod, List<object> arguments);
+        Task ExecutedMethods(IEnumerable<object> instances, IEnumerable<AttachedMethodType> includedStepTypes, Delegate targetMethod, IEnumerable<object> arguments);
     }
 }

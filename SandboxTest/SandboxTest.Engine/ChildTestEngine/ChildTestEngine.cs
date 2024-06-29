@@ -9,8 +9,16 @@ namespace SandboxTest.Engine.ChildTestEngine
         private ScenariosAssemblyLoadContext? _scenariosAssemblyLoadContext;
         private Assembly? _scenarioSuiteAssembly;
         private IInstance? _runningInstance;
+        private IHostedInstance? _runningHostedInstance;
         private object? _scenarioSuiteInstance;
+        private IAttachedMethodsExecutor _attachedMethodsExecutor;
 
+        public ChildTestEngine()
+        {
+            _attachedMethodsExecutor = new AttachedMethodsExecutor();
+        }
+
+        /// <inheritdoc/>
         public IInstance? RunningInstance { get => _runningInstance; }
 
         public async virtual Task<OperationResult> LoadScenarioAsync(string scenarioMethodName)
@@ -49,7 +57,7 @@ namespace SandboxTest.Engine.ChildTestEngine
             }
         }
 
-        public async virtual Task<OperationResult> ResetApplicationInstanceAsync()
+        public async virtual Task<OperationResult> ResetInstanceAsync()
         {
             if (_runningInstance == null)
             {
@@ -58,7 +66,10 @@ namespace SandboxTest.Engine.ChildTestEngine
 
             try
             {
-                await _runningInstance.ResetAsync();
+                var allInstancesToRun = new List<object>();
+                allInstancesToRun.AddRange(_runningInstance.Controllers);
+                allInstancesToRun.Add(_runningInstance.Runner!);
+                await _attachedMethodsExecutor.ExecutedMethods(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _runningInstance.ResetAsync, new object[] { _runningInstance.Runner });
 
                 return new OperationResult(true);
             }
@@ -68,7 +79,7 @@ namespace SandboxTest.Engine.ChildTestEngine
             }
         }
 
-        public async virtual Task<OperationResult> RunApplicationInstanceAsync(string sourceAssemblyNameFulPath, string scenarioSuiteTypeFullName, string applicationInstanceId)
+        public virtual Task<OperationResult> LoadInstanceAsync(string sourceAssemblyNameFulPath, string scenarioSuiteTypeFullName, string applicationInstanceId)
         {
             try
             {
@@ -104,23 +115,43 @@ namespace SandboxTest.Engine.ChildTestEngine
                         if (applicationInstance != null && applicationInstance.Id == applicationInstanceId)
                         {
                             _runningInstance = applicationInstance;
+                            if (_runningInstance is IHostedInstance)
+                            {
+                                _runningHostedInstance = (IHostedInstance)_runningInstance;
+                            }
                             break;
                         }
                     }
                 }
 
-                if (_runningInstance == null)
-                {
-                    throw new InvalidOperationException($"Could not find an application instance with id {applicationInstanceId} in scenario suite type {_scenarioSuiteType.FullName}");
-                }
-                if (_runningInstance.MessageChannel == null)
-                {
-                    throw new InvalidOperationException($"Application instance with id {applicationInstanceId} has no message sink assigned");
-                }
-                await _runningInstance.StartAsync();
-                return new OperationResult(true);
+                return Task.FromResult(new OperationResult(true));
             }
             catch (Exception ex) 
+            {
+                Console.WriteLine(ex);
+                return Task.FromResult(new OperationResult(false, ex.ToString()));
+            }
+        }
+
+        public async virtual Task<OperationResult> RunInstanceAsync()
+        {
+            try
+            {
+                if (_runningInstance == null)
+                {
+                    throw new InvalidOperationException($"No running instance assigned");
+                }
+                if (_runningInstance.Runner == null)
+                {
+                    throw new InvalidOperationException($"Instance has no runner assigned");
+                }
+                var allInstancesToRun = new List<object>();
+                allInstancesToRun.AddRange(_runningInstance.Controllers);
+                allInstancesToRun.Add(_runningInstance.Runner);
+                await _attachedMethodsExecutor.ExecutedMethods(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _runningInstance.Runner.RunAsync, new object[] { _runningInstance.Runner });
+                return new OperationResult(true);
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex);
                 return new OperationResult(false, ex.ToString());
@@ -149,9 +180,21 @@ namespace SandboxTest.Engine.ChildTestEngine
             }
         }
 
-        public Task<OperationResult> CloseApplicationInstanceAsync()
+        public async Task<OperationResult> StopInstanceAsync()
         {
-            throw new NotImplementedException();
+            if (_scenarioSuiteType == null || _runningInstance == null)
+            {
+                throw new InvalidOperationException($"No instance assigned and running");
+            }
+            if (_runningInstance.Runner == null)
+            {
+                throw new InvalidOperationException($"Could application instance with id {_runningInstance.Id} in scenario suite type {_scenarioSuiteType.FullName} does not have an assigned runner");
+            }
+            var allInstancesToRun = new List<object>();
+            allInstancesToRun.AddRange(_runningInstance.Controllers);
+            allInstancesToRun.Add(_runningInstance.Runner);
+            await _attachedMethodsExecutor.ExecutedMethods(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _runningInstance.Runner.StopAsync, new object[] { _runningInstance.Runner });
+            return new OperationResult(true);
         }
     }
 }

@@ -7,7 +7,7 @@ namespace SandboxTest.Engine.ChildTestEngine
     public class AttachedMethodsExecutor : IAttachedMethodsExecutor
     {
         /// <inheritdoc/>
-        public async Task ExecutedMethods(IEnumerable<object> instances, IEnumerable<AttachedMethodType> includedStepTypes, Delegate targetMethod, List<object> arguments)
+        public async Task ExecutedMethods(IEnumerable<object> instances, IEnumerable<AttachedMethodType> includedStepTypes, Delegate targetMethod, IEnumerable<object> arguments)
         {
             var possibleMethodsToRun = new List<(AttachedMethodAttribute, Delegate)>();
 
@@ -29,7 +29,7 @@ namespace SandboxTest.Engine.ChildTestEngine
             await ExecuteMethodIncludingAttachedMethods(possibleMethodsToRun, targetMethod, arguments);
         }
 
-        private async Task ExecuteMethodIncludingAttachedMethods(List<(AttachedMethodAttribute, Delegate)> possibleMethodsToRun, Delegate targetMethod, List<object> arguments)
+        private async Task ExecuteMethodIncludingAttachedMethods(List<(AttachedMethodAttribute, Delegate)> possibleMethodsToRun, Delegate targetMethod, IEnumerable<object> arguments)
         {
             var methodsToRunBeforeTargetMethod = GetMethodsToRunBeforeTargetMethod(possibleMethodsToRun, targetMethod);
 
@@ -38,7 +38,7 @@ namespace SandboxTest.Engine.ChildTestEngine
                 await ExecuteMethodIncludingAttachedMethods(possibleMethodsToRun, methodToRunBeforeTargetMethod.Item2, arguments);
             }
 
-            object? result = null;
+            object? result;
             if (!targetMethod.Method.GetParameters().Any())
             {
                 result = targetMethod.DynamicInvoke();

@@ -1,16 +1,16 @@
 ﻿namespace SandboxTest.Engine.Operations
 {
     /// <summary>
-    /// An operation that represents reseting an application instance after a scenario is ran.
+    /// An operation that represents reseting an instance after a scenario is ran.
     /// </summary>
-    public class ResetApplicationInstanceOperation : Operation
+    public class ResetInstanceOperation : Operation
     {
         /// <summary>
-        /// Create a new instance of <see cref="ResetApplicationInstanceOperation"/>
+        /// Create a new instance of <see cref="ResetInstanceOperation"/>
         /// </summary>
-        public ResetApplicationInstanceOperation(string applicationInstanceId) 
+        public ResetInstanceOperation(string applicationInstanceId) 
         {
-            TypeName = nameof(ResetApplicationInstanceOperation);
+            TypeName = nameof(ResetInstanceOperation);
             InstanceId = applicationInstanceId;
         }
 

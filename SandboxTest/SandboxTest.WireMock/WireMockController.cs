@@ -32,7 +32,8 @@ namespace SandboxTest.WireMock
         /// <param name="applicationInstance"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual Task BuildAsync(IInstance applicationInstance)
+        [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWireMockRunner.RunAsync), 100)]
+        public virtual Task RunAsync(IInstance applicationInstance)
         {
             var wireMockRunner = applicationInstance.Runner as IWireMockRunner;
             if (wireMockRunner == null)
@@ -44,26 +45,6 @@ namespace SandboxTest.WireMock
                 throw new InvalidOperationException($"WireMockRunner is not built");
             }
             _wireMockServer = wireMockRunner.WireMockServer;
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Not used for WireMock application controller
-        /// </summary>
-        /// <param name="applicationInstance"></param>
-        /// <returns></returns>
-        public virtual Task ConfigureBuildAsync(IInstance applicationInstance)
-        {
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Not used for WireMock application controller
-        /// </summary>
-        /// <param name="applicationInstance"></param>
-        /// <returns></returns>
-        public virtual Task ResetAsync(IInstance applicationInstance)
-        {
             return Task.CompletedTask;
         }
     }

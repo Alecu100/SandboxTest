@@ -41,17 +41,13 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         public string? Name { get => null; }
 
-        public Task BuildAsync(IInstance applicationInstance)
-        {
-            return Task.CompletedTask;
-        }
-
         /// <summary>
         /// Gets the IHostBuilder from the application instance and replaces all the service descriptio entries with new entries that wrap the instances or functions that return instances around proxy interceptors.
         /// </summary>
         /// <param name="applicationInstance"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
+        [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IHostRunner.ConfigureBuildAsync), 300)]
         public Task ConfigureBuildAsync(IInstance applicationInstance)
         {
             var hostApplicationRunner = applicationInstance.Runner as IHostRunner;
@@ -186,7 +182,8 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <param name="applicationInstance"></param>
         /// <returns></returns>
-        public Task ResetAsync(IInstance applicationInstance)
+        [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IHostRunner.ResetAsync), 300)]
+        public Task ResetAsync()
         {
             _methodInterceptors.Clear();
             _proxyWrapperRecordedCalls.Clear();

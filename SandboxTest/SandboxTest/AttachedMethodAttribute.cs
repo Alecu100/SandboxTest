@@ -8,19 +8,19 @@
         /// <summary>
         /// Creates a new instance of the <see cref="AttachedMethodAttribute"/>
         /// </summary>
-        /// <param name="injectedStepType"></param>
+        /// <param name="methodType"></param>
         /// <param name="order"></param>
-        public AttachedMethodAttribute(AttachedMethodType injectedStepType, string targetMethodName, int order) 
+        public AttachedMethodAttribute(AttachedMethodType methodType, string targetMethodName, int order) 
         {
-            InjectedStepType = injectedStepType;
+            MethodType = methodType;
             TargetMethodName = targetMethodName;
             Order = order;
         }
 
         /// <summary>
-        /// Gets the step execution type, before or after the main runner methods stop or run.
+        /// Gets the attached method type.
         /// </summary>
-        public AttachedMethodType InjectedStepType { get; set; }
+        public AttachedMethodType MethodType { get; set; }
 
         /// <summary>
         /// Represents the name of the target method to execute the step along.

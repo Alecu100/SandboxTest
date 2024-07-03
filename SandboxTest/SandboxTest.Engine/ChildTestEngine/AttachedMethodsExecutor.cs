@@ -5,6 +5,18 @@ namespace SandboxTest.Engine.ChildTestEngine
     /// <inheritdoc/>
     public class AttachedMethodsExecutor : IAttachedMethodsExecutor
     {
+        private static readonly IReadOnlyDictionary<AttachedMethodType, Type> AttachedMethodAllowedTargetTypes = new Dictionary<AttachedMethodType, Type>
+        {
+            {
+                AttachedMethodType.RunnerToRunner,
+                typeof(IRunner)
+            },
+                        {
+                AttachedMethodType.ControllerToRunner,
+                typeof(IRunner)
+            }
+        };
+
         /// <inheritdoc/>
         public async Task ExecutedMethods(IEnumerable<object> instances, IEnumerable<AttachedMethodType> includedStepTypes, Delegate targetMethod, IEnumerable<object> arguments)
         {
@@ -18,7 +30,7 @@ namespace SandboxTest.Engine.ChildTestEngine
                 foreach (var method in instanceMethods) 
                 {
                     var injectedMethodAttribute = GetAttachedMethodAttribute(instanceType, method);
-                    if (injectedMethodAttribute != null && includedStepTypes.Contains(injectedMethodAttribute.InjectedStepType))
+                    if (injectedMethodAttribute != null && includedStepTypes.Contains(injectedMethodAttribute.MethodType))
                     {
                         possibleMethodsToRun.Add((injectedMethodAttribute, new MethodToExecute { Method = method, Target = instance }));
                     }
@@ -64,7 +76,9 @@ namespace SandboxTest.Engine.ChildTestEngine
         private List<(AttachedMethodAttribute, MethodToExecute)> GetMethodsToRunBeforeTargetMethod(List<(AttachedMethodAttribute, MethodToExecute)> possibleMethodsToRun, MethodToExecute targetMethod)
         {
             return possibleMethodsToRun
-                .Where(methodWithAttribute => methodWithAttribute.Item1.TargetMethodName.Equals(targetMethod.Method.Name, StringComparison.InvariantCultureIgnoreCase) && methodWithAttribute.Item2.Method != targetMethod.Method && methodWithAttribute.Item1.Order < 0)
+                .Where(methodWithAttribute => methodWithAttribute.Item1.TargetMethodName.Equals(targetMethod.Method.Name, StringComparison.InvariantCultureIgnoreCase) 
+                    && methodWithAttribute.Item2.Method != targetMethod.Method && methodWithAttribute.Item1.Order < 0
+                    && targetMethod.Target.GetType().IsAssignableTo(AttachedMethodAllowedTargetTypes[methodWithAttribute.Item1.MethodType]))
                 .OrderBy(methodWithAttribute => methodWithAttribute.Item1.Order)
                 .ToList();
         }
@@ -72,7 +86,9 @@ namespace SandboxTest.Engine.ChildTestEngine
         private List<(AttachedMethodAttribute, MethodToExecute)> GetMethodsToRunAfterTargetMethod(List<(AttachedMethodAttribute, MethodToExecute)> possibleMethodsToRun, MethodToExecute targetMethod)
         {
             return possibleMethodsToRun
-                .Where(methodWithAttribute => methodWithAttribute.Item1.TargetMethodName.Equals(targetMethod.Method.Name, StringComparison.InvariantCultureIgnoreCase) && methodWithAttribute.Item2.Method != targetMethod.Method && methodWithAttribute.Item1.Order >= 0)
+                .Where(methodWithAttribute => methodWithAttribute.Item1.TargetMethodName.Equals(targetMethod.Method.Name, StringComparison.InvariantCultureIgnoreCase) 
+                && methodWithAttribute.Item2.Method != targetMethod.Method && methodWithAttribute.Item1.Order >= 0
+                && targetMethod.Target.GetType().IsAssignableTo(AttachedMethodAllowedTargetTypes[methodWithAttribute.Item1.MethodType]))
                 .OrderBy(methodWithAttribute => methodWithAttribute.Item1.Order)
                 .ToList();
         }

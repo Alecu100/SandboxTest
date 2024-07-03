@@ -31,7 +31,7 @@ namespace SandboxTest.AspNetCore
         /// </summary>
         public string? Name { get => _name; }
 
-        [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IHostRunner.BuildAsync), 20)]
+        [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWebApplicationRunner.BuildAsync), 20)]
         public Task BuildAsync(IRunner runner)
         {
             var webApplicationRunner = runner as IWebApplicationRunner;

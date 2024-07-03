@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
-using SandboxTest.Hosting;
 
 namespace SandboxTest.AspNetCore
 {
@@ -12,8 +11,8 @@ namespace SandboxTest.AspNetCore
         protected WebApplicationBuilder? _webApplicationBuilder;
         protected WebApplication? _webApplication;
         protected Func<string[], Task<WebApplicationBuilder>> _webApplicationBuilderFunc;
-        protected Func<WebApplicationBuilder, Task>? _configureBuildSandboxFunc;
-        protected Func<WebApplication, Task>? _configureRunSandboxFunc;
+        protected Func<WebApplicationBuilder, Task>? _configureBuildFunc;
+        protected Func<WebApplication, Task>? _configureRunFunc;
         protected Func<WebApplication, Task>? _resetFunc;
         protected string[]? _arguments;
         protected Task? _runTask;
@@ -51,11 +50,11 @@ namespace SandboxTest.AspNetCore
         /// <exception cref="InvalidOperationException"></exception>
         public void OnConfigureBuild(Func<WebApplicationBuilder, Task> configureBuildSandboxFunc)
         {
-            if (_configureBuildSandboxFunc != null)
+            if (_configureBuildFunc != null)
             {
                 throw new InvalidOperationException("ConfigureBuildFunc already set.");
             }
-            _configureBuildSandboxFunc = configureBuildSandboxFunc;
+            _configureBuildFunc = configureBuildSandboxFunc;
         }
 
         /// <summary>
@@ -93,7 +92,7 @@ namespace SandboxTest.AspNetCore
         }
 
         /// <summary>
-        /// Use the configure sandbox function to allow the host to run in a sandbox.
+        /// Use the configure function to allow the host to run in a scenario.
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
@@ -104,9 +103,9 @@ namespace SandboxTest.AspNetCore
             {
                 throw new InvalidOperationException("Web application builder not found.");
             }
-            if (_configureBuildSandboxFunc != null)
+            if (_configureBuildFunc != null)
             {
-                await _configureBuildSandboxFunc(_webApplicationBuilder);
+                await _configureBuildFunc(_webApplicationBuilder);
             }
         }
 
@@ -121,9 +120,9 @@ namespace SandboxTest.AspNetCore
             {
                 throw new InvalidOperationException("Web application not built.");
             }
-            if (_configureRunSandboxFunc != null)
+            if (_configureRunFunc != null)
             {
-                await _configureRunSandboxFunc(_webApplication);
+                await _configureRunFunc(_webApplication);
             }
         }
 
@@ -135,11 +134,11 @@ namespace SandboxTest.AspNetCore
         /// <exception cref="InvalidOperationException"></exception>
         public void OnConfigureRun(Func<WebApplication, Task>? configureRunFunc)
         {
-            if (_configureRunSandboxFunc != null)
+            if (_configureRunFunc != null)
             {
                 throw new InvalidOperationException("Configure run function already set.");
             }
-            _configureRunSandboxFunc = configureRunFunc;
+            _configureRunFunc = configureRunFunc;
         }
 
         ///<inheritdoc/>

@@ -33,7 +33,7 @@ namespace SandboxTest.Sample
                 return Task.CompletedTask;
             })
             .ConfigureWebRunnerUrl("https://localhost:5566")
-            .AddHttpClientController("https://localhost:5566")
+            .AddHttpClientController()
             .AddHostController();
 
         [Scenario]

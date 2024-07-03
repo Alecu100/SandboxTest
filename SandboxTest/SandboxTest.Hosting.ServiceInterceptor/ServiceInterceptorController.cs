@@ -44,16 +44,16 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// <summary>
         /// Gets the IHostBuilder from the application instance and replaces all the service descriptio entries with new entries that wrap the instances or functions that return instances around proxy interceptors.
         /// </summary>
-        /// <param name="applicationInstance"></param>
+        /// <param name="runner"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IHostRunner.ConfigureBuildAsync), 300)]
-        public Task ConfigureBuildAsync(IInstance applicationInstance)
+        public Task ConfigureBuildAsync(IRunner runner)
         {
-            var hostApplicationRunner = applicationInstance.Runner as IHostRunner;
+            var hostApplicationRunner = runner as IHostRunner;
             if (hostApplicationRunner == null)
             {
-                throw new InvalidOperationException($"Target runner for application instance {applicationInstance.Id} must be a host application runner");
+                throw new InvalidOperationException($"Target runner must be a host application runner");
             }
             hostApplicationRunner.HostBuilder.ConfigureServices((ctx, services) =>
             {

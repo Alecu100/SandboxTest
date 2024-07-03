@@ -17,13 +17,13 @@ namespace SandboxTest.Sample
     public class SampleTestScenarioSuite5
     {
         public readonly IInstance _applicationInstance41 = ApplicationInstance.CreateEmptyInstance("Instance51")
-            .UseWebRunner(args =>
+            .UseWebApplicationRunner(args =>
             {
                 var builder = WebApplication.CreateBuilder(args);
                 builder.ConfigureWebApplicationBuilder();
                 return Task.FromResult(builder);
             })
-            .ConfigureWebRunner(builder =>
+            .ConfigureWebApplicationRunner(builder =>
             {
                 builder.Services.AddControllers().ConfigureApplicationPartManager(parts => parts.ApplicationParts.Add(new AssemblyPart(typeof(WebApplicationExtensions).Assembly)));
                 return Task.CompletedTask;
@@ -32,9 +32,10 @@ namespace SandboxTest.Sample
                 webApp.ConfigureWebApplication();
                 return Task.CompletedTask;
             })
-            .ConfigureWebRunnerUrl("https://localhost:5566")
+            .ConfigureWebApplicationRunnerUrl("https://localhost:5566")
             .AddHttpClientController()
-            .AddHostController();
+            .AddHostController()
+            .AddWebApplicationController();
 
         [Scenario]
         public void TestScenario6()
@@ -72,6 +73,11 @@ namespace SandboxTest.Sample
                 var previousWeatherForecasts = ctx["weatherforecasts"] as List<WeatherForecast>;
                 previousWeatherForecasts.Should().NotBeNull();
                 previousWeatherForecasts?.Should().NotIntersectWith(weatherForecasts);
+            });
+            var fourthStep = _applicationInstance41.AddStep().AddPreviousStep(thirdStep).InvokeController<WebApplicationController>(async (controller, ctx) =>
+            {
+                controller.WebApplication.Urls.Should().NotBeNull();
+                controller.WebApplication.Urls.Should().Contain("https://localhost:5566");
             });
         }
 

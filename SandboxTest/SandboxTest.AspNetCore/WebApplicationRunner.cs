@@ -6,7 +6,7 @@ namespace SandboxTest.AspNetCore
     /// <summary>
     /// Represents a runner capable of running Asp .Net Core web applications <see cref="WebApplication"/>.
     /// </summary>
-    public class WebRunner : IWebRunner
+    public class WebApplicationRunner : IWebApplicationRunner
     {
         protected WebApplicationBuilder? _webApplicationBuilder;
         protected WebApplication? _webApplication;
@@ -34,10 +34,10 @@ namespace SandboxTest.AspNetCore
         public string Url => _url ?? throw new InvalidOperationException("Web application runner not built");
 
         /// <summary>
-        /// Creates a new instance of <see cref="WebRunner"/> having as parameter a function that return the original web application builder.
+        /// Creates a new instance of <see cref="WebApplicationRunner"/> having as parameter a function that return the original web application builder.
         /// </summary>
         /// <param name="webApplicationBuilderFunc"></param>
-        public WebRunner(Func<string[], Task<WebApplicationBuilder>> webApplicationBuilderFunc)
+        public WebApplicationRunner(Func<string[], Task<WebApplicationBuilder>> webApplicationBuilderFunc)
         {
             _webApplicationBuilderFunc = webApplicationBuilderFunc;
         }

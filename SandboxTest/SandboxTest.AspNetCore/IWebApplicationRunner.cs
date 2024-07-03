@@ -7,7 +7,7 @@ namespace SandboxTest.AspNetCore
     /// <summary>
     /// Represents a runner that exposes a WebApplication and a WebApplicationBuilder properties to be used by various controllers.
     /// </summary>
-    public interface IWebRunner : IHostRunner, IWebServerRunner
+    public interface IWebApplicationRunner : IHostRunner, IWebServerRunner
     {
         /// <summary>
         /// Returns the web application.

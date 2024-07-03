@@ -30,24 +30,15 @@ namespace SandboxTest.Hosting
         /// </summary>
         public string? Name { get => _name; }
 
-        public Task BuildAsync(IInstance applicationInstance)
+        [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IHostRunner.BuildAsync), 10)]
+        public Task BuildAsync(IRunner runner)
         {
-            var hostApplicationRunner = applicationInstance.Runner as IHostRunner;
+            var hostApplicationRunner = runner as IHostRunner;
             if (hostApplicationRunner == null) 
             {
-                throw new InvalidOperationException("Instance has no host runner assigned");
+                throw new InvalidOperationException("Instance doesn't have a host runner assigned");
             }
             _host = hostApplicationRunner.Host;
-            return Task.CompletedTask;
-        }
-
-        public Task ConfigureBuildAsync(IInstance applicationInstance)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task ResetAsync(IInstance applicationInstance)
-        {
             return Task.CompletedTask;
         }
     }

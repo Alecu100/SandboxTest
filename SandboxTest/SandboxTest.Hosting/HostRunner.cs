@@ -5,7 +5,7 @@ namespace SandboxTest.Hosting
     /// <summary>
     /// Represents a runner capable of running generic .Net core hosts <see cref="IHost"/>.
     /// </summary>
-    public class HostRunner : IRunner, IHostRunner
+    public class HostRunner : IBuildableRunner, IHostRunner
     {
         protected IHost? _host;
         protected IHostBuilder? _hostBuilder;
@@ -49,15 +49,15 @@ namespace SandboxTest.Hosting
         /// Provides a way to set the host builder configuration so that the application can be ran in a sandbox,
         /// Such as replacing sql server database context with sqlLite in memory database context
         /// </summary>
-        /// <param name="configureBuildSandboxFunc"></param>
+        /// <param name="configureBuildFunc"></param>
         /// <exception cref="InvalidOperationException"></exception>
-        public void OnConfigureBuild(Func<IHostBuilder, Task> configureBuildSandboxFunc)
+        public void OnConfigureBuild(Func<IHostBuilder, Task> configureBuildFunc)
         {
             if (_configureBuildSandboxFunc != null)
             {
                 throw new InvalidOperationException("ConfigureBuildFunc already set.");
             }
-            _configureBuildSandboxFunc = configureBuildSandboxFunc;
+            _configureBuildSandboxFunc = configureBuildFunc;
         }
 
         /// <summary>

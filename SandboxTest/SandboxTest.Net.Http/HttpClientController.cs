@@ -35,7 +35,7 @@ namespace SandboxTest.Net.Http
         /// <param name="applicationInstance"></param>
         /// <returns></returns>
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWebServerRunner.RunAsync), 10)]
-        public virtual Task BuildAsync(IInstance applicationInstance)
+        public virtual Task BuildAsync()
         {
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = _baseAddress;
@@ -43,9 +43,9 @@ namespace SandboxTest.Net.Http
         }
 
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWebServerRunner.RunAsync), -10)]
-        public virtual Task ConfigureBuildAsync(IInstance applicationInstance)
+        public virtual Task ConfigureBuildAsync(IRunner runner)
         {
-            var webServerRunner = applicationInstance.Runner as IWebServerRunner;
+            var webServerRunner = runner as IWebServerRunner;
             if (webServerRunner == null)
             {
                 throw new InvalidOperationException("Instance has no web server runner assigned");

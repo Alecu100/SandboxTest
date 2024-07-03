@@ -16,7 +16,7 @@ namespace SandboxTest.Sample
     [ScenarioSuite]
     public class SampleTestScenarioSuite5
     {
-        public readonly IInstance _applicationInstance41 = ApplicationInstance.CreateEmptyInstance("Instance41")
+        public readonly IInstance _applicationInstance41 = ApplicationInstance.CreateEmptyInstance("Instance51")
             .UseWebRunner(args =>
             {
                 var builder = WebApplication.CreateBuilder(args);

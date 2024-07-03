@@ -29,13 +29,13 @@ namespace SandboxTest.WireMock
         /// <summary>
         /// Fetches the WireMock server instance in order to expose it to be configured to return specific responses for http requests.
         /// </summary>
-        /// <param name="applicationInstance"></param>
+        /// <param name="runner"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWireMockRunner.RunAsync), 100)]
-        public virtual Task RunAsync(IInstance applicationInstance)
+        public virtual Task RunAsync(IRunner runner)
         {
-            var wireMockRunner = applicationInstance.Runner as IWireMockRunner;
+            var wireMockRunner = runner as IWireMockRunner;
             if (wireMockRunner == null)
             {
                 throw new InvalidOperationException("WireMock application controller can only be used with a WireMock application runnner");

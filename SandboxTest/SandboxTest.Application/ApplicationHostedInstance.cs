@@ -16,7 +16,7 @@ namespace SandboxTest
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static ApplicationHostedInstance CreateEmptyHostedInstance(string id)
+        public new static ApplicationHostedInstance CreateEmptyInstance(string id)
         {
             return new ApplicationHostedInstance(id);
         }

@@ -11,10 +11,10 @@ namespace SandboxTest.Engine.MainTestEngine
     {
         private readonly Guid _runId;
         private readonly IInstance _assignedInstance;
+        private IHostedInstance? _assignedHostedInstance;
         private readonly IMainTestEngineRunContext _mainTestEngineRunContext;
         private readonly Type _scenarioSuiteType;
         private HostedInstanceData? _hostedInstanceData;
-        private IHostedInstance? _hostedInstance;
         private IChildTestEngine? _childTestEngine;
         private string? _mainAssemblyPath;
         private string? _assemblySourceName;
@@ -51,13 +51,14 @@ namespace SandboxTest.Engine.MainTestEngine
                     ApplicationInstanceId = _assignedInstance.Id,
                     AssemblySourceName = _assemblySourceName,
                     MainPath = _mainPath!,
-                    HostedInstanceInitializerAssemblyFullName = _mainAssemblyPath,
+                    HostedInstanceInitializerAssemblyFullName = typeof(HostedInstanceInitializer).Assembly.Location,
                     HostedInstanceInitializerTypeFullName = typeof(HostedInstanceInitializer).FullName!,
                     ScenarioSuiteTypeFullName = _scenarioSuiteType.FullName!
                 };
 
-                _hostedInstance = (IHostedInstance)_assignedInstance;
-                await _hostedInstance.StartAsync(_mainTestEngineRunContext, _hostedInstanceData, token);
+                _assignedHostedInstance = (IHostedInstance)_assignedInstance;
+                await _assignedHostedInstance.StartAsync(_mainTestEngineRunContext, _hostedInstanceData, token);
+                await _assignedHostedInstance.MessageChannel!.StartAsync(_assignedInstance.Id, _runId, false);
             }
             else
             {
@@ -72,11 +73,11 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <returns></returns>
         public async Task StopInstanceAsync()
         {
-            if (_hostedInstance != null && _hostedInstanceData != null)
+            if (_assignedHostedInstance != null && _hostedInstanceData != null)
             {
                 var operation = new StopInstanceOperation(_assignedInstance.Id);
                 await ExecuteHostedInstanceOperationAsync(operation, default);
-                await _hostedInstance.StopAsync(_mainTestEngineRunContext, _hostedInstanceData);
+                await _assignedHostedInstance.StopAsync(_mainTestEngineRunContext, _hostedInstanceData);
                 return;
             }
 
@@ -95,7 +96,7 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <returns></returns>
         public async Task<OperationResult?> ExecuteStepAsync(ScenarioStep scenarioStep, ScenarioStepData stepContext, CancellationToken cancellationToken)
         {
-            if (_hostedInstance != null)
+            if (_assignedHostedInstance != null)
             {
                 var operation = new RunScenarioStepOperation(scenarioStep.Id, stepContext);
                 return await ExecuteHostedInstanceOperationAsync(operation, cancellationToken);
@@ -118,7 +119,7 @@ namespace SandboxTest.Engine.MainTestEngine
         {
             await _assignedInstance.ResetAsync();
 
-            if (_hostedInstance != null)
+            if (_assignedHostedInstance != null)
             {
                 var operation = new ResetInstanceOperation(_assignedInstance.Id);
                 return await ExecuteHostedInstanceOperationAsync(operation, cancellationToken);
@@ -133,7 +134,7 @@ namespace SandboxTest.Engine.MainTestEngine
 
         public async Task<OperationResult?> RunInstanceAsync(CancellationToken cancellationToken)
         {
-            if (_hostedInstance != null)
+            if (_assignedHostedInstance != null)
             {
                 var operation = new RunInstanceOperation(_assignedInstance.Id);
                 return await ExecuteHostedInstanceOperationAsync(operation, cancellationToken);
@@ -143,7 +144,7 @@ namespace SandboxTest.Engine.MainTestEngine
             {
                 throw new InvalidOperationException("No child engine assigned");
             }
-            return await _childTestEngine.LoadInstanceAsync($"{_mainPath}\\{_assemblySourceName}", _scenarioSuiteType.FullName!, _assignedInstance.Id);
+            return await _childTestEngine.RunInstanceAsync();
         }
 
         /// <summary>
@@ -154,22 +155,31 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <returns></returns>
         public async Task<OperationResult?> LoadScenarioAsync(string scenarioName, CancellationToken cancellationToken)
         {
-            var operation = new LoadScenarioOperation(scenarioName);
-            return await ExecuteHostedInstanceOperationAsync(operation, cancellationToken);
+            if (_assignedHostedInstance != null)
+            {
+                var operation = new LoadScenarioOperation(scenarioName);
+                return await ExecuteHostedInstanceOperationAsync(operation, cancellationToken);
+            }
+
+            if (_childTestEngine == null)
+            {
+                throw new InvalidOperationException("No child engine assigned");
+            }
+            return await _childTestEngine.LoadScenarioAsync(scenarioName);
         }
 
         private async Task<OperationResult?> ExecuteHostedInstanceOperationAsync(Operation operation, CancellationToken cancellationToken)
         {
             try
             {
-                if (_hostedInstance == null)
+                if (_assignedHostedInstance == null)
                 {
                     throw new InvalidOperationException("Assigned instance is not a hosted instance to send messages to");
                 }
                 var json = JsonConvert.SerializeObject(operation, JsonUtils.JsonSerializerSettings);
-                await _hostedInstance.MessageChannel.SendMessageAsync(json);
+                await _assignedHostedInstance.MessageChannel.SendMessageAsync(json);
 
-                var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _hostedInstance.MessageChannel.ReceiveMessageAsync(), JsonUtils.JsonSerializerSettings);
+                var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _assignedHostedInstance.MessageChannel.ReceiveMessageAsync(), JsonUtils.JsonSerializerSettings);
                 return operationResult;
             }
             catch (Exception ex)

@@ -17,7 +17,7 @@
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static IInstance CreateEmptyInstance(string id)
+        public static ApplicationInstance CreateEmptyInstance(string id)
         {
             return new ApplicationInstance(id);
         }

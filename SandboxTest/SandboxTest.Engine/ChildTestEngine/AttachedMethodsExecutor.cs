@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace SandboxTest.Engine.ChildTestEngine
 {
@@ -9,7 +8,7 @@ namespace SandboxTest.Engine.ChildTestEngine
         /// <inheritdoc/>
         public async Task ExecutedMethods(IEnumerable<object> instances, IEnumerable<AttachedMethodType> includedStepTypes, Delegate targetMethod, IEnumerable<object> arguments)
         {
-            var possibleMethodsToRun = new List<(AttachedMethodAttribute, Delegate)>();
+            var possibleMethodsToRun = new List<(AttachedMethodAttribute, MethodToExecute)>();
 
             foreach (var instance in instances) 
             { 
@@ -21,15 +20,15 @@ namespace SandboxTest.Engine.ChildTestEngine
                     var injectedMethodAttribute = GetAttachedMethodAttribute(instanceType, method);
                     if (injectedMethodAttribute != null && includedStepTypes.Contains(injectedMethodAttribute.InjectedStepType))
                     {
-                        possibleMethodsToRun.Add((injectedMethodAttribute, Delegate.CreateDelegate(instanceType, instance, method, true)!));
+                        possibleMethodsToRun.Add((injectedMethodAttribute, new MethodToExecute { Method = method, Target = instance }));
                     }
                 }
             }
 
-            await ExecuteMethodIncludingAttachedMethods(possibleMethodsToRun, targetMethod, arguments);
+            await ExecuteMethodIncludingAttachedMethods(possibleMethodsToRun, new MethodToExecute { Target = targetMethod.Target!, Method = targetMethod.Method } , arguments);
         }
 
-        private async Task ExecuteMethodIncludingAttachedMethods(List<(AttachedMethodAttribute, Delegate)> possibleMethodsToRun, Delegate targetMethod, IEnumerable<object> arguments)
+        private async Task ExecuteMethodIncludingAttachedMethods(List<(AttachedMethodAttribute, MethodToExecute)> possibleMethodsToRun, MethodToExecute targetMethod, IEnumerable<object> arguments)
         {
             var methodsToRunBeforeTargetMethod = GetMethodsToRunBeforeTargetMethod(possibleMethodsToRun, targetMethod);
 
@@ -41,11 +40,11 @@ namespace SandboxTest.Engine.ChildTestEngine
             object? result;
             if (!targetMethod.Method.GetParameters().Any())
             {
-                result = targetMethod.DynamicInvoke();
+                result = targetMethod.Method.Invoke(targetMethod.Target, null);
             }
             else
             {
-                result = targetMethod.DynamicInvoke(arguments);
+                result = targetMethod.Method.Invoke(targetMethod.Target, arguments.ToArray());
             }
 
             var resultTask = result as Task;
@@ -62,7 +61,7 @@ namespace SandboxTest.Engine.ChildTestEngine
             }
         }
 
-        private List<(AttachedMethodAttribute, Delegate)> GetMethodsToRunBeforeTargetMethod(List<(AttachedMethodAttribute, Delegate)> possibleMethodsToRun, Delegate targetMethod)
+        private List<(AttachedMethodAttribute, MethodToExecute)> GetMethodsToRunBeforeTargetMethod(List<(AttachedMethodAttribute, MethodToExecute)> possibleMethodsToRun, MethodToExecute targetMethod)
         {
             return possibleMethodsToRun
                 .Where(methodWithAttribute => methodWithAttribute.Item1.TargetMethodName.Equals(targetMethod.Method.Name, StringComparison.InvariantCultureIgnoreCase) && methodWithAttribute.Item2.Method != targetMethod.Method && methodWithAttribute.Item1.Order < 0)
@@ -70,7 +69,7 @@ namespace SandboxTest.Engine.ChildTestEngine
                 .ToList();
         }
 
-        private List<(AttachedMethodAttribute, Delegate)> GetMethodsToRunAfterTargetMethod(List<(AttachedMethodAttribute, Delegate)> possibleMethodsToRun, Delegate targetMethod)
+        private List<(AttachedMethodAttribute, MethodToExecute)> GetMethodsToRunAfterTargetMethod(List<(AttachedMethodAttribute, MethodToExecute)> possibleMethodsToRun, MethodToExecute targetMethod)
         {
             return possibleMethodsToRun
                 .Where(methodWithAttribute => methodWithAttribute.Item1.TargetMethodName.Equals(targetMethod.Method.Name, StringComparison.InvariantCultureIgnoreCase) && methodWithAttribute.Item2.Method != targetMethod.Method && methodWithAttribute.Item1.Order >= 0)
@@ -103,6 +102,13 @@ namespace SandboxTest.Engine.ChildTestEngine
             var map = implementingClass.GetInterfaceMap(implementedInterface);
             var index = Array.IndexOf(map.TargetMethods, classMethod);
             return index != -1 ?  map.InterfaceMethods[index] : null;
+        }
+
+        private class MethodToExecute
+        {
+            required public object Target { get; set; }
+
+            required public MethodInfo Method { get; set; }
         }
     }
 }

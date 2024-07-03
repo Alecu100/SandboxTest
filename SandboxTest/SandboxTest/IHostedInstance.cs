@@ -9,7 +9,13 @@
         /// <summary>
         /// Gets and sets the communication channel used to send messages from and to the application instance.
         /// </summary>
-        IHostedInstanceMessageChannel? MessageChannel { get; set; }
+        IHostedInstanceMessageChannel? MessageChannel { get; }
+
+        /// <summary>
+        /// Assigns a specific message channel to the hosted instance.
+        /// </summary>
+        /// <param name="messageChannel"></param>
+        void UseMessageChannel(IHostedInstanceMessageChannel messageChannel);
 
         /// <summary>
         /// Starts the host for the instance to run it inside the host.

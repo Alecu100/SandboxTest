@@ -79,7 +79,7 @@ namespace SandboxTest
                 AssemblySourceName = GetCommandLineArgumentValue<string>(args, AssemblySourceNameArg)!,
                 MainPath = GetCommandLineArgumentValue<string>(args, MainPathArg)!,
                 ScenarioSuiteTypeFullName = GetCommandLineArgumentValue<string>(args, ScenarioSuiteTypeFullNameArg)!,
-                HostedInstanceInitializerAssemblyFullName = GetCommandLineArgumentValue<string>(args, HostedInstanceInitializerTypeFullNameArg)!,
+                HostedInstanceInitializerAssemblyFullName = GetCommandLineArgumentValue<string>(args, HostedInstanceInitializerAssemblyFullNameArg)!,
                 HostedInstanceInitializerTypeFullName = GetCommandLineArgumentValue<string>(args, HostedInstanceInitializerTypeFullNameArg)!
             };
 
@@ -95,7 +95,7 @@ namespace SandboxTest
                 AssemblySourceName = GetEnvironmentVariableValue<string>(env, AssemblySourceNameEnv)!,
                 MainPath = GetEnvironmentVariableValue<string>(env, MainPathArg)!,
                 ScenarioSuiteTypeFullName = GetEnvironmentVariableValue<string>(env, ScenarioSuiteTypeFullNameEnv)!,
-                HostedInstanceInitializerAssemblyFullName = GetEnvironmentVariableValue<string>(env, HostedInstanceInitializerTypeFullNameEnv)!,
+                HostedInstanceInitializerAssemblyFullName = GetEnvironmentVariableValue<string>(env, HostedInstanceInitializerAssemblyFullNameEnv)!,
                 HostedInstanceInitializerTypeFullName = GetEnvironmentVariableValue<string>(env, HostedInstanceInitializerTypeFullNameEnv)!
             };
 
@@ -111,6 +111,7 @@ namespace SandboxTest
             var args = new List<string>
             {
                 $"--{RunIdArg}=\"{RunId}\"",
+                $"--{ApplicationInstanceIdArg}=\"{ApplicationInstanceId}\"",
                 $"--{MainPathArg}=\"{MainPath}\"",
                 $"--{AssemblySourceNameArg}=\"{AssemblySourceName}\"",
                 $"--{ScenarioSuiteTypeFullNameArg}=\"{ScenarioSuiteTypeFullName}\"",
@@ -131,6 +132,7 @@ namespace SandboxTest
             var env = new List<string>
             {
                 $"{RunIdEnv}=\"{RunId}\"",
+                $"{ApplicationInstanceIdEnv}=\"{ApplicationInstanceId}\"",
                 $"{MainPathEnv}=\"{MainPath}\"",
                 $"{AssemblySourceNameEnv}=\"{AssemblySourceName}\"",
                 $"{ScenarioSuiteTypeFullNameEnv}=\"{ScenarioSuiteTypeFullName}\"",

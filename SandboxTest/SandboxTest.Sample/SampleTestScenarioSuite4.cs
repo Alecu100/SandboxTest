@@ -1,77 +1,41 @@
 ﻿using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc.ApplicationParts;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Net.Http.Headers;
-using SandboxTest.AspNetCore;
-using SandboxTest.Hosting;
 using SandboxTest.Net.Http;
-using SandboxTest.Sample.Application2;
+using SandboxTest.WireMock;
 using System.Net.Http.Json;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
 
 namespace SandboxTest.Sample
 {
     [ScenarioSuite]
     public class SampleTestScenarioSuite4
     {
-        public readonly IInstance _applicationInstance41 = ApplicationInstance.CreateEmptyInstance("Instance41")
-            .UseWebRunner(args =>
-            {
-                var builder = WebApplication.CreateBuilder(args);
-                builder.ConfigureWebApplicationBuilder();
-                return Task.FromResult(builder);
-            })
-            .ConfigureWebRunner(builder =>
-            {
-                builder.Services.AddControllers().ConfigureApplicationPartManager(parts => parts.ApplicationParts.Add(new AssemblyPart(typeof(WebApplicationExtensions).Assembly)));
-                return Task.CompletedTask;
-            }, webApp =>
-            {
-                webApp.ConfigureWebApplication();
-                return Task.CompletedTask;
-            })
-            .ConfigureWebRunnerUrl("https://localhost:5566")
-            .AddHttpClientController("https://localhost:5566")
-            .AddHostController();
+        public readonly IInstance _applicationInstance31 = ApplicationInstance.CreateEmptyInstance("Instance31")
+            .UseWireMockRunner()
+            .ConfigureWireMockRunner(6677, false, false)
+            .AddWireMockController()
+            .AddHttpClientController();
 
         [Scenario]
-        public void TestScenario6()
+        public void TestScenario5()
         {
-            var firstStep = _applicationInstance41.AddStep().InvokeController<HostController>((controller, ctx) =>
+            var firstStep = _applicationInstance31.AddStep().InvokeController<WireMockController>((controller, ctx) =>
             {
-                var actionDescriptors = controller.Host.Services.GetRequiredService<IActionDescriptorCollectionProvider>();
-                var controllersDescriptors = actionDescriptors.ActionDescriptors
-                      .Items
-                      .OfType<ControllerActionDescriptor>();
-                controllersDescriptors.Should().NotBeEmpty();
+                var message = new Message { Name = "test_message", Description = "test_description" };
+                controller.WireMockServer.Given(Request.Create().WithPath("/test")).RespondWith(Response.Create().WithBodyAsJson(message));
+                ctx["message"] = message;
                 return Task.CompletedTask;
             });
-
-            var secondStep = _applicationInstance41.AddStep().InvokeController<HttpClientController>(async (controller, ctx) =>
+            var secondStep = _applicationInstance31.AddStep().AddPreviousStep(firstStep).InvokeController<HttpClientController>(async (controller, ctx) =>
             {
-                var httpRequest = new HttpRequestMessage(HttpMethod.Get, "/WeatherForecast");
-                httpRequest.Headers.Add(HeaderNames.Accept, "text/plain");
-                httpRequest.Headers.Add(HeaderNames.UserAgent, "test");
+                var httpRequest = new HttpRequestMessage(HttpMethod.Get, "/test");
                 var httpResponse = await controller.HttpClient.SendAsync(httpRequest);
                 httpResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
-                var weatherForecasts = await httpResponse.Content.ReadFromJsonAsync<List<WeatherForecast>>();
-                weatherForecasts.Should().NotBeNull();
-                ctx["weatherforecasts"] = weatherForecasts;
-            });
-            var thirdStep = _applicationInstance41.AddStep().AddPreviousStep(firstStep).InvokeController<HttpClientController>(async (controller, ctx) =>
-            {
-                var httpRequest = new HttpRequestMessage(HttpMethod.Get, "/WeatherForecast");
-                httpRequest.Headers.Add(HeaderNames.Accept, "text/plain");
-                httpRequest.Headers.Add(HeaderNames.UserAgent, "test");
-                var httpResponse = await controller.HttpClient.SendAsync(httpRequest);
-                httpResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
-                var weatherForecasts = await httpResponse.Content.ReadFromJsonAsync<List<WeatherForecast>>();
-                weatherForecasts.Should().NotBeNull();
-                var previousWeatherForecasts = ctx["weatherforecasts"] as List<WeatherForecast>;
-                previousWeatherForecasts.Should().NotBeNull();
-                previousWeatherForecasts?.Should().NotIntersectWith(weatherForecasts);
+                var httpResponseMessage = await httpResponse.Content.ReadFromJsonAsync<Message>();
+                var ctxMessage = ctx["message"] as Message;
+                httpResponseMessage.Should().NotBeNull();
+                httpResponseMessage?.Name.Should().Be(ctxMessage?.Name);
+                httpResponseMessage?.Description.Should().Be(ctxMessage?.Description);
             });
         }
 

@@ -37,6 +37,11 @@ namespace SandboxTest.Engine.ApplicationContainer
                 {
                     throw new ArgumentException("All required arguments for application instance runner have not been provided");
                 }
+                var result = await _childTestEngine.LoadInstanceAsync($"{_mainPath}\\{_assemblySourceName}", _scenarioSuiteTypeFullName!, _applicationInstanceId);
+                if (result.IsSuccesful == false)
+                {
+                    throw new InvalidOperationException($"Failed to load instance from scenario suite {_scenarioSuiteTypeFullName} with id {_applicationInstanceId}");
+                }
                 _hostedInstance = _childTestEngine.RunningInstance as IHostedInstance;
                 _handleMessagesTask = Task.Run(HandleMessages);
             }
@@ -58,7 +63,7 @@ namespace SandboxTest.Engine.ApplicationContainer
 
         private async Task HandleMessages()
         {
-            if (_childTestEngine == null || _hostedInstance?.MessageChannel == null || _applicationInstanceId == null)
+            if (_childTestEngine == null || _applicationInstanceId == null || _hostedInstance == null || _hostedInstance.MessageChannel == null)
             {
                 _runFinishedTaskCompletionSource.SetResult(-1);
                 return;
@@ -75,12 +80,13 @@ namespace SandboxTest.Engine.ApplicationContainer
                     switch (message)
                     {
                         case RunInstanceOperation:
-                            var result = await _childTestEngine.LoadInstanceAsync($"{_mainPath}\\{_assemblySourceName}", _scenarioSuiteTypeFullName!, _applicationInstanceId);
+                            var result = await _childTestEngine.RunInstanceAsync();
                             await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
                             break;
                         case StopInstanceOperation:
                             result = await _childTestEngine.StopInstanceAsync();
                             await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
+                            _runFinishedTaskCompletionSource.SetResult(1);
                             break;
                         case RunScenarioStepOperation runStepOperation:
                             result = await _childTestEngine.RunStepAsync(runStepOperation.StepId, runStepOperation.StepContext);

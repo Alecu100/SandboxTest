@@ -6,9 +6,9 @@
         /// Assigns the default <see cref="ApplicationHostedInstanceMessageChannel"/> to use as a message channel to a <see cref="ApplicationHostedInstance"/>. 
         /// </summary>
         /// <returns></returns>
-        public static ApplicationHostedInstance UseDefaultApplicationHostedInstanceMessageChannel(this ApplicationHostedInstance applicationHostedInstance)
+        public static ApplicationHostedInstance UseApplicationHostedInstanceMessageChannel(this ApplicationHostedInstance applicationHostedInstance)
         {
-            applicationHostedInstance.MessageChannel = new ApplicationHostedInstanceMessageChannel();
+            applicationHostedInstance.UseMessageChannel(new ApplicationHostedInstanceMessageChannel());
             return applicationHostedInstance;
         }
     }

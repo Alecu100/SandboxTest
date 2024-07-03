@@ -9,12 +9,14 @@ namespace SandboxTest
     {
         private Process? _applicationInstanceProcess;
 
+        private IHostedInstanceMessageChannel? _messageChannel;
+
         /// <summary>
         /// Creates an empty default application instance.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static IHostedInstance CreateEmptyHostedInstance(string id)
+        public static ApplicationHostedInstance CreateEmptyHostedInstance(string id)
         {
             return new ApplicationHostedInstance(id);
         }
@@ -25,7 +27,17 @@ namespace SandboxTest
         }
 
         /// <inheritdoc/>
-        public virtual IHostedInstanceMessageChannel? MessageChannel { get; set; }
+        public void UseMessageChannel(IHostedInstanceMessageChannel messageChannel)
+        {
+            if (_messageChannel != null)
+            {
+                throw new InvalidOperationException("Application hosted instance already has a message channel assigned");
+            }
+            _messageChannel = messageChannel;
+        }
+
+        /// <inheritdoc/>
+        public virtual IHostedInstanceMessageChannel? MessageChannel { get => _messageChannel; }
 
         /// <summary>
         /// Starts the host for the application instance from the command line.

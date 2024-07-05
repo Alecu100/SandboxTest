@@ -1,4 +1,6 @@
-﻿namespace SandboxTest.Engine.ChildTestEngine
+﻿using SandboxTest.Instance.AttachedMethod;
+
+namespace SandboxTest.Engine.ChildTestEngine
 {
     /// <summary>
     /// Executes a target method along with a list of attached methods using the <see cref="AttachedMethodAttribute"/> attribute.

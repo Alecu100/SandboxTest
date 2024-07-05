@@ -1,6 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
-using SandboxTest.Engine;
 using SandboxTest.Engine.MainTestEngine;
 
 namespace SandboxTest.TestAdapter
@@ -23,7 +22,7 @@ namespace SandboxTest.TestAdapter
         /// </summary>
         /// <param name="scenario"></param>
         /// <returns></returns>
-        public Task OnScenarioFound(Scenario scenario)
+        public Task OnScenarioFound(Engine.Scenario scenario)
         {
             _logger.SendMessage(TestMessageLevel.Informational, "Sending found test case to the test runtime.");
             _discoverySink.SendTestCase(scenario.ConvertToTestCase());

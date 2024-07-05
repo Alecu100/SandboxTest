@@ -1,9 +1,9 @@
 ﻿using Newtonsoft.Json;
-using SandboxTest.Engine.ChildTestEngine;
 using SandboxTest.Engine.Operations;
 using SandboxTest.Engine.Utils;
+using SandboxTest.Instance.Hosted;
 
-namespace SandboxTest.Engine.ApplicationContainer
+namespace SandboxTest.Engine.ChildTestEngine
 {
     public class HostedInstanceInitializer : IHostedInstanceInitializer
     {
@@ -19,7 +19,7 @@ namespace SandboxTest.Engine.ApplicationContainer
 
         public HostedInstanceInitializer()
         {
-            _childTestEngine = new ChildTestEngine.ChildTestEngine();
+            _childTestEngine = new ChildTestEngine();
             _runFinishedTaskCompletionSource = new TaskCompletionSource<int>();
         }
 
@@ -103,7 +103,7 @@ namespace SandboxTest.Engine.ApplicationContainer
                     }
                 }
             }
-            catch (Exception) 
+            catch (Exception)
             {
                 _runFinishedTaskCompletionSource.SetResult(-1);
             }

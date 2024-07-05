@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
+using SandboxTest.Instance;
 
 namespace SandboxTest.AspNetCore
 {
     /// <summary>
     /// Represents a runner capable of running Asp .Net Core web applications <see cref="WebApplication"/>.
     /// </summary>
-    public class WebApplicationRunner : IWebApplicationRunner
+    public class WebApplicationRunner : RunnerBase, IWebApplicationRunner
     {
         protected WebApplicationBuilder? _webApplicationBuilder;
         protected WebApplication? _webApplication;
@@ -142,7 +143,7 @@ namespace SandboxTest.AspNetCore
         }
 
         ///<inheritdoc/>
-        public virtual async Task ResetAsync()
+        public override async Task ResetAsync()
         {
             if (_webApplication == null)
             {
@@ -168,7 +169,7 @@ namespace SandboxTest.AspNetCore
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual Task RunAsync()
+        public override Task RunAsync()
         {
             if (_webApplication == null)
             {
@@ -183,7 +184,7 @@ namespace SandboxTest.AspNetCore
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual async Task StopAsync()
+        public override async Task StopAsync()
         {
             if (_webApplication == null)
             {

@@ -1,4 +1,4 @@
-﻿namespace SandboxTest
+﻿namespace SandboxTest.Instance.AttachedMethod
 {
     /// <summary>
     /// Specifies the kind of injected method.

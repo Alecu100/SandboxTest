@@ -1,4 +1,4 @@
-﻿namespace SandboxTest
+﻿namespace SandboxTest.Instance
 {
     /// <summary>
     /// Used to store data shared across the execution of methods from runners

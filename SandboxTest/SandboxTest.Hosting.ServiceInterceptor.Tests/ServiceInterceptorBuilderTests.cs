@@ -1,5 +1,7 @@
 ﻿using FluentAssertions;
 using SandboxTest.Dummy;
+using SandboxTest.Instance;
+using SandboxTest.Scenario;
 
 namespace SandboxTest.Hosting.ServiceInterceptor.Tests
 {

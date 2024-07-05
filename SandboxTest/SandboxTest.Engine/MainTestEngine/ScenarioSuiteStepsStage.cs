@@ -1,4 +1,6 @@
-﻿namespace SandboxTest.Engine.MainTestEngine
+﻿using SandboxTest.Scenario;
+
+namespace SandboxTest.Engine.MainTestEngine
 {
     /// <summary>
     /// Represents a scenario suite step stage with associated steps for each application instance handler to run.

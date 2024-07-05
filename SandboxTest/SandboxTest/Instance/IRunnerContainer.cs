@@ -1,4 +1,4 @@
-﻿namespace SandboxTest
+﻿namespace SandboxTest.Instance
 {
     /// <summary>
     /// Represents a container for an application runner.

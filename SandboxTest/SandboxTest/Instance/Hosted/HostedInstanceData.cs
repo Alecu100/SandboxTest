@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace SandboxTest
+namespace SandboxTest.Instance.Hosted
 {
     /// <summary>
     /// Represents required data required for a <see cref="IHostedInstance"/> to start.
@@ -43,7 +43,7 @@ namespace SandboxTest
         /// <summary>
         /// Used internally by the test engine.
         /// </summary>
-        required public string MainPath { get;set; }
+        required public string MainPath { get; set; }
 
         /// <summary>
         /// Used internally by the test engine.
@@ -63,7 +63,7 @@ namespace SandboxTest
         /// <summary>
         /// Used by implementations of hosted instances to load the assembly with the <see cref="IHostedInstanceInitializer"/> to start the instance.
         /// </summary>
-        required public string HostedInstanceInitializerTypeFullName {  get; set; }
+        required public string HostedInstanceInitializerTypeFullName { get; set; }
 
         /// <summary>
         /// Used by implementations of hosted instances to load the assembly with the <see cref="IHostedInstanceInitializer"/> to start the instance.

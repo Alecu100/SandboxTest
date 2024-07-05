@@ -1,21 +1,20 @@
 ﻿using Microsoft.Extensions.Hosting;
+using SandboxTest.Instance;
+using SandboxTest.Instance.AttachedMethod;
 
 namespace SandboxTest.Hosting
 {
     /// <summary>
     /// An application controller for <see cref="HostController"/> that exposes the IHost to execute operations on.
     /// </summary>
-    public class HostController : IController
+    public class HostController : ControllerBase
     {
-        private readonly string? _name;
-
         /// <summary>
         /// Creates a new instance of the <see cref="HostController"/>
         /// </summary>
         /// <param name="name">The name of the controller, ca be empty to mark it as the default controller of that type</param>
-        public HostController(string? name)
+        public HostController(string? name) : base(name)
         {
-            _name = name;
         }
 
         private IHost? _host;
@@ -24,11 +23,6 @@ namespace SandboxTest.Hosting
         /// Gets the host to execute operations on.
         /// </summary>
         public IHost Host { get => _host ?? throw new InvalidOperationException("Host not initialized"); }
-
-        /// <summary>
-        /// Gets the 
-        /// </summary>
-        public string? Name { get => _name; }
 
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IHostRunner.BuildAsync), 10)]
         public Task BuildAsync(IRunner runner)

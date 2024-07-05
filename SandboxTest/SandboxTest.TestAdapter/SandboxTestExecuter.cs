@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using SandboxTest.Engine.MainTestEngine;
+using SandboxTest.Scenario;
 using System.Diagnostics;
 
 namespace SandboxTest.TestAdapter

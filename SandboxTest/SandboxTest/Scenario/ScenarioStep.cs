@@ -1,6 +1,7 @@
 ﻿using System.Xml.Linq;
+using SandboxTest.Instance;
 
-namespace SandboxTest
+namespace SandboxTest.Scenario
 {
     /// <summary>
     /// Represents a scenario step used to executed the configured controller invocations for it when the test is ran.
@@ -26,7 +27,7 @@ namespace SandboxTest
         /// Creates a new instance of a scenario step.
         /// </summary>
         /// <param name="applicationInstance"></param>
-        public ScenarioStep(IInstance applicationInstance) 
+        public ScenarioStep(IInstance applicationInstance)
             : this(applicationInstance, new ScenarioStepId(applicationInstance.Id, applicationInstance.CurrentStepIndex))
         {
         }
@@ -78,16 +79,16 @@ namespace SandboxTest
             }
         }
 
-        public ScenarioStep InvokeController<TController>(Func<TController, ScenarioStepData, Task> invokeFunc, string? name = default) where TController: IController
+        public ScenarioStep InvokeController<TController>(Func<TController, ScenarioStepData, Task> invokeFunc, string? name = default) where TController : IController
         {
-            if (!_applicationInstance.Controllers.Any(controller => ((controller.Name == null && name == null) || (controller.Name != null && controller.Name.Equals(name))) &&
+            if (!_applicationInstance.Controllers.Any(controller => (controller.Name == null && name == null || controller.Name != null && controller.Name.Equals(name)) &&
                 controller.GetType() == typeof(TController)))
             {
                 throw new InvalidOperationException($"Controller with name {name} and type {typeof(TController).Name} not found in the application instance with id {_applicationInstance.Id}");
             }
-            _configuredActions.Add(async (ScenarioStepData context) =>
+            _configuredActions.Add(async (context) =>
             {
-                var applicationController = (TController)_applicationInstance.Controllers.First(controller => ((controller.Name == null && name == null) || (controller.Name != null && controller.Name.Equals(name))) &&
+                var applicationController = (TController)_applicationInstance.Controllers.First(controller => (controller.Name == null && name == null || controller.Name != null && controller.Name.Equals(name)) &&
                     controller.GetType() == typeof(TController));
                 await invokeFunc(applicationController, context);
             });

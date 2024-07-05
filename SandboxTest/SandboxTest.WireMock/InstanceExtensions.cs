@@ -1,4 +1,5 @@
 ﻿using SanboxTest.Runners.WireMock;
+using SandboxTest.Instance;
 
 namespace SandboxTest.WireMock
 {

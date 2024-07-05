@@ -1,11 +1,12 @@
-﻿using System.Diagnostics;
+﻿using SandboxTest.Instance;
+using System.Diagnostics;
 
 namespace SandboxTest.Executable
 {
     /// <summary>
     /// Represents an runner that actually starts another executable as a child process, capturing it's outputs and inputs.
     /// </summary>
-    public class ExecutableRunner : IExecutableRunner
+    public class ExecutableRunner : RunnerBase, IExecutableRunner
     {
         protected Process? _buildProcess;
         protected TaskCompletionSource<bool>? _isDoneBuildingTaskCompletionSource;
@@ -163,7 +164,7 @@ namespace SandboxTest.Executable
         }
 
         ///<inheritdoc/>
-        public async virtual Task ResetAsync()
+        public async override Task ResetAsync()
         {
             if (_executableProcess == null)
             {
@@ -176,7 +177,7 @@ namespace SandboxTest.Executable
         }
 
         ///<inheritdoc/>
-        public async virtual Task RunAsync()
+        public async override Task RunAsync()
         {
             _isRunningTaskCompletionSource = new TaskCompletionSource<bool>();
             var executableProcessStartupInfo = new ProcessStartInfo
@@ -227,7 +228,7 @@ namespace SandboxTest.Executable
         }
 
         ///<inheritdoc/>
-        public virtual async Task StopAsync()
+        public override async Task StopAsync()
         {
             if (_executableProcess == null)
             {

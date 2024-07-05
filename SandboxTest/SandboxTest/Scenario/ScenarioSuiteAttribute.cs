@@ -1,4 +1,4 @@
-﻿namespace SandboxTest
+﻿namespace SandboxTest.Scenario
 {
     /// <summary>
     /// 

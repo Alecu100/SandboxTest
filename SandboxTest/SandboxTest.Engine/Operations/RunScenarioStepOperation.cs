@@ -1,4 +1,6 @@
-﻿namespace SandboxTest.Engine.Operations
+﻿using SandboxTest.Scenario;
+
+namespace SandboxTest.Engine.Operations
 {
     /// <summary>
     /// An operation that represents running a step for an application instance.

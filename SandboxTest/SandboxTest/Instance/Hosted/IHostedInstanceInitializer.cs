@@ -1,4 +1,4 @@
-﻿namespace SandboxTest
+﻿namespace SandboxTest.Instance.Hosted
 {
     public interface IHostedInstanceInitializer
     {

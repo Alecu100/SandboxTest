@@ -1,4 +1,6 @@
-﻿namespace SandboxTest.WebServer
+﻿using SandboxTest.Instance;
+
+namespace SandboxTest.WebServer
 {
     /// <summary>
     /// Represents a runner that hosts a web server exposing the base address of the web server

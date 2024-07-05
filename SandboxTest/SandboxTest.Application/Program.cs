@@ -1,4 +1,5 @@
 ﻿using SandboxTest.Application;
+using SandboxTest.Instance.Hosted;
 using System.Runtime.Loader;
 
 namespace SandboxTest.Engine.ApplicationContainer

@@ -1,4 +1,6 @@
-﻿using SandboxTest.WebServer;
+﻿using SandboxTest.Instance;
+using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.WebServer;
 
 namespace SandboxTest.Net.Http
 {

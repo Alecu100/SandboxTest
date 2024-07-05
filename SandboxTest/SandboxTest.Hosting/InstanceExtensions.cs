@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
+using SandboxTest.Instance;
 
 namespace SandboxTest.Hosting
 {
@@ -29,7 +30,7 @@ namespace SandboxTest.Hosting
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         public static IInstance ConfigureHostRunner(this IInstance applicationInstance,
-            Func<IHostBuilder, Task> configureBuildFunc,
+            Func<IHostBuilder, Task> configureBuildFunc = default,
             Func<IHost, Task>? configureRunFunc = default)
         {
             var hostBuilderApplicationRunner = applicationInstance.Runner as HostRunner;

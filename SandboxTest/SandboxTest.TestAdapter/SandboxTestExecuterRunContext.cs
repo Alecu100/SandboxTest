@@ -73,7 +73,7 @@ namespace SandboxTest.TestAdapter
             return Task.CompletedTask;
         }
 
-        public Task OnScenarioRunningAsync(Scenario scenario)
+        public Task OnScenarioRunningAsync(Engine.Scenario scenario)
         {
             if (_frameworkHandle == null)
             {

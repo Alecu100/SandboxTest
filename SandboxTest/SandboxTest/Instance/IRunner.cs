@@ -1,10 +1,12 @@
-﻿namespace SandboxTest
+﻿using SandboxTest.Instance.AttachedMethod;
+
+namespace SandboxTest.Instance
 {
     /// <summary>
     /// Base interface for all runners exposing the standard functionality that they should implement.
     /// Not all methods ar required to actually do something such as ConfigureRunSandboxingAsync
     /// </summary>
-    public interface IRunner
+    public interface IRunner : IAttachedMethodContainer
     {
         /// <summary>
         /// Runs the application instance.

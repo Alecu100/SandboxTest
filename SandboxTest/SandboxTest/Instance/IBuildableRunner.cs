@@ -1,4 +1,6 @@
-﻿namespace SandboxTest
+﻿using SandboxTest.Instance.AttachedMethod;
+
+namespace SandboxTest.Instance
 {
     /// <summary>
     /// Represents a buildable runner, that executes additional methods before the main <see cref="IRunner.RunAsync"/> method.

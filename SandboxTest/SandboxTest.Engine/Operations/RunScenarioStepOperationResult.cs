@@ -1,4 +1,6 @@
-﻿namespace SandboxTest.Engine.Operations
+﻿using SandboxTest.Scenario;
+
+namespace SandboxTest.Engine.Operations
 {
     public class RunScenarioStepOperationResult : OperationResult
     {

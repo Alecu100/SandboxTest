@@ -1,4 +1,6 @@
-﻿using WireMock.Server;
+﻿using SandboxTest.Instance;
+using SandboxTest.Instance.AttachedMethod;
+using WireMock.Server;
 
 namespace SandboxTest.WireMock
 {

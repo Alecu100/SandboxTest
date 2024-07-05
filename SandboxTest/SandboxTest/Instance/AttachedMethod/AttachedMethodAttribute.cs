@@ -1,4 +1,4 @@
-﻿namespace SandboxTest
+﻿namespace SandboxTest.Instance.AttachedMethod
 {
     /// <summary>
     /// Applied to controller, runner or host instance methods to execute them before or after a target method.
@@ -10,7 +10,7 @@
         /// </summary>
         /// <param name="methodType"></param>
         /// <param name="order"></param>
-        public AttachedMethodAttribute(AttachedMethodType methodType, string targetMethodName, int order) 
+        public AttachedMethodAttribute(AttachedMethodType methodType, string targetMethodName, int order)
         {
             MethodType = methodType;
             TargetMethodName = targetMethodName;

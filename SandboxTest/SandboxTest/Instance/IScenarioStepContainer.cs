@@ -1,4 +1,6 @@
-﻿namespace SandboxTest
+﻿using SandboxTest.Scenario;
+
+namespace SandboxTest.Instance
 {
     /// <summary>
     /// Interface that denotes a container of steps, enabling operations such as adding a step or getting the added steps.

@@ -1,4 +1,4 @@
-﻿namespace SandboxTest
+﻿namespace SandboxTest.Instance.Hosted
 {
     /// <summary>
     /// Interface used to establish a communication channel for each application instance to receives various messages.

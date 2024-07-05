@@ -1,4 +1,6 @@
-﻿namespace SandboxTest
+﻿using SandboxTest.Instance;
+
+namespace SandboxTest.Scenario
 {
     /// <summary>
     /// Added on public methods on public class to denote that the method represents a scenario.

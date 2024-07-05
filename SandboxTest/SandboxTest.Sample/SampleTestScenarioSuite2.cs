@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Hosting;
 using SandboxTest.Application;
 using SandboxTest.Hosting;
+using SandboxTest.Instance;
 using SandboxTest.Sample.Application1;
+using SandboxTest.Scenario;
 
 namespace SandboxTest.Sample
 {

@@ -1,4 +1,6 @@
-﻿namespace SandboxTest.Dummy
+﻿using SandboxTest.Instance;
+
+namespace SandboxTest.Dummy
 {
     public static class InstanceExtensions
     {

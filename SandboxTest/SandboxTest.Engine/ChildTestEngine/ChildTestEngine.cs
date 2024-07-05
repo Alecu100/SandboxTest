@@ -1,4 +1,8 @@
 ﻿using SandboxTest.Engine.Operations;
+using SandboxTest.Instance;
+using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Instance.Hosted;
+using SandboxTest.Scenario;
 using System.Reflection;
 
 namespace SandboxTest.Engine.ChildTestEngine

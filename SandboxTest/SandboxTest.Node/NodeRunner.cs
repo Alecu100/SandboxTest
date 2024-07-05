@@ -1,49 +1,122 @@
-﻿namespace SandboxTest.Node
-{
-    public class NodeRunner : INodeRunner
-    {
-        protected NodeServerTypes _serverType;
+﻿using SandboxTest.Instance;
+using System.Diagnostics;
 
-        public NodeRunner(NodeServerTypes serverType)
+namespace SandboxTest.Node
+{
+    public class NodeRunner : RunnerBase, INodeRunner
+    {
+        private Process? _nodeProcess;
+
+        private Func<string, bool>? _readyFunc;
+
+        private Func<string, bool>? _errorFunc;
+
+        private string _host;
+
+        private int _port;
+
+        private bool _useSsl;
+
+        private string _url;
+
+        private Func<Task>? _configureBuildFunc;
+
+        private Func<Task>? _configureRunFunc;
+
+        public NodeRunner() 
         {
+            _host = "localhost";
+            _port = 80;
+            _useSsl = true;
+            _url = $"{(_useSsl ? "https" : "http")}://{_host}:{_port}";
         }
 
-        public string BaseUrl => throw new NotImplementedException();
+        /// <inheritdoc/>
+        public string Host => _host;
 
-        public int Port => throw new NotImplementedException();
+        /// <inheritdoc/>
+        public int Port => _port;
 
-        public NodeServerTypes ServerType => throw new NotImplementedException();
+        /// <inheritdoc/>
+        public string Url => _url;
 
-        public string Url => throw new NotImplementedException();
+        public bool UseSssl => _useSsl;
 
+        /// <inheritdoc/>
         public Task BuildAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task ConfigureBuildAsync()
+        /// <inheritdoc/>
+        public async Task ConfigureBuildAsync()
         {
-            throw new NotImplementedException();
+            if (_configureBuildFunc != null)
+            {
+                await _configureBuildFunc();
+            }
         }
 
-        public Task ConfigureRunAsync()
+        public void OnConfigureBuild(Func<Task> configureBuildFunc)
         {
-            throw new NotImplementedException();
+            _configureBuildFunc = configureBuildFunc;
         }
 
-        public Task ResetAsync()
+        public void OnConfigureRun(Func<Task> configureRunFunc)
         {
-            throw new NotImplementedException();
+            _configureRunFunc = configureRunFunc;
         }
 
-        public Task RunAsync()
+        /// <summary>
+        /// Configures the parameters to run the node server with.
+        /// </summary>
+        /// <param name="host">The host on which to start the node server.</param>
+        /// <param name="port">The port to use for the node server.</param>
+        /// <param name="useSsl">Enables the node server to use ssl</param>
+        public void OnConfigureNode(string host, int port, bool useSsl)
         {
-            throw new NotImplementedException();
+            _port = port;
+            _host = host;
+            _useSsl = useSsl;
+            _url = $"{(_useSsl ? "https" : "http")}://{_host}:{_port}";
         }
 
-        public Task StopAsync()
+        /// <inheritdoc/>
+        public async Task ConfigureRunAsync()
         {
-            throw new NotImplementedException();
+            if (_configureRunFunc != null)
+            {
+                await _configureRunFunc();
+            }
+        }
+
+        /// <summary>
+        /// Node instance can't be reset.
+        /// </summary>
+        /// <returns></returns>
+        public override Task ResetAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public override Task RunAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public override Task StopAsync()
+        {
+            if (_nodeProcess == null)
+            {
+                throw new InvalidOperationException("Node server not started");
+            }
+            if (!_nodeProcess.HasExited)
+            {
+                _nodeProcess.Kill(true);
+            }
+            return Task.CompletedTask;
         }
     }
 }

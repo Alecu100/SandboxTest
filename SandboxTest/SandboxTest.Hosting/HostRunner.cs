@@ -1,17 +1,18 @@
 ﻿using Microsoft.Extensions.Hosting;
+using SandboxTest.Instance;
 
 namespace SandboxTest.Hosting
 {
     /// <summary>
     /// Represents a runner capable of running generic .Net core hosts <see cref="IHost"/>.
     /// </summary>
-    public class HostRunner : IBuildableRunner, IHostRunner
+    public class HostRunner : RunnerBase, IBuildableRunner
     {
         protected IHost? _host;
         protected IHostBuilder? _hostBuilder;
         protected Func<string[], Task<IHostBuilder>> _hostBuilderFunc;
-        protected Func<IHostBuilder, Task>? _configureBuildSandboxFunc;
-        protected Func<IHost, Task>? _configureRunSandboxFunc;
+        protected Func<IHostBuilder, Task>? _configureBuildFunc;
+        protected Func<IHost, Task>? _configureRunFunc;
         protected Func<IHost, Task>? _resetFunc;
         protected string[]? _arguments;
 
@@ -53,11 +54,11 @@ namespace SandboxTest.Hosting
         /// <exception cref="InvalidOperationException"></exception>
         public void OnConfigureBuild(Func<IHostBuilder, Task> configureBuildFunc)
         {
-            if (_configureBuildSandboxFunc != null)
+            if (_configureBuildFunc != null)
             {
                 throw new InvalidOperationException("ConfigureBuildFunc already set.");
             }
-            _configureBuildSandboxFunc = configureBuildFunc;
+            _configureBuildFunc = configureBuildFunc;
         }
 
         /// <summary>
@@ -81,9 +82,9 @@ namespace SandboxTest.Hosting
             {
                 throw new InvalidOperationException("Host builder not found.");
             }
-            if (_configureBuildSandboxFunc != null)
+            if (_configureBuildFunc != null)
             {
-                await _configureBuildSandboxFunc(_hostBuilder);
+                await _configureBuildFunc(_hostBuilder);
             }
         }
 
@@ -98,9 +99,9 @@ namespace SandboxTest.Hosting
             {
                 throw new InvalidOperationException("Host not built.");
             }
-            if (_configureRunSandboxFunc != null)
+            if (_configureRunFunc != null)
             {
-                await _configureRunSandboxFunc(_host);
+                await _configureRunFunc(_host);
             }
         }
 
@@ -112,15 +113,15 @@ namespace SandboxTest.Hosting
         /// <exception cref="InvalidOperationException"></exception>
         public void OnConfigureRun(Func<IHost, Task>? configureRunFunc)
         {
-            if (_configureRunSandboxFunc != null)
+            if (_configureRunFunc != null)
             {
                 throw new InvalidOperationException("Configure run function already set.");
             }
-            _configureRunSandboxFunc = configureRunFunc;
+            _configureRunFunc = configureRunFunc;
         }
 
         ///<inheritdoc/>
-        public async Task RunAsync()
+        public override async Task RunAsync()
         {
             if (_host == null)
             {
@@ -130,7 +131,7 @@ namespace SandboxTest.Hosting
         }
 
         ///<inheritdoc/>
-        public virtual async Task StopAsync()
+        public override async Task StopAsync()
         {
             if (_host == null)
             {
@@ -140,7 +141,7 @@ namespace SandboxTest.Hosting
         }
 
         ///<inheritdoc/>
-        public virtual async Task ResetAsync()
+        public override async Task ResetAsync()
         {
             if (_host == null)
             {

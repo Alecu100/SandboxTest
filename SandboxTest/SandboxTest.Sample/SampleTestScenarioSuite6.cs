@@ -3,7 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SandboxTest.Hosting;
 using SandboxTest.Hosting.ServiceInterceptor;
+using SandboxTest.Instance;
 using SandboxTest.Sample.Application3;
+using SandboxTest.Scenario;
 
 namespace SandboxTest.Sample
 {

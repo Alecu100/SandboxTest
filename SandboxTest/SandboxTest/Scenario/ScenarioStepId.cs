@@ -1,4 +1,4 @@
-﻿namespace SandboxTest
+﻿namespace SandboxTest.Scenario
 {
     /// <summary>
     /// Represents the id of a scenario step used to identity a step for a spefic application instance and for interprocess communication.

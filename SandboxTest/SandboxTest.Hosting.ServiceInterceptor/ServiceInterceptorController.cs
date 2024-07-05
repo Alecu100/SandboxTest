@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SandboxTest.Instance;
+using SandboxTest.Instance.AttachedMethod;
 using System.Collections.Concurrent;
 using System.Reflection;
 

@@ -7,8 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 using SandboxTest.AspNetCore;
 using SandboxTest.Hosting;
+using SandboxTest.Instance;
 using SandboxTest.Net.Http;
 using SandboxTest.Sample.Application2;
+using SandboxTest.Scenario;
 using System.Net.Http.Json;
 
 namespace SandboxTest.Sample

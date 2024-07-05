@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace SandboxTest
+namespace SandboxTest.Instance.Hosted
 {
     /// <summary>
     /// Represents the context in which a hosted instances runs enabling it to start another process.

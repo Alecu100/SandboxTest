@@ -1,4 +1,6 @@
-﻿namespace SandboxTest.Hosting.ServiceInterceptor
+﻿using SandboxTest.Instance;
+
+namespace SandboxTest.Hosting.ServiceInterceptor
 {
     /// <summary>
     /// Static class that offers extension methods to use the <see cref="ServiceInterceptorController"/>.

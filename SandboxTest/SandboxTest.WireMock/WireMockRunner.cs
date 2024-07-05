@@ -1,4 +1,5 @@
-﻿using SandboxTest.WireMock;
+﻿using SandboxTest.Instance;
+using SandboxTest.WireMock;
 using WireMock.Server;
 
 namespace SanboxTest.Runners.WireMock
@@ -6,7 +7,7 @@ namespace SanboxTest.Runners.WireMock
     /// <summary>
     /// Runner used to used to start instances of mock Rest or http APIs with WireMockServer.
     /// </summary>
-    public class WireMockRunner : IWireMockRunner
+    public class WireMockRunner : RunnerBase, IWireMockRunner
     {
         protected int _port = 80;
         protected bool _useSsl = true;
@@ -59,7 +60,7 @@ namespace SanboxTest.Runners.WireMock
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual Task ResetAsync()
+        public override Task ResetAsync()
         {
             if (_wireMockServer == null)
             {
@@ -73,7 +74,7 @@ namespace SanboxTest.Runners.WireMock
         /// RunAsync is used to start WireMockRunner because the WireMockServer starts directly without any kind of build step aside from port and a couple of other things.
         /// </summary>
         /// <returns></returns>
-        public virtual Task RunAsync()
+        public override Task RunAsync()
         {
             if (_useAdminInterface)
             {
@@ -91,7 +92,7 @@ namespace SanboxTest.Runners.WireMock
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual Task StopAsync()
+        public override Task StopAsync()
         {
             if (_wireMockServer == null)
             {

@@ -1,4 +1,6 @@
 ﻿using SandboxTest.Engine.Operations;
+using SandboxTest.Instance;
+using SandboxTest.Scenario;
 using System.Linq;
 using System.Reflection;
 

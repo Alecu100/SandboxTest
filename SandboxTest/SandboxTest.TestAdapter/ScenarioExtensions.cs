@@ -10,7 +10,7 @@ namespace SandboxTest.TestAdapter
         /// </summary>
         /// <param name="scenario"></param>
         /// <returns></returns>
-        public static TestCase ConvertToTestCase(this Scenario scenario)
+        public static TestCase ConvertToTestCase(this Engine.Scenario scenario)
         {
             var testCase = new TestCase($"{scenario.ScenarioSuitTypeFullName}.{scenario.ScenarioMethodName}", new Uri("executor://sandboxtest.testadapter"), scenario.ScenarioSourceAssembly);
             return testCase;
@@ -21,11 +21,11 @@ namespace SandboxTest.TestAdapter
         /// </summary>
         /// <param name="testCase"></param>
         /// <returns></returns>
-        public static Scenario ConvertToScenario(this TestCase testCase)
+        public static Engine.Scenario ConvertToScenario(this TestCase testCase)
         {
             var methodName = testCase.FullyQualifiedName.Substring(testCase.FullyQualifiedName.LastIndexOf('.') + 1);
             var scenarioSuitTypeFullName = testCase.FullyQualifiedName.Substring(0, testCase.FullyQualifiedName.LastIndexOf("."));
-            return new Scenario(testCase.Source, scenarioSuitTypeFullName, methodName);
+            return new Engine.Scenario(testCase.Source, scenarioSuitTypeFullName, methodName);
         }
 
         public static TestResult ConvertToTestResult(this ScenarioRunResult scenarioRunResult)

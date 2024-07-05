@@ -7,9 +7,8 @@ namespace SandboxTest.Net.Http
     /// <summary>
     /// Represents an application controller that exposes a <see cref="System.Net.Http.HttpClient"/> to control an instance via http requests.
     /// </summary>
-    public class HttpClientController : IController
+    public class HttpClientController : ControllerBase
     {
-        protected readonly string? _name;
         protected Uri? _baseAddress;
         protected HttpClient? _httpClient;
 
@@ -18,13 +17,9 @@ namespace SandboxTest.Net.Http
         /// </summary>
         /// <param name="baseAddress"></param>
         /// <param name="name"></param>
-        public HttpClientController(string? name) 
+        public HttpClientController(string? name) : base(name)
         {
-            _name = name;
         }
-
-        ///<inheritdoc/>
-        public string? Name { get => _name; }
 
         /// <summary>
         /// Returns an instance of the <see cref="System.Net.Http.HttpClient"/>

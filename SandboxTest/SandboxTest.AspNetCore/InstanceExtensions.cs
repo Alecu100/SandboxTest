@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using SandboxTest.Hosting;
 using SandboxTest.Instance;
 
 namespace SandboxTest.AspNetCore
@@ -7,15 +6,15 @@ namespace SandboxTest.AspNetCore
     public static class InstanceExtensions
     {
         /// <summary>
-        /// Assigns a <see cref="WebApplicationRunner"/> as the runner to the application instance.
+        /// Assigns a <see cref="WebApplicationRunner"/> as the runner to the instance.
         /// </summary>
-        /// <param name="applicationInstance"></param>
+        /// <param name="instance"></param>
         /// <param name="webApplicationBuilderFunc"></param>
         /// <returns></returns>
-        public static IInstance UseWebApplicationRunner(this IInstance applicationInstance, Func<string[], Task<WebApplicationBuilder>> webApplicationBuilderFunc)
+        public static IInstance UseWebApplicationRunner(this IInstance instance, Func<string[], Task<WebApplicationBuilder>> webApplicationBuilderFunc)
         {
-            applicationInstance.UseRunner(new WebApplicationRunner(webApplicationBuilderFunc));
-            return applicationInstance;
+            instance.UseRunner(new WebApplicationRunner(webApplicationBuilderFunc));
+            return instance;
         }
 
         /// <summary>

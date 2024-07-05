@@ -1,5 +1,4 @@
-﻿using SanboxTest.Runners.WireMock;
-using SandboxTest.Instance;
+﻿using SandboxTest.Instance;
 
 namespace SandboxTest.WireMock
 {
@@ -13,29 +12,9 @@ namespace SandboxTest.WireMock
         /// </summary>
         /// <param name="instance"></param>
         /// <returns></returns>
-        public static IInstance UseWireMockRunner(this IInstance instance)
+        public static IInstance UseWireMockRunner(this IInstance instance, int port = 80, bool useSsl = true, bool useAdminInterface = false)
         {
-            instance.UseRunner(new WireMockRunner());
-            return instance;
-        }
-
-        /// <summary>
-        /// Assigns a <see cref="WireMockRunner"/> as the runner to the instance.
-        /// </summary>
-        /// <param name="instance"></param>
-        /// <returns></returns>
-        public static IInstance ConfigureWireMockRunner(this IInstance instance, int port, bool useSsl, bool useAdminInterface)
-        {
-            if (instance.Runner == null)
-            {
-                throw new InvalidOperationException("Instance has no runner configured for it");
-            }
-            var wireMockRunner = instance.Runner as WireMockRunner;
-            if (wireMockRunner == null) 
-            {
-                throw new InvalidOperationException("Instance doesn't use the WireMock runner");
-            }
-            wireMockRunner.OnConfigureBuild(port, useSsl, useAdminInterface);
+            instance.UseRunner(new WireMockRunner(port, useSsl, useAdminInterface));
             return instance;
         }
 

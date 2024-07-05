@@ -1,4 +1,5 @@
 ﻿using SandboxTest.Instance;
+using SandboxTest.Utils;
 using System.Diagnostics;
 
 namespace SandboxTest.Node
@@ -7,9 +8,9 @@ namespace SandboxTest.Node
     {
         private Process? _nodeProcess;
 
-        private Func<string, bool>? _readyFunc;
+        private Func<string, bool>? _parseReadyFunc;
 
-        private Func<string, bool>? _errorFunc;
+        private Func<string, bool>? _parseErrorFunc;
 
         private string _host;
 
@@ -23,11 +24,21 @@ namespace SandboxTest.Node
 
         private Func<Task>? _configureRunFunc;
 
-        public NodeRunner() 
+        private string? _sourcePath;
+
+        private string? _npmRunCommand;
+
+        private TaskCompletionSource<bool>? _runCompletionSource;
+
+        /// <param name="sourcePath">The path of the sources.</param>
+        /// <param name="host">The host on which to start the node server.</param>
+        /// <param name="port">The port to use for the node server.</param>
+        /// <param name="useSsl">Enables the node server to use ssl</param>
+        public NodeRunner(string host = "localhost", int port = 80, bool useSsl = false) 
         {
-            _host = "localhost";
-            _port = 80;
-            _useSsl = true;
+            _host = host;
+            _port = port;
+            _useSsl = useSsl;
             _url = $"{(_useSsl ? "https" : "http")}://{_host}:{_port}";
         }
 
@@ -43,9 +54,22 @@ namespace SandboxTest.Node
         public bool UseSssl => _useSsl;
 
         /// <inheritdoc/>
-        public Task BuildAsync()
+        public async Task BuildAsync()
         {
-            throw new NotImplementedException();
+            if (_parseErrorFunc == null || _parseReadyFunc == null || _sourcePath == null || _npmRunCommand == null)
+            {
+                throw new InvalidOperationException("Node run not cofigured");
+            }
+
+            await CommandLineUtils.RunCommand($"npm install -f" , _sourcePath);
+        }
+
+        public void OnConfigureNode(Func<string, bool> parseReadyFunc, Func<string, bool>? parseErrorFunc, string sourcePath, string npmRunCommand)
+        {
+            _sourcePath = sourcePath;
+            _parseReadyFunc = parseReadyFunc;
+            _parseErrorFunc = parseErrorFunc;
+            _npmRunCommand = npmRunCommand;
         }
 
         /// <inheritdoc/>
@@ -67,20 +91,6 @@ namespace SandboxTest.Node
             _configureRunFunc = configureRunFunc;
         }
 
-        /// <summary>
-        /// Configures the parameters to run the node server with.
-        /// </summary>
-        /// <param name="host">The host on which to start the node server.</param>
-        /// <param name="port">The port to use for the node server.</param>
-        /// <param name="useSsl">Enables the node server to use ssl</param>
-        public void OnConfigureNode(string host, int port, bool useSsl)
-        {
-            _port = port;
-            _host = host;
-            _useSsl = useSsl;
-            _url = $"{(_useSsl ? "https" : "http")}://{_host}:{_port}";
-        }
-
         /// <inheritdoc/>
         public async Task ConfigureRunAsync()
         {
@@ -100,9 +110,26 @@ namespace SandboxTest.Node
         }
 
         /// <inheritdoc/>
-        public override Task RunAsync()
+        public override async Task RunAsync()
         {
-            return Task.CompletedTask;
+            if (_parseErrorFunc == null || _parseReadyFunc == null || _sourcePath == null)
+            {
+                throw new InvalidOperationException("Parse error func and parse ready func not set");
+            }
+
+            _runCompletionSource = new TaskCompletionSource<bool>();
+            _nodeProcess = await CommandLineUtils.RunProcess($"npm {_npmRunCommand} -- --host \"{_host}\" --port {_port}", _sourcePath, (output) =>
+            {
+                if (_parseErrorFunc(output))
+                {
+                    _runCompletionSource.SetResult(false);
+                }
+                if (_parseReadyFunc(output))
+                {
+                    _runCompletionSource.SetResult(true);
+                }
+            });
+            await _runCompletionSource.Task;
         }
 
         /// <inheritdoc/>

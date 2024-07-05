@@ -30,7 +30,7 @@
                 fullPathToSearchIn = fullPathToSearchIn.TrimEnd(Path.DirectorySeparatorChar);
             }
 
-            var pathSeparatorPosition = fullPathToSearchIn.IndexOf(Path.DirectorySeparatorChar);
+            var pathSeparatorPosition = fullPathToSearchIn.LastIndexOf(Path.DirectorySeparatorChar);
             if (pathSeparatorPosition < 0) 
             {
                 return null;

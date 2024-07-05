@@ -1,8 +1,7 @@
 ﻿using SandboxTest.Instance;
-using SandboxTest.WireMock;
 using WireMock.Server;
 
-namespace SanboxTest.Runners.WireMock
+namespace SandboxTest.WireMock
 {
     /// <summary>
     /// Runner used to used to start instances of mock Rest or http APIs with WireMockServer.
@@ -15,9 +14,12 @@ namespace SanboxTest.Runners.WireMock
         protected WireMockServer? _wireMockServer;
         protected string _url;
 
-        public WireMockRunner()
+        public WireMockRunner(int port = 80, bool useSsl = true, bool useAdminInterface = false)
         {
-            _url = "https://127.0.0.1:80";
+            _port = port;
+            _useSsl = useSsl;
+            _useAdminInterface = useAdminInterface;
+            _url = $"{(_useSsl ? "https" : "http")}://127.0.0.1:{_port}";
         }
 
         /// <summary>
@@ -42,18 +44,6 @@ namespace SanboxTest.Runners.WireMock
 
         ///<inheritdoc/>
         public string Url => _url;
-
-        /// <summary>
-        /// Sets the configure run function to configure on what port to start the WireMock server and if it should use ssl or admin interface.
-        /// </summary>
-        /// <param name="configureBuildFunc"></param>
-        public void OnConfigureBuild(int port, bool useSsl, bool useAdminInterface)
-        {
-            _port = port;
-            _useSsl = useSsl;
-            _useAdminInterface = useAdminInterface;
-            _url = $"{(_useSsl ? "https" : "http")}://127.0.0.1:{_port}";
-        }
 
         /// <summary>
         /// Resets the WireMockServer removing all the setup mock http responses.

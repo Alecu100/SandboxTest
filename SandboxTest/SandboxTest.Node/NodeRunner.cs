@@ -120,6 +120,10 @@ namespace SandboxTest.Node
             _runCompletionSource = new TaskCompletionSource<bool>();
             _nodeProcess = await CommandLineUtils.RunProcess($"npm {_npmRunCommand} -- --host \"{_host}\" --port {_port}", _sourcePath, (output) =>
             {
+                if (ParsePortIsInUse(output))
+                {
+                    _port += 1;
+                }
                 if (_parseErrorFunc(output))
                 {
                     _runCompletionSource.SetResult(false);
@@ -130,6 +134,21 @@ namespace SandboxTest.Node
                 }
             });
             await _runCompletionSource.Task;
+        }
+
+        private bool ParsePortIsInUse(string output)
+        {
+            var indexOfPort = output.IndexOf("port", StringComparison.InvariantCultureIgnoreCase);
+            if (indexOfPort < 0)
+            {
+                return false;
+            }
+            var indexOfIsInUse = output.IndexOf("is in use, trying another one", indexOfPort, StringComparison.InvariantCultureIgnoreCase);
+            if (indexOfIsInUse < 0)
+            {
+                return false;
+            }
+            return true;
         }
 
         /// <inheritdoc/>

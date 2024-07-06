@@ -4,7 +4,7 @@ using SandboxTest.WebServer;
 namespace SandboxTest.Net.Http
 {
     /// <summary>
-    /// Static class that offers extension methods to use the <see cref="HttpClientController"/>  and related functionalities.
+    /// Static class that offers extension method to use the <see cref="HttpClientController"/>.
     /// </summary>
     public static class InstanceExtensions
     {

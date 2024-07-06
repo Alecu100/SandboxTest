@@ -4,7 +4,7 @@ using SandboxTest.Instance.Hosted;
 namespace SandboxTest
 {
     /// <summary>
-    /// Represents a hosted application instance that starts a new process dedicated to the instance.
+    /// Represents a hosted application instance that starts a new process locally dedicated to the instance.
     /// </summary>
     public class ApplicationHostedInstance : ApplicationInstance, IHostedInstance
     {

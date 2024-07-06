@@ -15,7 +15,7 @@ namespace SandboxTest.Node
         /// <param name="port"></param>
         /// <param name="useSsl"></param>
         /// <returns></returns>
-        public static IInstance UseNodeRunner(this IInstance instance, string host = "localhost", int port = 80, bool useSsl = false)
+        public static IInstance UseNodeRunner(this IInstance instance, string host = "localhost", int port = 80, bool useSsl = true)
         {
             instance.UseRunner(new NodeRunner(host, port, useSsl));
             return instance;

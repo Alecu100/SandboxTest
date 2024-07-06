@@ -14,6 +14,7 @@
     <ProjectReference Include="..\SandboxTest.Hosting.ServiceInterceptor\SandboxTest.Hosting.ServiceInterceptor.csproj" />
     <ProjectReference Include="..\SandboxTest.Net.Http\SandboxTest.Net.Http.csproj" />
     <ProjectReference Include="..\SandboxTest.Node\SandboxTest.Node.csproj" />
+    <ProjectReference Include="..\SandboxTest.Playwright\SandboxTest.Playwright.csproj" />
     <ProjectReference Include="..\SandboxTest.Sample.Application1\SandboxTest.Sample.Application1.csproj" />
     <ProjectReference Include="..\SandboxTest.Sample.Application2\SandboxTest.Sample.Application2.csproj" />
     <ProjectReference Include="..\SandboxTest.Sample.Application3\SandboxTest.Sample.Application3.csproj" />

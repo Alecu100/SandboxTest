@@ -1,6 +1,9 @@
 ﻿using SandboxTest.Instance;
 using SandboxTest.Utils;
+using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace SandboxTest.Node
 {
@@ -30,15 +33,34 @@ namespace SandboxTest.Node
 
         private TaskCompletionSource<bool>? _runCompletionSource;
 
+        private static readonly string NodeExecutableName;
+        private static readonly string NodePath;
+        private static readonly string NodeCliPath = "node_modules\\npm\\bin\\npm-cli.js";
+
+        static NodeRunner()
+        {
+            var path = Environment.ExpandEnvironmentVariables("node.exe");
+            NodeExecutableName = Environment.OSVersion.Platform == PlatformID.Win32NT ? "node.exe" : "node";
+            var nodeProcess = Process.Start(NodeExecutableName);
+            NodePath = Path.GetDirectoryName(nodeProcess!.MainModule!.FileName)!;
+            nodeProcess.Kill(true);
+        }
+
         /// <param name="sourcePath">The path of the sources.</param>
         /// <param name="host">The host on which to start the node server.</param>
         /// <param name="port">The port to use for the node server.</param>
         /// <param name="useSsl">Enables the node server to use ssl</param>
-        public NodeRunner(string host = "localhost", int port = 80, bool useSsl = false) 
+        public NodeRunner(string host = "localhost", int port = 80, bool useSsl = true) 
         {
             _host = host;
             _port = port;
             _useSsl = useSsl;
+            _url = string.Empty;
+            RefreshUrl();
+        }
+
+        private void RefreshUrl()
+        {
             _url = $"{(_useSsl ? "https" : "http")}://{_host}:{_port}";
         }
 
@@ -61,7 +83,7 @@ namespace SandboxTest.Node
                 throw new InvalidOperationException("Node run not cofigured");
             }
 
-            await CommandLineUtils.RunCommand($"npm install -f" , _sourcePath);
+            await RunNodeCommandAsync($"install -f" , _sourcePath);
         }
 
         public void OnConfigureNode(Func<string, bool> parseReadyFunc, Func<string, bool>? parseErrorFunc, string sourcePath, string npmRunCommand)
@@ -118,11 +140,12 @@ namespace SandboxTest.Node
             }
 
             _runCompletionSource = new TaskCompletionSource<bool>();
-            _nodeProcess = await CommandLineUtils.RunProcess($"npm {_npmRunCommand} -- --host \"{_host}\" --port {_port}", _sourcePath, (output) =>
+            _nodeProcess = RunNodeProcess($"{_npmRunCommand} -- --host \"{_host}\" --port {_port}", _sourcePath, (output) =>
             {
                 if (ParsePortIsInUse(output))
                 {
                     _port += 1;
+                    RefreshUrl();
                 }
                 if (_parseErrorFunc(output))
                 {
@@ -160,9 +183,77 @@ namespace SandboxTest.Node
             }
             if (!_nodeProcess.HasExited)
             {
-                _nodeProcess.Kill(true);
+                _nodeProcess.CancelErrorRead();
+                _nodeProcess.CancelOutputRead();
+                _nodeProcess.Close();
             }
+            _nodeProcess.WaitForExitAsync();
+
             return Task.CompletedTask;
+        }
+
+        private static async Task<string> RunNodeCommandAsync(string commandToRun)
+        {
+            var process = RunNodeProcess(commandToRun, Environment.CurrentDirectory);
+
+            var output = new StringBuilder();
+            process.OutputDataReceived += delegate (object sender, DataReceivedEventArgs args) {
+                output.AppendLine(args.Data);
+            };
+            process.BeginOutputReadLine();
+            process.BeginOutputReadLine();
+
+            await process.WaitForExitAsync();
+
+            return output.ToString();
+        }
+
+        private static async Task<string> RunNodeCommandAsync(string commandToRun, string workingDirectory)
+        {
+            var output = new StringBuilder();
+            var process = RunNodeProcess(commandToRun, workingDirectory, text => output.AppendLine(text));
+
+            await process.WaitForExitAsync();
+
+            return output.ToString();
+        }
+
+        private static Process RunNodeProcess(string commandToRun, Action<string>? outputReceived = null, Action<string>? errorReceived = null)
+        {
+            return RunNodeProcess(commandToRun, Environment.CurrentDirectory, outputReceived, errorReceived);
+        }
+
+        private static Process RunNodeProcess(string commandToRun, string workingDirectory, Action<string>? outputReceived = null, Action<string>? errorReceived = null)
+        {
+            var commandLineProcess = new Process();
+            commandLineProcess.StartInfo.FileName = Path.Combine(NodePath, NodeExecutableName);
+            commandLineProcess.StartInfo.WorkingDirectory = workingDirectory;
+            commandLineProcess.StartInfo.UseShellExecute = false;
+            commandLineProcess.StartInfo.RedirectStandardError = true;
+            commandLineProcess.StartInfo.RedirectStandardOutput = true;
+            commandLineProcess.StartInfo.RedirectStandardInput = true;
+            commandLineProcess.StartInfo.Arguments = $"\"{Path.Combine(NodePath, NodeCliPath)}\" {commandToRun}";
+            commandLineProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
+
+            if (outputReceived != null)
+            {
+                commandLineProcess.OutputDataReceived += (sender, args) =>
+                {
+                    outputReceived(args.Data ?? string.Empty);
+                };
+            }
+            if (errorReceived != null)
+            {
+                commandLineProcess.ErrorDataReceived += (sender, args) =>
+                {
+                    errorReceived(args.Data ?? string.Empty);
+                };
+            }
+            commandLineProcess.Start();
+            commandLineProcess.BeginOutputReadLine();
+            commandLineProcess.BeginErrorReadLine();
+
+            return commandLineProcess;
         }
     }
 }

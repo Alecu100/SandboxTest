@@ -345,31 +345,31 @@ namespace SandboxTest.Engine.MainTestEngine
                 throw new InvalidOperationException("No scenario suite loaded in scenario suite test engine");
             }
 
-            var applicationInstance = applicationInstanceField.GetValue(_scenarioSuiteInstance) as IInstance;
-            if (applicationInstance == null)
+            var instance = applicationInstanceField.GetValue(_scenarioSuiteInstance) as IInstance;
+            if (instance == null)
             {
                 _scenarioFailedErrors.Add($"Application instance for field {applicationInstanceField.Name} is missing");
                 return;
             }
 
-            var scenarioSuiteTestEngineApplicationInstance = new ScenarioSuiteTestEngineInstanceHandler(_runId, applicationInstance, _scenarioSuiteType, _mainTestEngineRunContext);
+            var scenarioSuiteTestEngineApplicationInstance = new ScenarioSuiteTestEngineInstanceHandler(_runId, instance, _scenarioSuiteType, _mainTestEngineRunContext);
             try
             {
                 await scenarioSuiteTestEngineApplicationInstance.LoadInstanceAsync(token);
             }
             catch(Exception ex)
             {
-                _scenarioFailedErrors.Add($"Application instance {applicationInstance.Id} failed to start with exception {ex}");
+                _scenarioFailedErrors.Add($"Application instance {instance.Id} failed to start with exception {ex}");
                 return;
             }
-            await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Waiting for ready by application instance {applicationInstance.Id}");
+            await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Running runner in instance {instance.Id}");
             var runInstanceResult = await scenarioSuiteTestEngineApplicationInstance.RunInstanceAsync(token);
             if (runInstanceResult == null || runInstanceResult.IsSuccesful == false)
             {
-                _scenarioFailedErrors.Add($"Failed to start application instanfce with id {applicationInstance.Id}");
+                _scenarioFailedErrors.Add($"Failed to start instance with id {instance.Id}");
             }
             _scenarioSuiteApplicationInstances.Add(scenarioSuiteTestEngineApplicationInstance);
-            await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Application instance {applicationInstance.Id} started succesfully");
+            await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Instance {instance.Id} started succesfully");
         }
     }
 }

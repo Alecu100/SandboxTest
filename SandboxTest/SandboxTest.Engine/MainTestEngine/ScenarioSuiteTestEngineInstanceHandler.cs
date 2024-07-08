@@ -178,6 +178,10 @@ namespace SandboxTest.Engine.MainTestEngine
                 {
                     throw new InvalidOperationException("Assigned instance is not a hosted instance to send messages to");
                 }
+                if (_assignedHostedInstance.MessageChannel == null)
+                {
+                    throw new InvalidOperationException("Assigned instance does not have a message channel assigned");
+                }
                 var json = JsonConvert.SerializeObject(operation, JsonUtils.JsonSerializerSettings);
                 await _assignedHostedInstance.MessageChannel.SendMessageAsync(json);
 

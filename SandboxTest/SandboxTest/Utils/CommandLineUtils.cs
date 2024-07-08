@@ -1,5 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Xml.Linq;
 
 namespace SandboxTest.Utils
 {
@@ -13,7 +16,7 @@ namespace SandboxTest.Utils
         public static async Task<string> RunCommandAsync(string commandToRun, string workingDirectory)
         {
             var output = new StringBuilder();
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 using (var windowsCommandLineProcess = new Process())
                 {
@@ -23,7 +26,8 @@ namespace SandboxTest.Utils
                     windowsCommandLineProcess.StartInfo.WorkingDirectory = workingDirectory;
                     windowsCommandLineProcess.Start();
 
-                    windowsCommandLineProcess.OutputDataReceived += delegate (object sender, DataReceivedEventArgs args) {
+                    windowsCommandLineProcess.OutputDataReceived += delegate (object sender, DataReceivedEventArgs args)
+                    {
                         output.AppendLine(args.Data);
                     };
                     windowsCommandLineProcess.BeginOutputReadLine();
@@ -34,7 +38,7 @@ namespace SandboxTest.Utils
                     return output.ToString();
                 }
             }
-            else
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 using (var linuxCommandLineProcess = new Process())
                 {
                     linuxCommandLineProcess.StartInfo.FileName = "/bin/bash";
@@ -44,7 +48,8 @@ namespace SandboxTest.Utils
                     linuxCommandLineProcess.StartInfo.RedirectStandardError = true;
                     linuxCommandLineProcess.Start();
 
-                    linuxCommandLineProcess.OutputDataReceived += delegate (object sender, DataReceivedEventArgs args) {
+                    linuxCommandLineProcess.OutputDataReceived += delegate (object sender, DataReceivedEventArgs args)
+                    {
                         output.AppendLine(args.Data);
                     };
                     linuxCommandLineProcess.BeginOutputReadLine();
@@ -53,6 +58,27 @@ namespace SandboxTest.Utils
 
                     return output.ToString();
                 }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                using (var linuxCommandLineProcess = new Process())
+                {
+                    linuxCommandLineProcess.StartInfo.FileName = "zsh";
+                    linuxCommandLineProcess.StartInfo.Arguments = "-c \" " + commandToRun + " \"";
+                    linuxCommandLineProcess.StartInfo.UseShellExecute = false;
+                    linuxCommandLineProcess.StartInfo.RedirectStandardOutput = true;
+                    linuxCommandLineProcess.StartInfo.RedirectStandardError = true;
+                    linuxCommandLineProcess.Start();
+
+                    linuxCommandLineProcess.OutputDataReceived += delegate (object sender, DataReceivedEventArgs args)
+                    {
+                        output.AppendLine(args.Data);
+                    };
+                    linuxCommandLineProcess.BeginOutputReadLine();
+
+                    await linuxCommandLineProcess.WaitForExitAsync();
+
+                    return output.ToString();
+                }
+            else throw new PlatformNotSupportedException("Invalid platform");
         }
 
         public static Task<Process> RunCommandLineProcessAsync(string commandToRun, Action<string>? outputReceived = null, Action<string>? errorReceived = null)

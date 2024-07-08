@@ -8,8 +8,9 @@ namespace SandboxTest.Node
 {
     public class NodeRunner : RunnerBase, INodeRunner
     {
-        private static readonly string NodeExecutableName;
-        private static readonly string NodePath;
+        private static bool NodeFound;
+        private static readonly string? NodeExecutableName;
+        private static readonly string? NodePath;
         private const string NodeCliPath = "node_modules\\npm\\bin\\npm-cli.js";
         private const string Listening = "LISTENING";
         private const string Listen = "LISTEN";
@@ -42,13 +43,29 @@ namespace SandboxTest.Node
         static NodeRunner()
         {
             NodeExecutableName = Environment.OSVersion.Platform == PlatformID.Win32NT ? $"{Node}.exe" : Node;
-            var nodeProcess = Process.Start(NodeExecutableName);
-            while (nodeProcess.MainModule == null)
+            var cancellationTokenSource = new CancellationTokenSource(20000);
+            try
             {
+                var nodeProcess = Process.Start(NodeExecutableName);
+                while (nodeProcess.MainModule == null || cancellationTokenSource.IsCancellationRequested)
+                {
 
+                }
+                if (!cancellationTokenSource.IsCancellationRequested)
+                {
+                    NodePath = Path.GetDirectoryName(nodeProcess!.MainModule!.FileName)!;
+                    nodeProcess.Kill(true);
+                    NodeFound = true;
+                }
+                else
+                {
+                    NodeFound = false;
+                }
             }
-            NodePath = Path.GetDirectoryName(nodeProcess!.MainModule!.FileName)!;
-            nodeProcess.Kill(true);
+            catch(Exception)
+            {
+                NodeFound = false;
+            }
         }
 
         /// <param name="sourcePath">The path of the sources.</param>
@@ -139,6 +156,10 @@ namespace SandboxTest.Node
         /// <inheritdoc/>
         public override async Task RunAsync()
         {
+            if (NodeFound == false)
+            {
+                throw new InvalidOperationException("Node.js not found");
+            }
             if (_parseErrorFunc == null || _parseReadyFunc == null || _sourcePath == null)
             {
                 throw new InvalidOperationException("Parse error func and parse ready func not set");
@@ -182,6 +203,10 @@ namespace SandboxTest.Node
         /// <inheritdoc/>
         public override async Task StopAsync()
         {
+            if (NodeFound == false)
+            {
+                throw new InvalidOperationException("Node.js not found");
+            }
             if (_nodeProcess == null)
             {
                 throw new InvalidOperationException("Node server not started");
@@ -260,7 +285,7 @@ namespace SandboxTest.Node
         private static Process RunNodeProcess(string commandToRun, string workingDirectory, Action<string>? outputReceived = null, Action<string>? errorReceived = null)
         {
             var commandLineProcess = new Process();
-            commandLineProcess.StartInfo.FileName = Path.Combine(NodePath, NodeExecutableName);
+            commandLineProcess.StartInfo.FileName = Path.Combine(NodePath!, NodeExecutableName!);
             commandLineProcess.StartInfo.WorkingDirectory = workingDirectory;
             commandLineProcess.StartInfo.UseShellExecute = false;
             commandLineProcess.StartInfo.RedirectStandardError = true;

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using SandboxTest.Instance.Hosted;
 
-namespace SandboxTest
+namespace SandboxTest.Application
 {
     /// <summary>
     /// Represents a hosted application instance that starts a new process locally dedicated to the instance.
@@ -22,7 +22,7 @@ namespace SandboxTest
             return new ApplicationHostedInstance(id);
         }
 
-        public ApplicationHostedInstance(string id) : base(id) 
+        public ApplicationHostedInstance(string id) : base(id)
         {
 
         }

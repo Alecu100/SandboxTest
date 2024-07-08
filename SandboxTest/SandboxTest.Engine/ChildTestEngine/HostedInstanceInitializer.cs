@@ -89,7 +89,7 @@ namespace SandboxTest.Engine.ChildTestEngine
                             _runFinishedTaskCompletionSource.SetResult(1);
                             break;
                         case RunScenarioStepOperation runStepOperation:
-                            result = await _childTestEngine.RunStepAsync(runStepOperation.StepId, runStepOperation.StepContext);
+                            result = await _childTestEngine.RunStepAsync(runStepOperation.StepId, runStepOperation.StepData);
                             await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
                             break;
                         case ResetInstanceOperation:

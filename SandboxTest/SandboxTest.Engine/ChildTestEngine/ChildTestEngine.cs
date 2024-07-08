@@ -162,25 +162,25 @@ namespace SandboxTest.Engine.ChildTestEngine
             }
         }
 
-        public async virtual Task<OperationResult> RunStepAsync(ScenarioStepId stepId, ScenarioStepData stepContext)
+        public async virtual Task<OperationResult> RunStepAsync(ScenarioStepId stepId, ScenarioStepData stepData)
         {
             if (_runningInstance == null)
             {
-                return new RunScenarioStepOperationResult(false, stepContext, "No application instance running");
+                return new RunScenarioStepOperationResult(false, stepData, "No application instance running");
             }
             var step = _runningInstance.Steps.FirstOrDefault(step => step.Id.ApplicationInstanceId == _runningInstance.Id && ((step.Id.Name != null && stepId.Name == step.Id.Name) || (step.Id.StepIndex == stepId.StepIndex)));
             if (step == null)
             {
-                return new RunScenarioStepOperationResult(false, stepContext, "Step not found");
+                return new RunScenarioStepOperationResult(false, stepData, "Step not found");
             }
             try
             {
-                await step.RunAsync(stepContext);
-                return new RunScenarioStepOperationResult(true, stepContext);
+                await step.RunAsync(stepData);
+                return new RunScenarioStepOperationResult(true, stepData);
             }
             catch (Exception ex)
             {
-                return new RunScenarioStepOperationResult(false, stepContext, $"Error running step {ex}");
+                return new RunScenarioStepOperationResult(false, stepData, $"Error running step {ex}");
             }
         }
 

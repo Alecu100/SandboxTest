@@ -1,6 +1,6 @@
 ﻿using SandboxTest.Instance;
 
-namespace SandboxTest
+namespace SandboxTest.Application
 {
     /// <summary>
     /// Represents a normal application instances hosted in the same process as the actual scenario suite and scenario.
@@ -21,8 +21,8 @@ namespace SandboxTest
         /// Creates a new <see cref="ApplicationInstance"/>
         /// </summary>
         /// <param name="id"></param>
-        public ApplicationInstance(string id) : base(id) 
-        { 
+        public ApplicationInstance(string id) : base(id)
+        {
         }
     }
 }

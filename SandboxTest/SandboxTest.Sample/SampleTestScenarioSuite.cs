@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
+using SandboxTest.Application;
 using SandboxTest.Hosting;
 using SandboxTest.Instance;
 using SandboxTest.Sample.Application1;

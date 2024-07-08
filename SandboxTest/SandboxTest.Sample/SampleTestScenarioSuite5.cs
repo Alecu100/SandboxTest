@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
+using SandboxTest.Application;
 using SandboxTest.AspNetCore;
 using SandboxTest.Hosting;
 using SandboxTest.Instance;
@@ -19,6 +20,7 @@ namespace SandboxTest.Sample
     public class SampleTestScenarioSuite5
     {
         public readonly IInstance _applicationInstance41 = ApplicationHostedInstance.CreateEmptyInstance("Instance51")
+            .UseApplicationHostedInstanceMessageChannel()
             .UseWebApplicationRunner(args =>
             {
                 var builder = WebApplication.CreateBuilder(args);

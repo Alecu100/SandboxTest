@@ -1,8 +1,7 @@
-﻿using SandboxTest.Application;
-using SandboxTest.Instance.Hosted;
+﻿using SandboxTest.Instance.Hosted;
 using System.Runtime.Loader;
 
-namespace SandboxTest.Engine.ApplicationContainer
+namespace SandboxTest.Application
 {
     internal class Program
     {

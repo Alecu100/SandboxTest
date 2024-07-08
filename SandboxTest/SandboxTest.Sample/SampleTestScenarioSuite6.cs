@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SandboxTest.Application;
 using SandboxTest.Hosting;
 using SandboxTest.Hosting.ServiceInterceptor;
 using SandboxTest.Instance;

@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using SandboxTest.Application;
 using SandboxTest.Dummy;
 using SandboxTest.Instance;
 using SandboxTest.Scenario;

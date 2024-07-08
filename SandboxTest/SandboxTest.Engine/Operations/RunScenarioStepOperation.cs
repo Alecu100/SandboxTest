@@ -14,7 +14,7 @@ namespace SandboxTest.Engine.Operations
         {
             TypeName = nameof(RunScenarioStepOperation);
             StepId = scenarioStepId;
-            StepContext = stepContext;
+            StepData = stepContext;
         }
 
         /// <summary>
@@ -23,8 +23,8 @@ namespace SandboxTest.Engine.Operations
         public ScenarioStepId StepId { get; set; }
 
         /// <summary>
-        /// The step context used to pass data between steps. This
+        /// The step data used to pass data between steps. This is serialized in json format and all the stored data must be json serializable.
         /// </summary>
-        public ScenarioStepData StepContext { get; set; }
+        public ScenarioStepData StepData { get; set; }
     }
 }

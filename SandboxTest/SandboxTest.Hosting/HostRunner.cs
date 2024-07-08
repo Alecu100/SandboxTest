@@ -6,7 +6,7 @@ namespace SandboxTest.Hosting
     /// <summary>
     /// Represents a runner capable of running generic .Net core hosts <see cref="IHost"/>.
     /// </summary>
-    public class HostRunner : RunnerBase, IBuildableRunner
+    public class HostRunner : RunnerBase, IHostRunner
     {
         protected IHost? _host;
         protected IHostBuilder? _hostBuilder;

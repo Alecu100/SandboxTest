@@ -3,11 +3,16 @@ using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Utils;
 using SandboxTest.WebServer;
+using System.Diagnostics;
 
 namespace SandboxTest.Playwright
 {
     public class PlaywrightController : ControllerBase, IPlaywrightController
     {
+        private const string Powershell = "pwsh";
+        private static readonly string PowershellExecutableName;
+        private static readonly bool PowershellFound;
+
         protected IPlaywright? _playwright;
         protected IPage? _page;
         protected IBrowser? _browser;
@@ -25,7 +30,20 @@ namespace SandboxTest.Playwright
 
         /// <inheritdoc/>
         public IPage Page { get => _page ?? throw new InvalidOperationException("Playwright controller not built"); }
+        static PlaywrightController()
+        {
+            PowershellExecutableName = Environment.OSVersion.Platform == PlatformID.Win32NT ? $"{Powershell}.exe" : Powershell;
 
+            try
+            {
+                using var powershellProcess = Process.Start(PowershellExecutableName);
+                PowershellFound = true;
+            }
+            catch (Exception)
+            {
+                PowershellFound = false;
+            }
+        }
 
         public PlaywrightController(string? name, PlaywrightControllerBrowserType browserType, string? startPageName = null, float? slowMod = null, bool headless = true) : base(name)
         {
@@ -38,7 +56,11 @@ namespace SandboxTest.Playwright
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWebServerRunner.RunAsync), -200)]
         public async Task ConfigureRunAsync()
         {
-            await CommandLineUtils.RunCommandAsync($"powershell.exe \"{Environment.CurrentDirectory}\\playwright.ps1\" install");
+            if (PowershellFound == false)
+            {
+                throw new InvalidOperationException("Powershell core required but not found");
+            }
+            await CommandLineUtils.RunCommandAsync($"{Powershell} \"{Environment.CurrentDirectory}\\playwright.ps1\" install");
         }
 
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWebServerRunner.RunAsync), 200)]

@@ -1,6 +1,5 @@
 ﻿using SandboxTest.Instance;
 using SandboxTest.Utils;
-using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -9,6 +8,13 @@ namespace SandboxTest.Node
 {
     public class NodeRunner : RunnerBase, INodeRunner
     {
+        private static readonly string NodeExecutableName;
+        private static readonly string NodePath;
+        private const string NodeCliPath = "node_modules\\npm\\bin\\npm-cli.js";
+        private const string Listening = "LISTENING";
+        private const string Listen = "LISTEN";
+        private const string Node = "node";
+
         private Process? _nodeProcess;
 
         private Func<string, bool>? _parseReadyFunc;
@@ -33,16 +39,8 @@ namespace SandboxTest.Node
 
         private TaskCompletionSource<bool>? _runCompletionSource;
 
-        private static readonly string NodeExecutableName;
-        private static readonly string NodePath;
-        private static readonly string NodeCliPath = "node_modules\\npm\\bin\\npm-cli.js";
-        private static readonly string Listening = "LISTENING";
-        private static readonly string Listen = "LISTEN";
-        private static readonly string Node = "node";
-
         static NodeRunner()
         {
-            var path = Environment.ExpandEnvironmentVariables("node.exe");
             NodeExecutableName = Environment.OSVersion.Platform == PlatformID.Win32NT ? $"{Node}.exe" : Node;
             var nodeProcess = Process.Start(NodeExecutableName);
             while (nodeProcess.MainModule == null)
@@ -216,7 +214,7 @@ namespace SandboxTest.Node
                 var nodeLastIndex = macCommandResult.LastIndexOf(Node);
                 if (nodeLastIndex > 0)
                 {
-                    remainingNodeProcessId = int.Parse(macCommandResult.Split('\n')[1].Trim('\r').Trim().Split('\t', ' ', StringSplitOptions.RemoveEmptyEntries)[1])
+                    remainingNodeProcessId = int.Parse(macCommandResult.Split('\n')[1].Trim('\r', ' ').Split('\t', ' ', StringSplitOptions.RemoveEmptyEntries)[1]);
                 }
             }
 

@@ -36,12 +36,19 @@ namespace SandboxTest.Node
         private static readonly string NodeExecutableName;
         private static readonly string NodePath;
         private static readonly string NodeCliPath = "node_modules\\npm\\bin\\npm-cli.js";
+        private static readonly string Listening = "LISTENING";
+        private static readonly string Listen = "LISTEN";
+        private static readonly string Node = "node";
 
         static NodeRunner()
         {
             var path = Environment.ExpandEnvironmentVariables("node.exe");
-            NodeExecutableName = Environment.OSVersion.Platform == PlatformID.Win32NT ? "node.exe" : "node";
+            NodeExecutableName = Environment.OSVersion.Platform == PlatformID.Win32NT ? $"{Node}.exe" : Node;
             var nodeProcess = Process.Start(NodeExecutableName);
+            while (nodeProcess.MainModule == null)
+            {
+
+            }
             NodePath = Path.GetDirectoryName(nodeProcess!.MainModule!.FileName)!;
             nodeProcess.Kill(true);
         }
@@ -175,7 +182,7 @@ namespace SandboxTest.Node
         }
 
         /// <inheritdoc/>
-        public override Task StopAsync()
+        public override async Task StopAsync()
         {
             if (_nodeProcess == null)
             {
@@ -183,13 +190,42 @@ namespace SandboxTest.Node
             }
             if (!_nodeProcess.HasExited)
             {
-                _nodeProcess.CancelErrorRead();
-                _nodeProcess.CancelOutputRead();
-                _nodeProcess.Close();
+                _nodeProcess.Kill(true);
             }
-            _nodeProcess.WaitForExitAsync();
 
-            return Task.CompletedTask;
+            int remainingNodeProcessId = 0;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var windowsCommandResult = await CommandLineUtils.RunCommandAsync($"netstat -ano | find \"{Listening}\" | find \"{_port}\"");
+                var listeningLastIndex = windowsCommandResult.LastIndexOf(Listening, StringComparison.InvariantCultureIgnoreCase);
+                if (listeningLastIndex > 0)
+                {
+                    remainingNodeProcessId = int.Parse(windowsCommandResult.Substring(listeningLastIndex + Listening.Length).Trim());
+                }
+            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                var linuxCommandResult = await CommandLineUtils.RunCommandAsync($"netstat -nlp | grep :{_port}");
+                var listenLastIndex = linuxCommandResult.LastIndexOf(Listen);
+                if (listenLastIndex > 0)
+                {
+                    remainingNodeProcessId = int.Parse(linuxCommandResult.Substring(listenLastIndex + Listening.Length).Split('/')[0].Trim());
+                }
+            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                var macCommandResult = await CommandLineUtils.RunCommandAsync($"lsof -Pi :{_port}");
+                var nodeLastIndex = macCommandResult.LastIndexOf(Node);
+                if (nodeLastIndex > 0)
+                {
+                    remainingNodeProcessId = int.Parse(macCommandResult.Split('\n')[1].Trim('\r').Trim().Split('\t', ' ', StringSplitOptions.RemoveEmptyEntries)[1])
+                }
+            }
+
+            if (remainingNodeProcessId != 0)
+            {
+                var remainingNodeProcess = Process.GetProcessById(remainingNodeProcessId);
+                remainingNodeProcess.Kill(true);
+                await remainingNodeProcess.WaitForExitAsync();
+            }
         }
 
         private static async Task<string> RunNodeCommandAsync(string commandToRun)

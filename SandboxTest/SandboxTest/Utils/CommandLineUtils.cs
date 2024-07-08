@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Net.NetworkInformation;
+﻿using System.Diagnostics;
 using System.Text;
 
 namespace SandboxTest.Utils
@@ -9,11 +7,12 @@ namespace SandboxTest.Utils
     {
         public static async Task<string> RunCommandAsync(string commandToRun)
         {
-            return await RunCommand(commandToRun, Directory.GetCurrentDirectory());
+            return await RunCommandAsync(commandToRun, Directory.GetCurrentDirectory());
         }
 
-        public static async Task<string> RunCommand(string commandToRun, string workingDirectory)
+        public static async Task<string> RunCommandAsync(string commandToRun, string workingDirectory)
         {
+            var output = new StringBuilder();
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
                 using (var windowsCommandLineProcess = new Process())
@@ -24,8 +23,7 @@ namespace SandboxTest.Utils
                     windowsCommandLineProcess.StartInfo.WorkingDirectory = workingDirectory;
                     windowsCommandLineProcess.Start();
 
-                    var output = new StringBuilder();
-                    windowsCommandLineProcess.OutputDataReceived += delegate(object sender, DataReceivedEventArgs args) {
+                    windowsCommandLineProcess.OutputDataReceived += delegate (object sender, DataReceivedEventArgs args) {
                         output.AppendLine(args.Data);
                     };
                     windowsCommandLineProcess.BeginOutputReadLine();
@@ -46,11 +44,9 @@ namespace SandboxTest.Utils
                     linuxCommandLineProcess.StartInfo.RedirectStandardError = true;
                     linuxCommandLineProcess.Start();
 
-                    var output = new StringBuilder();
                     linuxCommandLineProcess.OutputDataReceived += delegate (object sender, DataReceivedEventArgs args) {
                         output.AppendLine(args.Data);
                     };
-                    linuxCommandLineProcess.BeginOutputReadLine();
                     linuxCommandLineProcess.BeginOutputReadLine();
 
                     await linuxCommandLineProcess.WaitForExitAsync();
@@ -59,12 +55,12 @@ namespace SandboxTest.Utils
                 }
         }
 
-        public static Task<Process> RunCommandLineProcess(string commandToRun, Action<string>? outputReceived = null, Action<string>? errorReceived = null)
+        public static Task<Process> RunCommandLineProcessAsync(string commandToRun, Action<string>? outputReceived = null, Action<string>? errorReceived = null)
         {
-            return RunCommandLineProcess(commandToRun, Directory.GetCurrentDirectory(), outputReceived, errorReceived);
+            return RunCommandLineProcessAsync(commandToRun, Directory.GetCurrentDirectory(), outputReceived, errorReceived);
         }
 
-        public static async Task<Process> RunCommandLineProcess(string commandToRun, string workingDirectory, Action<string>? outputReceived = null, Action<string>? errorReceived = null)
+        public static async Task<Process> RunCommandLineProcessAsync(string commandToRun, string workingDirectory, Action<string>? outputReceived = null, Action<string>? errorReceived = null)
         {
             var commandLineProcess = new Process();
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
@@ -78,23 +74,6 @@ namespace SandboxTest.Utils
                 commandLineProcess.StartInfo.Arguments = "-c \" " + commandToRun + " \"";
             }
             commandLineProcess.StartInfo.WorkingDirectory = workingDirectory;
-            AddRunProcessCommonParameters(outputReceived, errorReceived, commandLineProcess);
-            commandLineProcess.Start();
-            commandLineProcess.BeginOutputReadLine();
-            commandLineProcess.BeginErrorReadLine();
-
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-            {
-                await commandLineProcess.StandardInput.WriteLineAsync($"{commandToRun}");
-            }
-
-            return commandLineProcess;
-        }
-
-        private static void AddRunProcessCommonParameters(Action<string>? outputReceived, Action<string>? errorReceived, Process commandLineProcess)
-        { 
-            commandLineProcess.StartInfo.CreateNoWindow = false;
-            commandLineProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
             commandLineProcess.StartInfo.UseShellExecute = false;
             commandLineProcess.StartInfo.RedirectStandardError = true;
             commandLineProcess.StartInfo.RedirectStandardOutput = true;
@@ -114,6 +93,16 @@ namespace SandboxTest.Utils
                     errorReceived(args.Data ?? string.Empty);
                 };
             }
+            commandLineProcess.Start();
+            commandLineProcess.BeginOutputReadLine();
+            commandLineProcess.BeginErrorReadLine();
+
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                await commandLineProcess.StandardInput.WriteLineAsync($"{commandToRun}");
+            }
+
+            return commandLineProcess;
         }
     }
 }

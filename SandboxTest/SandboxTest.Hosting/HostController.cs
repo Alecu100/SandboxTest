@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Scenario;
 
 namespace SandboxTest.Hosting
 {
@@ -25,7 +26,7 @@ namespace SandboxTest.Hosting
         public IHost Host { get => _host ?? throw new InvalidOperationException("Host not initialized"); }
 
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IHostRunner.BuildAsync), 10)]
-        public Task BuildAsync(IRunner runner)
+        public Task BuildAsync(IRunner runner, IScenarioSuiteContext scenarioSuiteContext)
         {
             var hostApplicationRunner = runner as IHostRunner;
             if (hostApplicationRunner == null) 

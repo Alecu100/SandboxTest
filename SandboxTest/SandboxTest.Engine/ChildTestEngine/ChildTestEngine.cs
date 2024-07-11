@@ -76,7 +76,7 @@ namespace SandboxTest.Engine.ChildTestEngine
                 var allInstancesToRun = new List<object>();
                 allInstancesToRun.AddRange(_instance.Controllers);
                 allInstancesToRun.Add(_instance.Runner!);
-                await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.ResetAsync, new object[] { _instance.Runner, scenarioSuiteData });
+                await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.ResetAsync, new object[] { _instance.Runner, new ScenarioSuiteContext(scenarioSuiteData) });
 
                 return new ScenarioSuiteOperationResult(true, scenarioSuiteData);
             }
@@ -162,7 +162,7 @@ namespace SandboxTest.Engine.ChildTestEngine
                 var allInstancesToRun = new List<object>();
                 allInstancesToRun.AddRange(_instance.Controllers);
                 allInstancesToRun.Add(_instance.Runner);
-                await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.Runner.RunAsync, new object[] { _instance.Runner, scenarioSuiteData });
+                await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.Runner.RunAsync, new object[] { _instance.Runner, new ScenarioSuiteContext(scenarioSuiteData) });
                 return new ScenarioSuiteOperationResult(true, scenarioSuiteData);
             }
             catch (Exception ex)
@@ -208,7 +208,7 @@ namespace SandboxTest.Engine.ChildTestEngine
             var allInstancesToRun = new List<object>();
             allInstancesToRun.AddRange(_instance.Controllers);
             allInstancesToRun.Add(_instance.Runner);
-            await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.Runner.StopAsync, new object[] { _instance.Runner, scenarioSuiteData });
+            await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.Runner.StopAsync, new object[] { _instance.Runner, new ScenarioSuiteContext(scenarioSuiteData) });
             return new ScenarioSuiteOperationResult(true, scenarioSuiteData);
         }
     }

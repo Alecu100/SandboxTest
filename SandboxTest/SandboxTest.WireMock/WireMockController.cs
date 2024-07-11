@@ -1,5 +1,6 @@
 ﻿using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Scenario;
 using WireMock.Server;
 
 namespace SandboxTest.WireMock
@@ -32,10 +33,11 @@ namespace SandboxTest.WireMock
         /// Fetches the WireMock server instance in order to expose it to be configured to return specific responses for http requests.
         /// </summary>
         /// <param name="runner"></param>
+        /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWireMockRunner.RunAsync), 100)]
-        public virtual Task RunAsync(IRunner runner)
+        public virtual Task RunAsync(IRunner runner, IScenarioSuiteContext scenarioSuiteContext)
         {
             var wireMockRunner = runner as IWireMockRunner;
             if (wireMockRunner == null)

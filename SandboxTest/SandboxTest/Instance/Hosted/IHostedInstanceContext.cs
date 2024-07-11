@@ -1,17 +1,17 @@
-﻿using System.Diagnostics;
+﻿using SandboxTest.Scenario;
+using System.Diagnostics;
 
 namespace SandboxTest.Instance.Hosted
 {
     /// <summary>
     /// Represents the context in which a hosted instances runs enabling it to start another process.
     /// </summary>
-    public interface IHostedInstanceContext
+    public interface IHostedInstanceContext : IScenarioSuiteContext
     {
         /// <summary>
         /// Whether the scenario is being debugged or not.
         /// </summary>
         bool IsBeingDebugged { get; }
-
 
         /// <summary>
         /// Launches a new process.

@@ -1,4 +1,5 @@
 ﻿using SandboxTest.Instance;
+using SandboxTest.Scenario;
 using SandboxTest.Utils;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -98,7 +99,7 @@ namespace SandboxTest.Node
         public bool UseSssl => _useSsl;
 
         /// <inheritdoc/>
-        public async Task BuildAsync()
+        public async Task BuildAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_parseErrorFunc == null || _parseReadyFunc == null || _sourcePath == null || _npmRunCommand == null)
             {
@@ -117,7 +118,7 @@ namespace SandboxTest.Node
         }
 
         /// <inheritdoc/>
-        public async Task ConfigureBuildAsync()
+        public async Task ConfigureBuildAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_configureBuildFunc != null)
             {
@@ -136,7 +137,7 @@ namespace SandboxTest.Node
         }
 
         /// <inheritdoc/>
-        public async Task ConfigureRunAsync()
+        public async Task ConfigureRunAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_configureRunFunc != null)
             {
@@ -148,13 +149,13 @@ namespace SandboxTest.Node
         /// Node instance can't be reset.
         /// </summary>
         /// <returns></returns>
-        public override Task ResetAsync()
+        public override Task ResetAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
-        public override async Task RunAsync()
+        public override async Task RunAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (NodeFound == false)
             {
@@ -201,7 +202,7 @@ namespace SandboxTest.Node
         }
 
         /// <inheritdoc/>
-        public override async Task StopAsync()
+        public override async Task StopAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (NodeFound == false)
             {

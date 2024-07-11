@@ -33,7 +33,7 @@ namespace SandboxTest.Sample
             });
             var secondStep = _applicationInstance51.AddStep().AddPreviousStep(firstStep).InvokeController<HostController>(async (controller, ctx) =>
             {
-                ctx["guid"] = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>().GetNewGuid();
+                ctx.ScenarioData["guid"] = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>().GetNewGuid();
                 await Task.Delay(1000);
             });
             var thirdStep = _applicationInstance51.AddStep().AddPreviousStep(secondStep).InvokeController<ServiceInterceptorController>((controller, ctx) =>
@@ -45,7 +45,7 @@ namespace SandboxTest.Sample
             {
                 var guidGenerator = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>();
                 var guid = guidGenerator.GetNewGuid();
-                guid.Should().NotBe(Guid.Parse(ctx["guid"]?.ToString() ?? throw new Exception("Original guid not found")));
+                guid.Should().NotBe(Guid.Parse(ctx.ScenarioData["guid"]?.ToString() ?? throw new Exception("Original guid not found")));
                 guid.Should().Be(Guid.Empty);
                 await Task.Delay(6000);
             });

@@ -20,7 +20,7 @@ namespace SandboxTest.Engine.ChildTestEngine
         };
 
         /// <inheritdoc/>
-        public async Task ExecutedMethods(IEnumerable<object> instances, IEnumerable<AttachedMethodType> includedStepTypes, Delegate targetMethod, IEnumerable<object> arguments)
+        public async Task ExecuteAttachedMethodsChain(IEnumerable<object> instances, IEnumerable<AttachedMethodType> includedStepTypes, Delegate targetMethod, IEnumerable<object> arguments)
         {
             var possibleMethodsToRun = new List<(AttachedMethodAttribute, MethodToExecute)>();
 
@@ -55,6 +55,10 @@ namespace SandboxTest.Engine.ChildTestEngine
             if (!targetMethod.Method.GetParameters().Any())
             {
                 result = targetMethod.Method.Invoke(targetMethod.Target, null);
+            }
+            else if (!targetMethod.Method.GetParameters().First().ParameterType.IsAssignableFrom(arguments.First().GetType()))
+            {
+                result = targetMethod.Method.Invoke(targetMethod.Target, arguments.Skip(1).ToArray());
             }
             else
             {

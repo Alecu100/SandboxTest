@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using SandboxTest.Instance;
+using SandboxTest.Scenario;
 
 namespace SandboxTest.AspNetCore
 {
@@ -77,11 +78,12 @@ namespace SandboxTest.AspNetCore
         }
 
         /// <summary>
-        /// Builds and creates the web application
+        /// Builds the web application without running it.
         /// </summary>
+        /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual Task BuildAsync()
+        public virtual Task BuildAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_webApplicationBuilder == null)
             {
@@ -96,8 +98,10 @@ namespace SandboxTest.AspNetCore
         /// Use the configure function to allow the host to run in a scenario.
         /// </summary>
         /// <returns></returns>
+        /// <param name="scenarioSuiteContext"></param>
+        /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual async Task ConfigureBuildAsync()
+        public virtual async Task ConfigureBuildAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             _webApplicationBuilder = await _webApplicationBuilderFunc(_arguments ?? []);
             if (_webApplicationBuilder == null)
@@ -113,9 +117,10 @@ namespace SandboxTest.AspNetCore
         /// <summary>
         /// Uses the configure run function to perform any additional operations after building the web application but before running it.
         /// </summary>
+        /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual async Task ConfigureRunAsync()
+        public virtual async Task ConfigureRunAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_webApplication == null)
             {
@@ -143,7 +148,7 @@ namespace SandboxTest.AspNetCore
         }
 
         ///<inheritdoc/>
-        public override async Task ResetAsync()
+        public override async Task ResetAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_webApplication == null)
             {
@@ -169,7 +174,7 @@ namespace SandboxTest.AspNetCore
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public override Task RunAsync()
+        public override Task RunAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_webApplication == null)
             {
@@ -184,7 +189,7 @@ namespace SandboxTest.AspNetCore
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public override async Task StopAsync()
+        public override async Task StopAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_webApplication == null)
             {

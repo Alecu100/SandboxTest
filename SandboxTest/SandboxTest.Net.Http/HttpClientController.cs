@@ -1,5 +1,6 @@
 ﻿using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Scenario;
 using SandboxTest.WebServer;
 
 namespace SandboxTest.Net.Http
@@ -40,7 +41,7 @@ namespace SandboxTest.Net.Http
         }
 
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWebServerRunner.RunAsync), -10)]
-        public virtual Task ConfigureBuildAsync(IRunner runner)
+        public virtual Task ConfigureBuildAsync(IRunner runner, IScenarioSuiteContext scenarioSuiteContext)
         {
             var webServerRunner = runner as IWebServerRunner;
             if (webServerRunner == null)

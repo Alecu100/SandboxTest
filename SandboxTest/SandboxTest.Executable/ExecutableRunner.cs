@@ -1,4 +1,5 @@
 ﻿using SandboxTest.Instance;
+using SandboxTest.Scenario;
 using System.Diagnostics;
 
 namespace SandboxTest.Executable
@@ -80,8 +81,10 @@ namespace SandboxTest.Executable
         /// <summary>
         /// Builds the executable or related things if needed.
         /// </summary>
+        /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
-        public virtual async Task BuildAsync()
+        /// <exception cref="InvalidOperationException"></exception>
+        public virtual async Task BuildAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_executableBuildCommand == null)
             {
@@ -146,7 +149,7 @@ namespace SandboxTest.Executable
         }
 
         ///<inheritdoc/>
-        public async virtual Task ConfigureBuildAsync()
+        public async virtual Task ConfigureBuildAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_configureRunFunc != null)
             {
@@ -155,7 +158,7 @@ namespace SandboxTest.Executable
         }
 
         ///<inheritdoc/>
-        public async virtual Task ConfigureRunAsync()
+        public async virtual Task ConfigureRunAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_configureRunFunc != null)
             {
@@ -164,7 +167,7 @@ namespace SandboxTest.Executable
         }
 
         ///<inheritdoc/>
-        public async override Task ResetAsync()
+        public async override Task ResetAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_executableProcess == null)
             {
@@ -177,7 +180,7 @@ namespace SandboxTest.Executable
         }
 
         ///<inheritdoc/>
-        public async override Task RunAsync()
+        public async override Task RunAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             _isRunningTaskCompletionSource = new TaskCompletionSource<bool>();
             var executableProcessStartupInfo = new ProcessStartInfo
@@ -228,7 +231,7 @@ namespace SandboxTest.Executable
         }
 
         ///<inheritdoc/>
-        public override async Task StopAsync()
+        public override async Task StopAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_executableProcess == null)
             {

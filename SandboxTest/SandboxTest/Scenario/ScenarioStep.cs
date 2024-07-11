@@ -1,15 +1,16 @@
 ﻿using System.Xml.Linq;
 using SandboxTest.Instance;
+using SandboxTest.Internal;
 
 namespace SandboxTest.Scenario
 {
     /// <summary>
     /// Represents a scenario step used to executed the configured controller invocations for it when the test is ran.
     /// </summary>
-    public class ScenarioStep
+    public class ScenarioStep : IScenarioStepRuntime
     {
         private readonly ScenarioStepId _id;
-        private readonly List<Func<ScenarioStepData, Task>> _configuredActions;
+        private readonly List<Func<IScenarioStepContext, Task>> _configuredActions;
         private readonly List<ScenarioStepId> _previousStepsIds;
         private readonly IInstance _applicationInstance;
 
@@ -52,7 +53,7 @@ namespace SandboxTest.Scenario
             _id = id;
             _applicationInstance = applicationInstance;
             _previousStepsIds = new List<ScenarioStepId>();
-            _configuredActions = new List<Func<ScenarioStepData, Task>>();
+            _configuredActions = new List<Func<IScenarioStepContext, Task>>();
         }
 
         /// <summary>
@@ -71,26 +72,18 @@ namespace SandboxTest.Scenario
             return this;
         }
 
-        public async Task RunAsync(ScenarioStepData stepContext)
-        {
-            foreach (var configuredAction in _configuredActions)
-            {
-                await configuredAction(stepContext);
-            }
-        }
-
-        public ScenarioStep InvokeController<TController>(Func<TController, ScenarioStepData, Task> invokeFunc, string? name = default) where TController : IController
+        public ScenarioStep InvokeController<TController>(Func<TController, IScenarioStepContext, Task> invokeFunc, string? name = default) where TController : IController
         {
             if (!_applicationInstance.Controllers.Any(controller => (controller.Name == null && name == null || controller.Name != null && controller.Name.Equals(name)) &&
                 controller.GetType() == typeof(TController)))
             {
                 throw new InvalidOperationException($"Controller with name {name} and type {typeof(TController).Name} not found in the application instance with id {_applicationInstance.Id}");
             }
-            _configuredActions.Add(async (context) =>
+            _configuredActions.Add(async (stepContext) =>
             {
                 var applicationController = (TController)_applicationInstance.Controllers.First(controller => (controller.Name == null && name == null || controller.Name != null && controller.Name.Equals(name)) &&
                     controller.GetType() == typeof(TController));
-                await invokeFunc(applicationController, context);
+                await invokeFunc(applicationController, stepContext);
             });
             return this;
         }
@@ -116,6 +109,15 @@ namespace SandboxTest.Scenario
         public override string ToString()
         {
             return _id?.ToString() ?? string.Empty;
+        }
+
+        /// <inheritdoc/>
+        async Task IScenarioStepRuntime.RunAsync(IScenarioStepContext stepContext)
+        {
+            foreach (var configuredAction in _configuredActions)
+            {
+                await configuredAction(stepContext);
+            }
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Scenario;
 
 namespace SandboxTest.Instance
 {
@@ -9,24 +10,24 @@ namespace SandboxTest.Instance
     public interface IRunner : IAttachedMethodContainer
     {
         /// <summary>
-        /// Runs the application instance.
+        /// Runs the runner starting the instance it is assigned to.
         /// </summary>
-        /// <param name="applicationInstance"></param>
+        /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
-        Task RunAsync();
+        Task RunAsync(IScenarioSuiteContext scenarioSuiteContext);
 
         /// <summary>
-        /// Stops the application instance.
+        /// Stops the runner stopping the instance it is assigned to.
         /// </summary>
-        /// <param name="applicationInstance"></param>
+        /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
-        Task StopAsync();
+        Task StopAsync(IScenarioSuiteContext scenarioSuiteContext);
 
         /// <summary>
         /// Resets the current runner.
         /// </summary>
-        /// <param name="applicationInstance"></param>
+        /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
-        Task ResetAsync();
+        Task ResetAsync(IScenarioSuiteContext scenarioSuiteContext);
     }
 }

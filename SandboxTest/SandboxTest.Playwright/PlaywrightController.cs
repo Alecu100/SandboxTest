@@ -1,6 +1,7 @@
 ﻿using Microsoft.Playwright;
 using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Scenario;
 using SandboxTest.Utils;
 using SandboxTest.WebServer;
 using System.Diagnostics;
@@ -30,6 +31,7 @@ namespace SandboxTest.Playwright
 
         /// <inheritdoc/>
         public IPage Page { get => _page ?? throw new InvalidOperationException("Playwright controller not built"); }
+
         static PlaywrightController()
         {
             PowershellExecutableName = Environment.OSVersion.Platform == PlatformID.Win32NT ? $"{Powershell}.exe" : Powershell;
@@ -54,7 +56,7 @@ namespace SandboxTest.Playwright
         }
 
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWebServerRunner.RunAsync), -200)]
-        public async Task ConfigureRunAsync()
+        public async Task ConfigureRunAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (PowershellFound == false)
             {
@@ -64,7 +66,7 @@ namespace SandboxTest.Playwright
         }
 
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWebServerRunner.RunAsync), 200)]
-        public async Task RunAsync(IRunner runner)
+        public async Task RunAsync(IRunner runner, IScenarioSuiteContext scenarioSuiteContext)
         {
             _webServerRunner = runner as IWebServerRunner;
             if (_webServerRunner == null)
@@ -97,7 +99,7 @@ namespace SandboxTest.Playwright
         }
 
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWebServerRunner.StopAsync), -200)]
-        public async Task StopAsync()
+        public async Task StopAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_browser == null || _playwright == null || _page == null)
             {

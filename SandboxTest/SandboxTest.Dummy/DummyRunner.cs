@@ -1,4 +1,5 @@
 ﻿using SandboxTest.Instance;
+using SandboxTest.Scenario;
 
 namespace SandboxTest.Dummy
 {
@@ -10,8 +11,9 @@ namespace SandboxTest.Dummy
         /// <summary>
         /// Just returns Task.Completed without doing anything else.
         /// </summary>
+        /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
-        public override Task ResetAsync()
+        public override Task ResetAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             return Task.CompletedTask;
         }
@@ -19,8 +21,9 @@ namespace SandboxTest.Dummy
         /// <summary>
         /// Just returns Task.Completed without doing anything else.
         /// </summary>
+        /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
-        public override Task RunAsync()
+        public override Task RunAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             return Task.CompletedTask;
         }
@@ -28,8 +31,9 @@ namespace SandboxTest.Dummy
         /// <summary>
         /// Just returns Task.Completed without doing anything else.
         /// </summary>
+        /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
-        public override Task StopAsync()
+        public override Task StopAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             return Task.CompletedTask;
         }

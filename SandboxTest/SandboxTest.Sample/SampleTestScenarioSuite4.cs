@@ -31,7 +31,7 @@ namespace SandboxTest.Sample
             {
                 var message = new Message { Name = "test_message", Description = "test_description" };
                 controller.WireMockServer.Given(Request.Create().WithPath("/test")).RespondWith(Response.Create().WithBodyAsJson(message));
-                ctx["message"] = message;
+                ctx.ScenarioData["message"] = message;
                 return Task.CompletedTask;
             });
             var secondStep = _applicationInstance41.AddStep().AddPreviousStep(firstStep).InvokeController<HttpClientController>(async (controller, ctx) =>
@@ -40,7 +40,7 @@ namespace SandboxTest.Sample
                 var httpResponse = await controller.HttpClient.SendAsync(httpRequest);
                 httpResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
                 var httpResponseMessage = await httpResponse.Content.ReadFromJsonAsync<Message>();
-                var ctxMessage = ctx["message"] as Message;
+                var ctxMessage = ctx.ScenarioData["message"] as Message;
                 httpResponseMessage.Should().NotBeNull();
                 httpResponseMessage?.Name.Should().Be(ctxMessage?.Name);
                 httpResponseMessage?.Description.Should().Be(ctxMessage?.Description);
@@ -54,7 +54,7 @@ namespace SandboxTest.Sample
             {
                 var message = new Message { Name = "test_message", Description = "test_description" };
                 controller.WireMockServer.Given(Request.Create().WithPath("/test")).RespondWith(Response.Create().WithBodyAsJson(message));
-                ctx["message"] = message;
+                ctx.ScenarioData["message"] = message;
                 return Task.CompletedTask;
             });
             var secondStep = _applicationInstance42.AddStep().AddPreviousStep(firstStep).InvokeController<HttpClientController>(async (controller, ctx) =>
@@ -63,7 +63,7 @@ namespace SandboxTest.Sample
                 var httpResponse = await controller.HttpClient.SendAsync(httpRequest);
                 httpResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
                 var httpResponseMessage = await httpResponse.Content.ReadFromJsonAsync<Message>();
-                var ctxMessage = ctx["message"] as Message;
+                var ctxMessage = ctx.ScenarioData["message"] as Message;
                 httpResponseMessage.Should().NotBeNull();
                 httpResponseMessage?.Name.Should().Be(ctxMessage?.Name);
                 httpResponseMessage?.Description.Should().Be(ctxMessage?.Description);

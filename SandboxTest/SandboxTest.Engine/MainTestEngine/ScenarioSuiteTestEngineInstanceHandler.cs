@@ -39,7 +39,7 @@ namespace SandboxTest.Engine.MainTestEngine
         /// Starts the actual application instance process and configures messaging for it.
         /// </summary>
         /// <returns></returns>
-        public async Task LoadInstanceAsync(CancellationToken token)
+        public async Task<ScenarioSuiteData?> LoadInstanceAsync(ScenarioSuiteData scenarioSuiteData, CancellationToken token)
         {
             _mainAssemblyPath = _scenarioSuiteType.Assembly.Location;
             _assemblySourceName = Path.GetFileName(_mainAssemblyPath);
@@ -59,13 +59,16 @@ namespace SandboxTest.Engine.MainTestEngine
                 };
 
                 _assignedHostedInstance = (IHostedInstance)_assignedInstance;
-                await _assignedHostedInstance.StartAsync(_mainTestEngineRunContext, _hostedInstanceData, token);
+                var scenarioSuiteDataClone = CloneBySerializingToJson(scenarioSuiteData);
+                await _assignedHostedInstance.StartAsync(new HostedInstanceContext(_mainTestEngineRunContext, scenarioSuiteDataClone), _hostedInstanceData, token);
                 await _assignedHostedInstance.MessageChannel!.StartAsync(_assignedInstance.Id, _runId, false);
+                return scenarioSuiteDataClone;
             }
             else
             {
                 _childTestEngine = new ChildTestEngine.ChildTestEngine();
                 await _childTestEngine.LoadInstanceAsync($"{_mainPath}\\{_assemblySourceName}", _scenarioSuiteType.FullName!, _assignedInstance.Id);
+                return null;
             }
         }
 
@@ -73,34 +76,37 @@ namespace SandboxTest.Engine.MainTestEngine
         /// Stops the actual application instance process.
         /// </summary>
         /// <returns></returns>
-        public async Task StopInstanceAsync()
+        public async Task<OperationResult> StopInstanceAsync(ScenarioSuiteData scenarioSuiteData)
         {
             if (_assignedHostedInstance != null && _hostedInstanceData != null)
             {
-                var operation = new StopInstanceOperation(_assignedInstance.Id);
-                await ExecuteHostedInstanceOperationAsync(operation, default);
-                await _assignedHostedInstance.StopAsync(_mainTestEngineRunContext, _hostedInstanceData);
-                return;
+                var operation = new StopInstanceOperation(_assignedInstance.Id, scenarioSuiteData);
+                var operationResult = await ExecuteHostedInstanceOperationAsync(operation, default);
+                var scenarioOperationResult = operationResult as ScenarioSuiteOperationResult;
+                await _assignedHostedInstance.StopAsync(new HostedInstanceContext(_mainTestEngineRunContext, scenarioOperationResult?.ScenarioSuiteData ?? new ScenarioSuiteData()), _hostedInstanceData);
+                return operationResult;
             }
 
             if (_childTestEngine == null)
             {
                 throw new InvalidOperationException("No child engine assigned");
             }
-            await _childTestEngine.StopInstanceAsync();
+            return await _childTestEngine.StopInstanceAsync(CloneBySerializingToJson(scenarioSuiteData));
         }
 
         /// <summary>
         /// Executes a specific step for an instance.
         /// </summary>
         /// <param name="scenarioStep"></param>
+        /// <param name="scenarioSuiteData"></param>
+        /// <param name="scenarioData"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<OperationResult?> ExecuteStepAsync(ScenarioStep scenarioStep, ScenarioStepData stepContext, CancellationToken cancellationToken)
+        public async Task<OperationResult?> ExecuteStepAsync(ScenarioStep scenarioStep, ScenarioSuiteData scenarioSuiteData, ScenarioData scenarioData, CancellationToken cancellationToken)
         {
             if (_assignedHostedInstance != null)
             {
-                var operation = new RunScenarioStepOperation(scenarioStep.Id, stepContext);
+                var operation = new RunScenarioStepOperation(scenarioStep.Id, scenarioSuiteData, scenarioData);
                 return await ExecuteHostedInstanceOperationAsync(operation, cancellationToken);
             }
 
@@ -108,7 +114,7 @@ namespace SandboxTest.Engine.MainTestEngine
             {
                 throw new InvalidOperationException("No child engine assigned");
             }
-            return await _childTestEngine.RunStepAsync(scenarioStep.Id, stepContext);
+            return await _childTestEngine.RunStepAsync(scenarioStep.Id, CloneBySerializingToJson(scenarioSuiteData), CloneBySerializingToJson(scenarioData));
         }
 
         /// <summary>
@@ -117,13 +123,13 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <param name="applicationInstanceId"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<OperationResult?> ResetInstanceAsync(CancellationToken cancellationToken)
+        public async Task<OperationResult?> ResetInstanceAsync(ScenarioSuiteData scenarioSuiteData, CancellationToken cancellationToken)
         {
             await _assignedInstance.ResetAsync();
 
             if (_assignedHostedInstance != null)
             {
-                var operation = new ResetInstanceOperation(_assignedInstance.Id);
+                var operation = new ResetInstanceOperation(_assignedInstance.Id, scenarioSuiteData);
                 return await ExecuteHostedInstanceOperationAsync(operation, cancellationToken);
             }
 
@@ -131,14 +137,14 @@ namespace SandboxTest.Engine.MainTestEngine
             {
                 throw new InvalidOperationException("No child engine assigned");
             }
-            return await _childTestEngine.ResetInstanceAsync();
+            return await _childTestEngine.ResetInstanceAsync(CloneBySerializingToJson(scenarioSuiteData));
         }
 
-        public async Task<OperationResult?> RunInstanceAsync(CancellationToken cancellationToken)
+        public async Task<OperationResult?> RunInstanceAsync(ScenarioSuiteData scenarioSuiteData, CancellationToken cancellationToken)
         {
             if (_assignedHostedInstance != null)
             {
-                var operation = new RunInstanceOperation(_assignedInstance.Id);
+                var operation = new RunInstanceOperation(_assignedInstance.Id, scenarioSuiteData);
                 return await ExecuteHostedInstanceOperationAsync(operation, cancellationToken);
             }
 
@@ -146,7 +152,7 @@ namespace SandboxTest.Engine.MainTestEngine
             {
                 throw new InvalidOperationException("No child engine assigned");
             }
-            return await _childTestEngine.RunInstanceAsync();
+            return await _childTestEngine.RunInstanceAsync(CloneBySerializingToJson(scenarioSuiteData));
         }
 
         /// <summary>
@@ -170,7 +176,7 @@ namespace SandboxTest.Engine.MainTestEngine
             return await _childTestEngine.LoadScenarioAsync(scenarioName);
         }
 
-        private async Task<OperationResult?> ExecuteHostedInstanceOperationAsync(Operation operation, CancellationToken cancellationToken)
+        private async Task<OperationResult> ExecuteHostedInstanceOperationAsync(Operation operation, CancellationToken cancellationToken)
         {
             try
             {
@@ -186,7 +192,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 await _assignedHostedInstance.MessageChannel.SendMessageAsync(json);
 
                 var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _assignedHostedInstance.MessageChannel.ReceiveMessageAsync(), JsonUtils.JsonSerializerSettings);
-                return operationResult;
+                return operationResult!;
             }
             catch (Exception ex)
             {
@@ -221,6 +227,12 @@ namespace SandboxTest.Engine.MainTestEngine
         public override int GetHashCode()
         {
             return _assignedInstance.Id.GetHashCode();
+        }
+
+        private T CloneBySerializingToJson<T>(T targetToClone)
+        {
+            var json = JsonConvert.SerializeObject(targetToClone, JsonUtils.JsonSerializerSettings);
+            return JsonConvert.DeserializeObject<T>(json, JsonUtils.JsonSerializerSettings)!;
         }
     }
 }

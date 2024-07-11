@@ -1,4 +1,5 @@
 ﻿using SandboxTest.Instance;
+using SandboxTest.Scenario;
 using WireMock.Server;
 
 namespace SandboxTest.WireMock
@@ -48,9 +49,10 @@ namespace SandboxTest.WireMock
         /// <summary>
         /// Resets the WireMockServer removing all the setup mock http responses.
         /// </summary>
+        /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public override Task ResetAsync()
+        public override Task ResetAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_wireMockServer == null)
             {
@@ -63,8 +65,9 @@ namespace SandboxTest.WireMock
         /// <summary>
         /// RunAsync is used to start WireMockRunner because the WireMockServer starts directly without any kind of build step aside from port and a couple of other things.
         /// </summary>
+        /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
-        public override Task RunAsync()
+        public override Task RunAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_useAdminInterface)
             {
@@ -80,9 +83,10 @@ namespace SandboxTest.WireMock
         /// <summary>
         /// Stops the WireMock server
         /// </summary>
+        /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public override Task StopAsync()
+        public override Task StopAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_wireMockServer == null)
             {

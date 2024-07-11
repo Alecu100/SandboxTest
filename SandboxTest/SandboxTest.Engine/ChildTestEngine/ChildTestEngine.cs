@@ -2,6 +2,7 @@
 using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Instance.Hosted;
+using SandboxTest.Internal;
 using SandboxTest.Scenario;
 using System.Reflection;
 
@@ -12,8 +13,7 @@ namespace SandboxTest.Engine.ChildTestEngine
         private Type? _scenarioSuiteType;
         private ScenariosAssemblyLoadContext? _scenariosAssemblyLoadContext;
         private Assembly? _scenarioSuiteAssembly;
-        private IInstance? _runningInstance;
-        private IHostedInstance? _runningHostedInstance;
+        private IInstance? _instance;
         private object? _scenarioSuiteInstance;
         private IAttachedMethodsExecutor _attachedMethodsExecutor;
 
@@ -23,7 +23,10 @@ namespace SandboxTest.Engine.ChildTestEngine
         }
 
         /// <inheritdoc/>
-        public IInstance? RunningInstance { get => _runningInstance; }
+        public IInstance? RunningInstance { get => _instance; }
+
+        /// <inheritdoc/>
+        public IAttachedMethodsExecutor AttachedMethodsExecutor { get => _attachedMethodsExecutor; }
 
         public async virtual Task<OperationResult> LoadScenarioAsync(string scenarioMethodName)
         {
@@ -31,7 +34,7 @@ namespace SandboxTest.Engine.ChildTestEngine
             {
                 return new OperationResult(false, "No scenario suite loaded");
             }
-            if (_runningInstance == null)
+            if (_instance == null)
             {
                 return new OperationResult(false, "No application instance running");
             }
@@ -61,29 +64,29 @@ namespace SandboxTest.Engine.ChildTestEngine
             }
         }
 
-        public async virtual Task<OperationResult> ResetInstanceAsync()
+        public async virtual Task<OperationResult> ResetInstanceAsync(ScenarioSuiteData scenarioSuiteData)
         {
-            if (_runningInstance == null)
+            if (_instance == null|| _instance.Runner == null)
             {
-                return new OperationResult(false, "No application instance running");
+                return new ScenarioSuiteOperationResult(false, scenarioSuiteData, "No application instance running");
             }
 
             try
             {
                 var allInstancesToRun = new List<object>();
-                allInstancesToRun.AddRange(_runningInstance.Controllers);
-                allInstancesToRun.Add(_runningInstance.Runner!);
-                await _attachedMethodsExecutor.ExecutedMethods(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _runningInstance.ResetAsync, new object[] { _runningInstance.Runner });
+                allInstancesToRun.AddRange(_instance.Controllers);
+                allInstancesToRun.Add(_instance.Runner!);
+                await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.ResetAsync, new object[] { _instance.Runner, scenarioSuiteData });
 
-                return new OperationResult(true);
+                return new ScenarioSuiteOperationResult(true, scenarioSuiteData);
             }
             catch(Exception ex)
             {
-                return new OperationResult(false, $"Error reseting the application instance {ex}");
+                return new ScenarioSuiteOperationResult(false, scenarioSuiteData, $"Error reseting the application instance {ex}");
             }
         }
 
-        public virtual Task<OperationResult> LoadInstanceAsync(string sourceAssemblyNameFulPath, string scenarioSuiteTypeFullName, string applicationInstanceId)
+        public virtual Task<OperationResult> LoadInstanceAsync(string sourceAssemblyNameFulPath, string scenarioSuiteTypeFullName, string instanceId)
         {
             try
             {
@@ -115,19 +118,26 @@ namespace SandboxTest.Engine.ChildTestEngine
                 {
                     if (field.FieldType.IsAssignableTo(typeof(IInstance)))
                     {
-                        var applicationInstance = field.GetValue(_scenarioSuiteInstance) as IInstance;
-                        if (applicationInstance != null && applicationInstance.Id == applicationInstanceId)
+                        var instance = field.GetValue(_scenarioSuiteInstance) as IInstance;
+                        if (instance != null && instance.Id == instanceId)
                         {
-                            _runningInstance = applicationInstance;
-                            if (_runningInstance is IHostedInstance)
-                            {
-                                _runningHostedInstance = (IHostedInstance)_runningInstance;
-                            }
+                            _instance = instance;
                             break;
                         }
                     }
                 }
-
+                if (_instance == null)
+                {
+                    throw new InvalidOperationException($"Could not find instance with id {instanceId}, id of an instance should be the same accross multiple scenario runs");
+                }
+                foreach (var controller in _instance.Controllers)
+                {
+                    if (controller is IRuntimeContextAccessor)
+                    {
+                        var runtimeContextAccessor = (IRuntimeContextAccessor)controller;
+                        runtimeContextAccessor.InitializeContext(new RuntimeContext(this));
+                    }
+                }
                 return Task.FromResult(new OperationResult(true));
             }
             catch (Exception ex) 
@@ -137,68 +147,69 @@ namespace SandboxTest.Engine.ChildTestEngine
             }
         }
 
-        public async virtual Task<OperationResult> RunInstanceAsync()
+        public async virtual Task<OperationResult> RunInstanceAsync(ScenarioSuiteData scenarioSuiteData)
         {
             try
             {
-                if (_runningInstance == null)
+                if (_instance == null)
                 {
                     throw new InvalidOperationException($"No running instance assigned");
                 }
-                if (_runningInstance.Runner == null)
+                if (_instance.Runner == null)
                 {
                     throw new InvalidOperationException($"Instance has no runner assigned");
                 }
                 var allInstancesToRun = new List<object>();
-                allInstancesToRun.AddRange(_runningInstance.Controllers);
-                allInstancesToRun.Add(_runningInstance.Runner);
-                await _attachedMethodsExecutor.ExecutedMethods(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _runningInstance.Runner.RunAsync, new object[] { _runningInstance.Runner });
-                return new OperationResult(true);
+                allInstancesToRun.AddRange(_instance.Controllers);
+                allInstancesToRun.Add(_instance.Runner);
+                await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.Runner.RunAsync, new object[] { _instance.Runner, scenarioSuiteData });
+                return new ScenarioSuiteOperationResult(true, scenarioSuiteData);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                return new OperationResult(false, ex.ToString());
+                return new ScenarioSuiteOperationResult(false, scenarioSuiteData, ex.ToString());
             }
         }
 
-        public async virtual Task<OperationResult> RunStepAsync(ScenarioStepId stepId, ScenarioStepData stepData)
+        public async virtual Task<OperationResult> RunStepAsync(ScenarioStepId stepId, ScenarioSuiteData scenarioSuiteData, ScenarioData scenarioData)
         {
-            if (_runningInstance == null)
+            if (_instance == null)
             {
-                return new RunScenarioStepOperationResult(false, stepData, "No application instance running");
+                return new RunScenarioStepOperationResult(false, scenarioSuiteData, scenarioData, "No application instance running");
             }
-            var step = _runningInstance.Steps.FirstOrDefault(step => step.Id.ApplicationInstanceId == _runningInstance.Id && ((step.Id.Name != null && stepId.Name == step.Id.Name) || (step.Id.StepIndex == stepId.StepIndex)));
+            var step = _instance.Steps.FirstOrDefault(step => step.Id.ApplicationInstanceId == _instance.Id && ((step.Id.Name != null && stepId.Name == step.Id.Name) || (step.Id.StepIndex == stepId.StepIndex)));
             if (step == null)
             {
-                return new RunScenarioStepOperationResult(false, stepData, "Step not found");
+                return new RunScenarioStepOperationResult(false, scenarioSuiteData, scenarioData, "Step not found");
             }
             try
             {
-                await step.RunAsync(stepData);
-                return new RunScenarioStepOperationResult(true, stepData);
+                var scenarioStepRuntime = (IScenarioStepRuntime)step;
+                await scenarioStepRuntime.RunAsync(new ScenarioStepContext(scenarioSuiteData, scenarioData));
+                return new RunScenarioStepOperationResult(true, scenarioSuiteData, scenarioData);
             }
             catch (Exception ex)
             {
-                return new RunScenarioStepOperationResult(false, stepData, $"Error running step {ex}");
+                return new RunScenarioStepOperationResult(false, scenarioSuiteData, scenarioData,  $"Error running step {ex}");
             }
         }
 
-        public async Task<OperationResult> StopInstanceAsync()
+        public async Task<OperationResult> StopInstanceAsync(ScenarioSuiteData scenarioSuiteData)
         {
-            if (_scenarioSuiteType == null || _runningInstance == null)
+            if (_scenarioSuiteType == null || _instance == null)
             {
                 throw new InvalidOperationException($"No instance assigned and running");
             }
-            if (_runningInstance.Runner == null)
+            if (_instance.Runner == null)
             {
-                throw new InvalidOperationException($"Could application instance with id {_runningInstance.Id} in scenario suite type {_scenarioSuiteType.FullName} does not have an assigned runner");
+                throw new InvalidOperationException($"Could application instance with id {_instance.Id} in scenario suite type {_scenarioSuiteType.FullName} does not have an assigned runner");
             }
             var allInstancesToRun = new List<object>();
-            allInstancesToRun.AddRange(_runningInstance.Controllers);
-            allInstancesToRun.Add(_runningInstance.Runner);
-            await _attachedMethodsExecutor.ExecutedMethods(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _runningInstance.Runner.StopAsync, new object[] { _runningInstance.Runner });
-            return new OperationResult(true);
+            allInstancesToRun.AddRange(_instance.Controllers);
+            allInstancesToRun.Add(_instance.Runner);
+            await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.Runner.StopAsync, new object[] { _instance.Runner, scenarioSuiteData });
+            return new ScenarioSuiteOperationResult(true, scenarioSuiteData);
         }
     }
 }

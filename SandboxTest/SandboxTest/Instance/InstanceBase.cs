@@ -9,6 +9,7 @@ namespace SandboxTest.Instance
         protected IRunner? _runner;
         protected List<ScenarioStep> _steps = new List<ScenarioStep>();
         protected int _currentStepIndex;
+        protected int? _order;
 
         protected InstanceBase(string id)
         {
@@ -16,6 +17,7 @@ namespace SandboxTest.Instance
             _controllers = new List<IController>();
             _steps = new List<ScenarioStep>();
             _currentStepIndex = 0;
+            _order = 0;
         }
 
         /// <summary>
@@ -42,6 +44,11 @@ namespace SandboxTest.Instance
         /// Returns the current step index used that will be assigned to the next step.
         /// </summary>
         public virtual int CurrentStepIndex { get => _currentStepIndex; }
+
+        /// <summary>
+        /// Gets or sets the order in which to start the instance.
+        /// </summary>
+        public int? Order { get => _order; set => _order = value; }
 
         /// <summary>
         /// Assigns a specific runner to the instance.

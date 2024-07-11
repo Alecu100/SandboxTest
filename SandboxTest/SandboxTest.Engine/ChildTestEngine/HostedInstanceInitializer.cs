@@ -79,21 +79,21 @@ namespace SandboxTest.Engine.ChildTestEngine
                     var message = JsonConvert.DeserializeObject<Operation>(messageJson, JsonUtils.JsonSerializerSettings);
                     switch (message)
                     {
-                        case RunInstanceOperation:
-                            var result = await _childTestEngine.RunInstanceAsync();
+                        case RunInstanceOperation runInstanceOperation:
+                            var result = await _childTestEngine.RunInstanceAsync(runInstanceOperation.ScenarioSuiteData);
                             await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
                             break;
-                        case StopInstanceOperation:
-                            result = await _childTestEngine.StopInstanceAsync();
+                        case StopInstanceOperation stopInstanceOperation:
+                            result = await _childTestEngine.StopInstanceAsync(stopInstanceOperation.ScenarioSuiteData);
                             await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
                             _runFinishedTaskCompletionSource.SetResult(1);
                             break;
                         case RunScenarioStepOperation runStepOperation:
-                            result = await _childTestEngine.RunStepAsync(runStepOperation.StepId, runStepOperation.StepData);
+                            result = await _childTestEngine.RunStepAsync(runStepOperation.StepId, runStepOperation.ScenarioSuiteData, runStepOperation.ScenarioData);
                             await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
                             break;
-                        case ResetInstanceOperation:
-                            result = await _childTestEngine.ResetInstanceAsync();
+                        case ResetInstanceOperation resetInstanceOperation:
+                            result = await _childTestEngine.ResetInstanceAsync(resetInstanceOperation.ScenarioSuiteData);
                             await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
                             break;
                         case LoadScenarioOperation loadScenarioOperation:

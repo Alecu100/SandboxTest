@@ -1,6 +1,4 @@
-﻿using SandboxTest.Instance;
-
-namespace SandboxTest.Instance.Hosted
+﻿namespace SandboxTest.Instance.Hosted
 {
     /// <summary>
     /// Represents an instance that is hosted and runs separately from the scenario and scenario suite,

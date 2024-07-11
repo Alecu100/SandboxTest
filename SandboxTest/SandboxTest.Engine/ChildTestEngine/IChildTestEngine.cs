@@ -12,6 +12,11 @@ namespace SandboxTest.Engine.ChildTestEngine
         IInstance? RunningInstance { get; }
 
         /// <summary>
+        /// Gets the attached methods executor.
+        /// </summary>
+        IAttachedMethodsExecutor AttachedMethodsExecutor { get; }
+
+        /// <summary>
         /// Runs an application instance
         /// </summary>
         /// <param name="assemblyPath"></param>
@@ -31,21 +36,27 @@ namespace SandboxTest.Engine.ChildTestEngine
         /// Runs a step for the current application instance.
         /// </summary>
         /// <param name="stepId">The id of the step to run.</param>
-        /// <param name="stepContext">The index of the step to run.</param>
+        /// <param name="scenarioSuiteData">The scenario suite data passed to the step to run.</param>
+        /// <param name="stepData">The scenario data passed to the step to run.</param>
         /// <returns></returns>
-        Task<OperationResult> RunStepAsync(ScenarioStepId stepId, ScenarioStepData stepContext);
+        Task<OperationResult> RunStepAsync(ScenarioStepId stepId, ScenarioSuiteData scenarioSuiteData, ScenarioData stepData);
 
         /// <summary>
         /// Resets the current application instance preparing it to run another scenario.
         /// </summary>
         /// <returns></returns>
-        Task<OperationResult> ResetInstanceAsync();
+        Task<OperationResult> ResetInstanceAsync(ScenarioSuiteData scenarioSuiteData);
 
         /// <summary>
-        /// Stops the runner.
+        /// Stops the instance by stopping the runner using <see cref="IRunner.StopAsync"/>.
         /// </summary>
         /// <returns></returns>
-        Task<OperationResult> StopInstanceAsync();
-        Task<OperationResult> RunInstanceAsync();
+        Task<OperationResult> StopInstanceAsync(ScenarioSuiteData scenarioSuiteData);
+
+        /// <summary>
+        /// Runs the instance by stopping the runner using <see cref="IRunner.RunAsync"/>.
+        /// </summary>
+        /// <returns></returns>
+        Task<OperationResult> RunInstanceAsync(ScenarioSuiteData scenarioSuiteData);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Scenario;
 
 namespace SandboxTest.Instance
 {
@@ -18,12 +19,12 @@ namespace SandboxTest.Instance
         }
 
         /// <inheritdoc/>
-        public abstract Task ResetAsync();
+        public abstract Task ResetAsync(IScenarioSuiteContext scenarioSuiteContext);
 
         /// <inheritdoc/>
-        public abstract Task RunAsync();
+        public abstract Task RunAsync(IScenarioSuiteContext scenarioSuiteContext);
 
         /// <inheritdoc/>
-        public abstract Task StopAsync();
+        public abstract Task StopAsync(IScenarioSuiteContext scenarioSuiteContext);
     }
 }

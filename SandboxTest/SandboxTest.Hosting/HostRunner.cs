@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using SandboxTest.Instance;
+using SandboxTest.Scenario;
 
 namespace SandboxTest.Hosting
 {
@@ -36,7 +37,7 @@ namespace SandboxTest.Hosting
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual Task BuildAsync()
+        public virtual Task BuildAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_hostBuilder == null)
             {
@@ -75,7 +76,7 @@ namespace SandboxTest.Hosting
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual async Task ConfigureBuildAsync()
+        public virtual async Task ConfigureBuildAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             _hostBuilder = await _hostBuilderFunc(_arguments ?? []);
             if (_hostBuilder == null)
@@ -93,7 +94,7 @@ namespace SandboxTest.Hosting
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual async Task ConfigureRunAsync()
+        public virtual async Task ConfigureRunAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_host == null)
             {
@@ -121,7 +122,7 @@ namespace SandboxTest.Hosting
         }
 
         ///<inheritdoc/>
-        public override async Task RunAsync()
+        public override async Task RunAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_host == null)
             {
@@ -131,7 +132,7 @@ namespace SandboxTest.Hosting
         }
 
         ///<inheritdoc/>
-        public override async Task StopAsync()
+        public override async Task StopAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_host == null)
             {
@@ -141,7 +142,7 @@ namespace SandboxTest.Hosting
         }
 
         ///<inheritdoc/>
-        public override async Task ResetAsync()
+        public override async Task ResetAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_host == null)
             {

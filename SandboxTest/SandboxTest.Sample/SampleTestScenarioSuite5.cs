@@ -63,7 +63,7 @@ namespace SandboxTest.Sample
                 httpResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
                 var weatherForecasts = await httpResponse.Content.ReadFromJsonAsync<List<WeatherForecast>>();
                 weatherForecasts.Should().NotBeNull();
-                ctx["weatherforecasts"] = weatherForecasts;
+                ctx.ScenarioData["weatherforecasts"] = weatherForecasts;
             });
             var thirdStep = _applicationInstance41.AddStep().AddPreviousStep(firstStep).InvokeController<HttpClientController>(async (controller, ctx) =>
             {
@@ -74,7 +74,7 @@ namespace SandboxTest.Sample
                 httpResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
                 var weatherForecasts = await httpResponse.Content.ReadFromJsonAsync<List<WeatherForecast>>();
                 weatherForecasts.Should().NotBeNull();
-                var previousWeatherForecasts = ctx["weatherforecasts"] as List<WeatherForecast>;
+                var previousWeatherForecasts = ctx.ScenarioData["weatherforecasts"] as List<WeatherForecast>;
                 previousWeatherForecasts.Should().NotBeNull();
                 previousWeatherForecasts?.Should().NotIntersectWith(weatherForecasts);
             });

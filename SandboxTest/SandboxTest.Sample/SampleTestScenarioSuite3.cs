@@ -27,13 +27,13 @@ namespace SandboxTest.Sample
         {
             var firstStep = _applicationInstance21.AddStep().InvokeController<HostController>((controller, ctx) =>
             {
-                ctx["FirstGuid"] = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>().GetNewGuid();
+                ctx.ScenarioData["FirstGuid"] = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>().GetNewGuid();
                 return Task.CompletedTask;
             });
             var secondStep = _applicationInstance21.AddStep().AddPreviousStep(firstStep).InvokeController<HostController>((controller, ctx) =>
             {
                 var newGuid = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>();
-                newGuid.GetNewGuid().Should().NotBe(ctx["FirstGuid"].ToString());
+                newGuid.GetNewGuid().Should().NotBe(ctx.ScenarioData["FirstGuid"]!.ToString());
                 return Task.CompletedTask;
             });
         }
@@ -43,13 +43,13 @@ namespace SandboxTest.Sample
         {
             var firstStep = _applicationInstance21.AddStep().InvokeController<HostController>((controller, ctx) =>
             {
-                ctx["FirstGuid"] = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>().GetNewGuid();
+                ctx.ScenarioData["FirstGuid"] = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>().GetNewGuid();
                 return Task.CompletedTask;
             });
             var secondStep = _applicationInstance21.AddStep().AddPreviousStep(firstStep).InvokeController<HostController>((controller, ctx) =>
             {
                 var newGuid = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>();
-                newGuid.GetNewGuid().Should().Be(ctx["FirstGuid"].ToString());
+                newGuid.GetNewGuid().Should().Be(ctx.ScenarioData["FirstGuid"]!.ToString());
                 return Task.CompletedTask;
             });
         }

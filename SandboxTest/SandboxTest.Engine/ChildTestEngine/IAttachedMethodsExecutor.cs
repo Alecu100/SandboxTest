@@ -14,6 +14,6 @@ namespace SandboxTest.Engine.ChildTestEngine
         /// <param name="includedStepTypes"></param>
         /// <param name="targetMethod"></param>
         /// <returns></returns>
-        Task ExecutedMethods(IEnumerable<object> instances, IEnumerable<AttachedMethodType> includedStepTypes, Delegate targetMethod, IEnumerable<object> arguments);
+        Task ExecuteAttachedMethodsChain(IEnumerable<object> instances, IEnumerable<AttachedMethodType> includedStepTypes, Delegate targetMethod, IEnumerable<object> arguments);
     }
 }

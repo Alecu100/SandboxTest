@@ -1,7 +1,6 @@
 ﻿using SandboxTest.Engine.Operations;
 using SandboxTest.Instance;
 using SandboxTest.Scenario;
-using System.Linq;
 using System.Reflection;
 
 namespace SandboxTest.Engine.MainTestEngine
@@ -16,6 +15,7 @@ namespace SandboxTest.Engine.MainTestEngine
         protected object? _scenarioSuiteInstance;
         protected Queue<ScenarioSuiteStepsStage> _stepsExecutionStages;
         protected HashSet<ScenarioStepId> _allStepsIdsToExecute;
+        protected ScenarioSuiteData? _scenarioSuiteData;
 
         public ScenarioSuiteTestEngine()
         {
@@ -27,12 +27,42 @@ namespace SandboxTest.Engine.MainTestEngine
 
         public async virtual Task CloseApplicationInstancesAsync()
         {
-            var stopApplicationInstancesTasks = new List<Task>();
-            foreach (var applicationInstance in _scenarioSuiteApplicationInstances)
+            var stopApplicationInstancesTasks = new List<Task<OperationResult>>();
+            var scenarioSuiteApplicationInstancesWithoutOrder = _scenarioSuiteApplicationInstances.Where(scenarioSuiteApplicationInstance => scenarioSuiteApplicationInstance.Instance.Order == null);
+
+            foreach (var scenarioSuiteApplicationInstanceWithoutOrder in scenarioSuiteApplicationInstancesWithoutOrder)
             {
-                stopApplicationInstancesTasks.Add(applicationInstance.StopInstanceAsync());
+                stopApplicationInstancesTasks.Add(scenarioSuiteApplicationInstanceWithoutOrder.StopInstanceAsync(_scenarioSuiteData!));
             }
             await Task.WhenAll(stopApplicationInstancesTasks);
+            foreach (var stopApplicationInstanceTask  in stopApplicationInstancesTasks)
+            {
+                var scenarioSuiteOperationResult = (await stopApplicationInstanceTask) as ScenarioSuiteOperationResult;
+                if (scenarioSuiteOperationResult?.ScenarioSuiteData != null)
+                {
+                    MergeDataDictionaries(_scenarioSuiteData!, scenarioSuiteOperationResult.ScenarioSuiteData!);
+                }
+            }
+
+            var scenarioSuiteApplicationInstancesWithOrderGroups = _scenarioSuiteApplicationInstances.Where(scenarioSuiteApplicationInstance => scenarioSuiteApplicationInstance.Instance.Order != null)
+                .GroupBy(scenarioSuiteApplicationInstance => scenarioSuiteApplicationInstance.Instance.Order).OrderByDescending(x => x.Key);
+            foreach (var scenarioSuiteApplicationInstanceWithOrderGroup in scenarioSuiteApplicationInstancesWithOrderGroups)
+            {
+                stopApplicationInstancesTasks.Clear();
+                foreach (var scenarioSuiteApplicationInstanceWithOrder in scenarioSuiteApplicationInstanceWithOrderGroup)
+                {
+                    stopApplicationInstancesTasks.Add(scenarioSuiteApplicationInstanceWithOrder.StopInstanceAsync(_scenarioSuiteData!));
+                }
+                await Task.WhenAll(stopApplicationInstancesTasks);
+                foreach (var stopApplicationInstanceTask in stopApplicationInstancesTasks)
+                {
+                    var scenarioSuiteOperationResult = (await stopApplicationInstanceTask) as ScenarioSuiteOperationResult;
+                    if (scenarioSuiteOperationResult?.ScenarioSuiteData != null)
+                    {
+                        MergeDataDictionaries(_scenarioSuiteData!, scenarioSuiteOperationResult.ScenarioSuiteData!);
+                    }
+                }
+            }
         }
 
         public virtual async Task LoadScenarioSuiteAsync(Type scenarioSuiteType, IMainTestEngineRunContext mainTestEngineRunContext, CancellationToken token)
@@ -41,6 +71,7 @@ namespace SandboxTest.Engine.MainTestEngine
             {
                 throw new InvalidOperationException("ScenarioSuiteTestEngine already has a scenario suite loaded for it.");
             }
+            _scenarioSuiteData = new ScenarioSuiteData();
             _runId = Guid.NewGuid();
             _mainTestEngineRunContext = mainTestEngineRunContext;
             _scenarioSuiteType = scenarioSuiteType;
@@ -67,12 +98,37 @@ namespace SandboxTest.Engine.MainTestEngine
             }
 
             await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, "Starting application instances");
-            var startApplicationInstancesTasks = new List<Task>();
-            foreach ( var applicationInstancesMember in applicationInstancesMembers) 
+            var instancesToStart = new List<IInstance>();
+            foreach (var applicationInstanceMember in applicationInstancesMembers ) 
             {
-                startApplicationInstancesTasks.Add(StartApplicationInstanceAsync(applicationInstancesMember, token));
+                var instance = applicationInstanceMember.GetValue(_scenarioSuiteInstance) as IInstance;
+                if (instance == null)
+                {
+                    _scenarioFailedErrors.Add($"Application instance for field {applicationInstanceMember.Name} is missing");
+                    continue;
+                }
+                instancesToStart.Add(instance);
             }
-            await Task.WhenAll(startApplicationInstancesTasks);
+            var orderedInstances = instancesToStart.GroupBy(instance => instance.Order).OrderBy(instances => instances.Key);
+
+            foreach (var applicationInstancesMember in orderedInstances) 
+            {
+                var startApplicationInstancesTasks = new List<Task<OperationResult?>>();
+                foreach (var instance in applicationInstancesMember)
+                {
+                    startApplicationInstancesTasks.Add(StartApplicationInstanceAsync(instance, token));
+                }
+                await Task.WhenAll(startApplicationInstancesTasks);
+
+                foreach (var startApplicationInstancesResultTask in startApplicationInstancesTasks)
+                {
+                    var scenarioSuiteOperationResult = (await startApplicationInstancesResultTask) as ScenarioSuiteOperationResult;
+                    if (scenarioSuiteOperationResult == null) 
+                    {
+                        _scenarioFailedErrors.Add($"Failed to start application instance");
+                    }
+                }
+            }
         }
 
         public virtual async Task RunScenariosAsync(List<MethodInfo> scenarionMethods, CancellationToken token)
@@ -128,7 +184,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 var allAplicationInstancesTasks = new List<Task<OperationResult?>>();
                 foreach (var applicationInstance in _scenarioSuiteApplicationInstances)
                 {
-                    allAplicationInstancesTasks.Add(applicationInstance.ResetInstanceAsync(token));
+                    allAplicationInstancesTasks.Add(applicationInstance.ResetInstanceAsync(_scenarioSuiteData!, token));
                 }
                 await Task.WhenAll(allAplicationInstancesTasks);
                 if (token.IsCancellationRequested)
@@ -138,11 +194,13 @@ namespace SandboxTest.Engine.MainTestEngine
                 _scenarioFailedErrors.Clear();
                 foreach (var aplicationInstanceTask in allAplicationInstancesTasks)
                 {
-                    var operationResult = await aplicationInstanceTask;
+                    var operationResult = (ScenarioSuiteOperationResult?)(await aplicationInstanceTask);
                     if (operationResult == null || operationResult.IsSuccesful == false)
                     {
                         _scenarioFailedErrors.Add($"Failed to reset application instance for scenario method {scenarioMethod.Name}");
+                        continue;
                     }
+                    MergeDataDictionaries(_scenarioSuiteData!, operationResult.ScenarioSuiteData!);
                 }
                 if (_scenarioFailedErrors.Any())
                 {
@@ -230,7 +288,7 @@ namespace SandboxTest.Engine.MainTestEngine
                     return;
                 }
 
-                var scenarioStepContext = new ScenarioStepData();
+                var scenarioData = new ScenarioData();
                 while (_stepsExecutionStages.Any())
                 {
                     var currentStageApplicationSteps = _stepsExecutionStages.Dequeue();
@@ -238,7 +296,7 @@ namespace SandboxTest.Engine.MainTestEngine
                     var currentStageExecuteStepsTasks = new List<Task<List<RunScenarioStepOperationResult?>>>();
                     foreach (var currentStageApplicationStep in currentStageApplicationSteps.InstanceHandlersSteps)
                     {
-                        currentStageExecuteStepsTasks.Add(RunStepsForApplicationInstanceAsync(currentStageApplicationStep, scenarioStepContext, token));
+                        currentStageExecuteStepsTasks.Add(RunStepsForApplicationInstanceAsync(currentStageApplicationStep, scenarioData, token));
                     }
                     await Task.WhenAll(currentStageExecuteStepsTasks);
                     await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Finished running step execution stage with steps {currentStageApplicationSteps}");
@@ -267,17 +325,7 @@ namespace SandboxTest.Engine.MainTestEngine
                                 _scenarioFailedErrors.Add($"Failed to run step with error {runStepOperationResult.ErrorMessage}");
                                 continue;
                             }
-                            foreach (var scenarioStepContextKey in scenarioStepContext.Keys.ToArray())
-                            {
-                                if (!runStepOperationResult.StepContext.ContainsKey(scenarioStepContextKey))
-                                {
-                                    scenarioStepContext.Remove(scenarioStepContextKey);
-                                }
-                            }
-                            foreach (var runStepOperationStepContextItem in runStepOperationResult.StepContext)
-                            {
-                                scenarioStepContext[runStepOperationStepContextItem.Key] = runStepOperationStepContextItem.Value;
-                            }
+                            MergeDataDictionaries(scenarioData, runStepOperationResult.ScenarioData);
                         }
                     }
 
@@ -303,12 +351,31 @@ namespace SandboxTest.Engine.MainTestEngine
             }
         }
 
-        private async Task<List<RunScenarioStepOperationResult?>> RunStepsForApplicationInstanceAsync(KeyValuePair<ScenarioSuiteTestEngineInstanceHandler, List<ScenarioStep>> applicationInstanceSteps, ScenarioStepData scenarioStepContext, CancellationToken token)
+        private void MergeDataDictionaries(Dictionary<string, object?> target, Dictionary<string, object?> changes)
+        {
+            if (ReferenceEquals(target, changes))
+            {
+                return;
+            }
+            foreach (var changedKeys in target.Keys.ToArray())
+            {
+                if (!changes.ContainsKey(changedKeys))
+                {
+                    target.Remove(changedKeys);
+                }
+            }
+            foreach (var changesPair in changes)
+            {
+                target[changesPair.Key] = changesPair.Value;
+            }
+        }
+
+        private async Task<List<RunScenarioStepOperationResult?>> RunStepsForApplicationInstanceAsync(KeyValuePair<ScenarioSuiteTestEngineInstanceHandler, List<ScenarioStep>> applicationInstanceSteps, ScenarioData scenarioData, CancellationToken token)
         {
             var allStepsResults = new List<RunScenarioStepOperationResult?>();
             foreach (var instanceStep in applicationInstanceSteps.Value)
             {
-                var result = await applicationInstanceSteps.Key.ExecuteStepAsync(instanceStep, scenarioStepContext, token);
+                var result = await applicationInstanceSteps.Key.ExecuteStepAsync(instanceStep, _scenarioSuiteData!, scenarioData, token);
                 allStepsResults.Add(result as RunScenarioStepOperationResult);
             }
             return allStepsResults;
@@ -338,38 +405,41 @@ namespace SandboxTest.Engine.MainTestEngine
             return applicationInstanceFields;
         }
 
-        protected virtual async Task StartApplicationInstanceAsync(FieldInfo applicationInstanceField, CancellationToken token)
+        protected virtual async Task<OperationResult?> StartApplicationInstanceAsync(IInstance instance, CancellationToken token)
         {
             if (_mainTestEngineRunContext == null || _scenarioSuiteType == null)
             {
                 throw new InvalidOperationException("No scenario suite loaded in scenario suite test engine");
             }
 
-            var instance = applicationInstanceField.GetValue(_scenarioSuiteInstance) as IInstance;
-            if (instance == null)
-            {
-                _scenarioFailedErrors.Add($"Application instance for field {applicationInstanceField.Name} is missing");
-                return;
-            }
-
             var scenarioSuiteTestEngineApplicationInstance = new ScenarioSuiteTestEngineInstanceHandler(_runId, instance, _scenarioSuiteType, _mainTestEngineRunContext);
+            ScenarioSuiteData? scenarioSuiteData;
             try
             {
-                await scenarioSuiteTestEngineApplicationInstance.LoadInstanceAsync(token);
+                scenarioSuiteData = await scenarioSuiteTestEngineApplicationInstance.LoadInstanceAsync(_scenarioSuiteData!, token);
             }
             catch(Exception ex)
             {
                 _scenarioFailedErrors.Add($"Application instance {instance.Id} failed to start with exception {ex}");
-                return;
+                return null;
             }
             await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Running runner in instance {instance.Id}");
-            var runInstanceResult = await scenarioSuiteTestEngineApplicationInstance.RunInstanceAsync(token);
-            if (runInstanceResult == null || runInstanceResult.IsSuccesful == false)
+            if (instance.Order != null)
             {
-                _scenarioFailedErrors.Add($"Failed to start instance with id {instance.Id}");
+                var runInstanceResult = await scenarioSuiteTestEngineApplicationInstance.RunInstanceAsync(_scenarioSuiteData!, token) as ScenarioSuiteOperationResult;
+                if (runInstanceResult == null || runInstanceResult.IsSuccesful == false)
+                {
+                    _scenarioFailedErrors.Add($"Failed to start instance with id {instance.Id}");
+                }
+                _scenarioSuiteApplicationInstances.Add(scenarioSuiteTestEngineApplicationInstance);
+                await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Instance {instance.Id} started succesfully");
+                if (scenarioSuiteData != null && runInstanceResult?.ScenarioSuiteData != null)
+                {
+                    MergeDataDictionaries(runInstanceResult.ScenarioSuiteData!, scenarioSuiteData!);
+                }
+                return runInstanceResult;
             }
-            _scenarioSuiteApplicationInstances.Add(scenarioSuiteTestEngineApplicationInstance);
-            await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Instance {instance.Id} started succesfully");
+            return new ScenarioSuiteOperationResult(true, _scenarioSuiteData!);
         }
     }
 }

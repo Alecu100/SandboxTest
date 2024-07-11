@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Scenario;
 using System.Collections.Concurrent;
 using System.Reflection;
 
@@ -43,14 +44,16 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         public string? Name { get => null; }
 
+
         /// <summary>
         /// Gets the IHostBuilder from the application instance and replaces all the service descriptio entries with new entries that wrap the instances or functions that return instances around proxy interceptors.
         /// </summary>
         /// <param name="runner"></param>
+        /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IHostRunner.ConfigureBuildAsync), 300)]
-        public Task ConfigureBuildAsync(IRunner runner)
+        public Task ConfigureBuildAsync(IRunner runner, IScenarioSuiteContext scenarioSuiteContext)
         {
             var hostApplicationRunner = runner as IHostRunner;
             if (hostApplicationRunner == null)

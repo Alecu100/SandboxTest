@@ -36,7 +36,7 @@ namespace SandboxTest.Sample
                 webApp.ConfigureWebApplication();
                 return Task.CompletedTask;
             })
-            .ConfigureWebApplicationRunnerUrl("https://localhost:5566")
+            .ConfigureWebApplicationRunnerUrl("https://localhost:5600")
             .AddHttpClientController()
             .AddHostController()
             .AddWebApplicationController();
@@ -81,7 +81,7 @@ namespace SandboxTest.Sample
             var fourthStep = _applicationInstance41.AddStep().AddPreviousStep(thirdStep).InvokeController<WebApplicationController>(async (controller, ctx) =>
             {
                 controller.WebApplication.Urls.Should().NotBeNull();
-                controller.WebApplication.Urls.Should().Contain("https://localhost:5566");
+                controller.WebApplication.Urls.Should().Contain("https://localhost:5600");
             });
         }
 

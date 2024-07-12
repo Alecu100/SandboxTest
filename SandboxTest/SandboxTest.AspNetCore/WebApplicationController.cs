@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Scenario;
 
 namespace SandboxTest.AspNetCore
 {
@@ -25,7 +26,7 @@ namespace SandboxTest.AspNetCore
         public WebApplication WebApplication { get => _webApplication ?? throw new InvalidOperationException("Web application not initialized"); }
 
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWebApplicationRunner.BuildAsync), 20)]
-        public Task BuildAsync(IRunner runner)
+        public Task BuildAsync(IRunner runner, IScenarioSuiteContext scenarioSuiteContext)
         {
             var webApplicationRunner = runner as IWebApplicationRunner;
             if (webApplicationRunner == null)

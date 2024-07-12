@@ -15,8 +15,14 @@ namespace SandboxTest.Engine
         protected override Assembly? Load(AssemblyName name)
         {
             var currentAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-            var foundExistingAssembly = currentAssemblies.FirstOrDefault(assembly => AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), name));
+            var foundExistingAssembly = Assemblies.FirstOrDefault(assembly => AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), name));
             if (foundExistingAssembly != null) 
+            {
+                return foundExistingAssembly;
+            }
+
+            foundExistingAssembly = Default.Assemblies.FirstOrDefault(assembly => AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), name));
+            if (foundExistingAssembly != null)
             {
                 return foundExistingAssembly;
             }

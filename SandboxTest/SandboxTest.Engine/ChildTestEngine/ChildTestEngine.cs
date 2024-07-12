@@ -1,7 +1,6 @@
 ﻿using SandboxTest.Engine.Operations;
 using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
-using SandboxTest.Instance.Hosted;
 using SandboxTest.Internal;
 using SandboxTest.Scenario;
 using System.Reflection;
@@ -11,14 +10,15 @@ namespace SandboxTest.Engine.ChildTestEngine
     public class ChildTestEngine : IChildTestEngine
     {
         private Type? _scenarioSuiteType;
-        private ScenariosAssemblyLoadContext? _scenariosAssemblyLoadContext;
+        private ScenariosAssemblyLoadContext _scenariosAssemblyLoadContext;
         private Assembly? _scenarioSuiteAssembly;
         private IInstance? _instance;
         private object? _scenarioSuiteInstance;
         private IAttachedMethodsExecutor _attachedMethodsExecutor;
 
-        public ChildTestEngine()
+        public ChildTestEngine(ScenariosAssemblyLoadContext scenariosAssemblyLoadContext)
         {
+            _scenariosAssemblyLoadContext = scenariosAssemblyLoadContext;
             _attachedMethodsExecutor = new AttachedMethodsExecutor();
         }
 
@@ -90,7 +90,6 @@ namespace SandboxTest.Engine.ChildTestEngine
         {
             try
             {
-                _scenariosAssemblyLoadContext = new ScenariosAssemblyLoadContext(sourceAssemblyNameFulPath);
                 _scenarioSuiteAssembly = _scenariosAssemblyLoadContext.LoadFromAssemblyPath(sourceAssemblyNameFulPath);
                 foreach (var assemblyType in _scenarioSuiteAssembly.GetTypes())
                 {

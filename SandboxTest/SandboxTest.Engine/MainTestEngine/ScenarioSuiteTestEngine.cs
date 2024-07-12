@@ -16,9 +16,11 @@ namespace SandboxTest.Engine.MainTestEngine
         protected Queue<ScenarioSuiteStepsStage> _stepsExecutionStages;
         protected HashSet<ScenarioStepId> _allStepsIdsToExecute;
         protected ScenarioSuiteData? _scenarioSuiteData;
+        protected readonly ScenariosAssemblyLoadContext _scenariosAssemblyLoadContext;
 
-        public ScenarioSuiteTestEngine()
+        public ScenarioSuiteTestEngine(ScenariosAssemblyLoadContext scenariosAssemblyLoadContext)
         {
+            _scenariosAssemblyLoadContext = scenariosAssemblyLoadContext;
             _scenarioSuiteApplicationInstances = new List<ScenarioSuiteTestEngineInstanceHandler>();
             _stepsExecutionStages = new Queue<ScenarioSuiteStepsStage>();
             _allStepsIdsToExecute = new HashSet<ScenarioStepId>();
@@ -412,7 +414,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 throw new InvalidOperationException("No scenario suite loaded in scenario suite test engine");
             }
 
-            var scenarioSuiteTestEngineApplicationInstance = new ScenarioSuiteTestEngineInstanceHandler(_runId, instance, _scenarioSuiteType, _mainTestEngineRunContext);
+            var scenarioSuiteTestEngineApplicationInstance = new ScenarioSuiteTestEngineInstanceHandler(_runId, instance, _scenariosAssemblyLoadContext, _scenarioSuiteType, _mainTestEngineRunContext);
             ScenarioSuiteData? scenarioSuiteData;
             try
             {

@@ -8,7 +8,7 @@ namespace SandboxTest.Engine.ChildTestEngine
     public class HostedInstanceInitializer : IHostedInstanceInitializer
     {
         private readonly TaskCompletionSource<int> _runFinishedTaskCompletionSource;
-        private readonly IChildTestEngine _childTestEngine;
+        private IChildTestEngine? _childTestEngine;
         private IHostedInstance? _hostedInstance;
         private Guid _runId;
         private string? _mainPath;
@@ -19,7 +19,6 @@ namespace SandboxTest.Engine.ChildTestEngine
 
         public HostedInstanceInitializer()
         {
-            _childTestEngine = new ChildTestEngine();
             _runFinishedTaskCompletionSource = new TaskCompletionSource<int>();
         }
 
@@ -33,6 +32,7 @@ namespace SandboxTest.Engine.ChildTestEngine
                 _applicationInstanceId = hostedInstanceData.ApplicationInstanceId;
                 _assemblySourceName = hostedInstanceData.AssemblySourceName;
                 _scenarioSuiteTypeFullName = hostedInstanceData.ScenarioSuiteTypeFullName;
+                _childTestEngine = new ChildTestEngine(new ScenariosAssemblyLoadContext($"{_mainPath}\\{_assemblySourceName}"));
                 if (_runId == default || _mainPath == default || _applicationInstanceId == default || _assemblySourceName == default || _scenarioSuiteTypeFullName == default)
                 {
                     throw new ArgumentException("All required arguments for application instance runner have not been provided");

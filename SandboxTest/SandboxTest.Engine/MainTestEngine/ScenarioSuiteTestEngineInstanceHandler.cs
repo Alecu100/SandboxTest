@@ -5,12 +5,12 @@ using SandboxTest.Engine.Utils;
 using SandboxTest.Instance;
 using SandboxTest.Instance.Hosted;
 using SandboxTest.Scenario;
-using System.Threading;
 
 namespace SandboxTest.Engine.MainTestEngine
 {
     public class ScenarioSuiteTestEngineInstanceHandler
     {
+        private readonly ScenariosAssemblyLoadContext _scenariosAssemblyLoadContext;
         private readonly Guid _runId;
         private readonly IInstance _assignedInstance;
         private IHostedInstance? _assignedHostedInstance;
@@ -21,18 +21,25 @@ namespace SandboxTest.Engine.MainTestEngine
         private string? _mainAssemblyPath;
         private string? _assemblySourceName;
         private string? _mainPath;
+        private JsonSerializerSettings _jsonSerializerSettings;
 
         /// <summary>
         /// Returns the current application instance assigned to the scenario suite application instance that is not running used to keep track of all the steps.
         /// </summary>
         public IInstance Instance { get { return _assignedInstance; } }
 
-        public ScenarioSuiteTestEngineInstanceHandler(Guid runId, IInstance instance, Type scenarioSuiteType, IMainTestEngineRunContext mainTestEngineRunContext)
+        public ScenarioSuiteTestEngineInstanceHandler(Guid runId, IInstance instance, ScenariosAssemblyLoadContext scenariosAssemblyLoadContext, Type scenarioSuiteType, IMainTestEngineRunContext mainTestEngineRunContext)
         {
             _runId = runId;
             _assignedInstance = instance;
+            _scenariosAssemblyLoadContext = scenariosAssemblyLoadContext;
             _mainTestEngineRunContext = mainTestEngineRunContext;
-            _scenarioSuiteType = scenarioSuiteType; 
+            _scenarioSuiteType = scenarioSuiteType;
+            _jsonSerializerSettings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.All,
+                SerializationBinder = new ScenarioAssemblyLoadContextSerializationBinder(_scenariosAssemblyLoadContext)
+            };
         }
 
         /// <summary>
@@ -66,7 +73,7 @@ namespace SandboxTest.Engine.MainTestEngine
             }
             else
             {
-                _childTestEngine = new ChildTestEngine.ChildTestEngine();
+                _childTestEngine = new ChildTestEngine.ChildTestEngine(_scenariosAssemblyLoadContext);
                 await _childTestEngine.LoadInstanceAsync($"{_mainPath}\\{_assemblySourceName}", _scenarioSuiteType.FullName!, _assignedInstance.Id);
                 return null;
             }
@@ -188,10 +195,10 @@ namespace SandboxTest.Engine.MainTestEngine
                 {
                     throw new InvalidOperationException("Assigned instance does not have a message channel assigned");
                 }
-                var json = JsonConvert.SerializeObject(operation, JsonUtils.JsonSerializerSettings);
+                var json = JsonConvert.SerializeObject(operation, _jsonSerializerSettings);
                 await _assignedHostedInstance.MessageChannel.SendMessageAsync(json);
 
-                var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _assignedHostedInstance.MessageChannel.ReceiveMessageAsync(), JsonUtils.JsonSerializerSettings);
+                var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _assignedHostedInstance.MessageChannel.ReceiveMessageAsync(), _jsonSerializerSettings);
                 return operationResult!;
             }
             catch (Exception ex)
@@ -231,8 +238,8 @@ namespace SandboxTest.Engine.MainTestEngine
 
         private T CloneBySerializingToJson<T>(T targetToClone)
         {
-            var json = JsonConvert.SerializeObject(targetToClone, JsonUtils.JsonSerializerSettings);
-            return JsonConvert.DeserializeObject<T>(json, JsonUtils.JsonSerializerSettings)!;
+            var json = JsonConvert.SerializeObject(targetToClone, _jsonSerializerSettings);
+            return JsonConvert.DeserializeObject<T>(json, _jsonSerializerSettings)!;
         }
     }
 }

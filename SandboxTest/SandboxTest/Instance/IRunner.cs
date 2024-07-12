@@ -29,5 +29,10 @@ namespace SandboxTest.Instance
         /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
         Task ResetAsync(IScenarioSuiteContext scenarioSuiteContext);
+
+        /// <summary>
+        /// Gets the run status of the runner.
+        /// </summary>
+        bool IsRunning { get; }
     }
 }

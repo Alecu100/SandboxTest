@@ -426,6 +426,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 return null;
             }
             await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Running runner in instance {instance.Id}");
+            _scenarioSuiteApplicationInstances.Add(scenarioSuiteTestEngineApplicationInstance);
             if (instance.Order != null)
             {
                 var runInstanceResult = await scenarioSuiteTestEngineApplicationInstance.RunInstanceAsync(_scenarioSuiteData!, token) as ScenarioSuiteOperationResult;
@@ -433,7 +434,6 @@ namespace SandboxTest.Engine.MainTestEngine
                 {
                     _scenarioFailedErrors.Add($"Failed to start instance with id {instance.Id}");
                 }
-                _scenarioSuiteApplicationInstances.Add(scenarioSuiteTestEngineApplicationInstance);
                 await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Instance {instance.Id} started succesfully");
                 if (scenarioSuiteData != null && runInstanceResult?.ScenarioSuiteData != null)
                 {

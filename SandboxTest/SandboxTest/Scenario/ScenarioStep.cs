@@ -12,6 +12,7 @@ namespace SandboxTest.Scenario
         private readonly ScenarioStepId _id;
         private readonly List<Func<IScenarioStepContext, Task>> _configuredActions;
         private readonly List<ScenarioStepId> _previousStepsIds;
+        private readonly List<ScenarioStep> _previousSteps;
         private readonly IInstance _applicationInstance;
 
         /// <summary>
@@ -54,6 +55,7 @@ namespace SandboxTest.Scenario
             _applicationInstance = applicationInstance;
             _previousStepsIds = new List<ScenarioStepId>();
             _configuredActions = new List<Func<IScenarioStepContext, Task>>();
+            _previousSteps = new List<ScenarioStep>();
         }
 
         /// <summary>
@@ -65,11 +67,36 @@ namespace SandboxTest.Scenario
         {
             if (_configuredActions.Count > 0)
             {
-                throw new Exception("Step already contains controller invocations, please add previous steps before doing any controller invocations.");
+                throw new InvalidOperationException("Step already contains controller invocations, please add previous steps before doing any controller invocations.");
+            }
+            if (previousStep.Id == Id)
+            {
+                throw new InvalidOperationException("Can't add the current step as a previous step to itself.");
+            }
+            if (PreviousStepAlreadyAdded(previousStep))
+            {
+                throw new InvalidOperationException("Previous step to add already contains the current step as a previous step");
             }
 
             _previousStepsIds.Add(previousStep.Id);
+            _previousSteps.Add(previousStep);
             return this;
+        }
+
+        public bool PreviousStepAlreadyAdded(ScenarioStep previousStep)
+        {
+            if (previousStep._previousSteps.Any(step => step.Id == Id))
+            {
+                return true;
+            }
+            foreach (var yetPreviousStep in previousStep._previousSteps)
+            {
+                if (PreviousStepAlreadyAdded(yetPreviousStep))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public ScenarioStep InvokeController<TController>(Func<TController, IScenarioStepContext, Task> invokeFunc, string? name = default) where TController : IController

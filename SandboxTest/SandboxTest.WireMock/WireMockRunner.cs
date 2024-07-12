@@ -77,6 +77,7 @@ namespace SandboxTest.WireMock
             {
                 _wireMockServer = WireMockServer.Start(_port, _useSsl);
             }
+            _isRunning = true;
             return Task.CompletedTask;
         }
 
@@ -93,6 +94,8 @@ namespace SandboxTest.WireMock
                 throw new InvalidOperationException("Wiremock server not started");
             }
             _wireMockServer.Stop();
+            _wireMockServer.Dispose();
+            _isRunning = false;
             return Task.CompletedTask;
         }
     }

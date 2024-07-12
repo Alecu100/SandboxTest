@@ -215,6 +215,7 @@ namespace SandboxTest.Executable
             {
                 throw new InvalidOperationException("Failed to start the executable");
             }
+            _isRunning = true;
         }
 
         private void _executableProcess_OutputDataReceived(object sender, DataReceivedEventArgs e)
@@ -240,6 +241,7 @@ namespace SandboxTest.Executable
             _executableProcess.Exited -= _executableProcess_Exited;
             _executableProcess.Close();
             await _executableProcess.WaitForExitAsync();
+            _isRunning = false;
         }
     }
 }

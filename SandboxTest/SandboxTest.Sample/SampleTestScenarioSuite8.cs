@@ -62,6 +62,7 @@ namespace SandboxTest.Sample
             var firstStep = _applicationInstance82.AddStep().InvokeController<PlaywrightController>(async (controller, ctx) =>
             {
                 await Expect(controller.Page.GetByText("Loading... Please refresh once the ASP.NET backend has started")).ToBeVisibleAsync();
+                await Task.Delay(3000);
             });
             var secondStep = _applicationInstance81.AddStep(firstStep).InvokeController<RunnerController>(async (controller, ctx) =>
             {
@@ -71,6 +72,7 @@ namespace SandboxTest.Sample
             {
                 await controller.Page.ReloadAsync();
                 await Expect(controller.Page.GetByText("Loading... Please refresh once the ASP.NET backend has started")).ToBeHiddenAsync();
+                await Task.Delay(3000);
             });
             var forthStep = _applicationInstance81.AddStep(thirdStep).InvokeController<RunnerController>(async (controller, ctx) =>
             {
@@ -80,6 +82,7 @@ namespace SandboxTest.Sample
             {
                 await controller.Page.ReloadAsync();
                 await Expect(controller.Page.GetByText("Loading... Please refresh once the ASP.NET backend has started")).ToBeVisibleAsync();
+                await Task.Delay(3000);
             });
         }
     }

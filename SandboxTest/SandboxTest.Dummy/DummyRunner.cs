@@ -25,6 +25,7 @@ namespace SandboxTest.Dummy
         /// <returns></returns>
         public override Task RunAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
+            _isRunning = true;
             return Task.CompletedTask;
         }
 
@@ -35,6 +36,7 @@ namespace SandboxTest.Dummy
         /// <returns></returns>
         public override Task StopAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
+            _isRunning = false;
             return Task.CompletedTask;
         }
     }

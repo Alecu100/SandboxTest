@@ -181,6 +181,7 @@ namespace SandboxTest.AspNetCore
                 throw new InvalidOperationException("Web application not built");
             }
             _runTask = Task.Run(async () => await _webApplication.RunAsync(_url));
+            _isRunning = true;
             return Task.CompletedTask;
         }
 
@@ -196,6 +197,8 @@ namespace SandboxTest.AspNetCore
                 throw new InvalidOperationException("Web application not built and is not running.");
             }
             await _webApplication.StopAsync();
+            await _webApplication.DisposeAsync();
+            _isRunning = false;
         }
     }
 }

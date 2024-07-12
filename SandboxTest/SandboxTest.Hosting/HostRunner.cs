@@ -129,6 +129,7 @@ namespace SandboxTest.Hosting
                 throw new InvalidOperationException("Host not built.");
             }
             await _host.StartAsync();
+            _isRunning = true;
         }
 
         ///<inheritdoc/>
@@ -139,6 +140,8 @@ namespace SandboxTest.Hosting
                 throw new InvalidOperationException("Host not built and is not running.");
             }
             await _host.StopAsync();
+            _host.Dispose();
+            _isRunning = false;
         }
 
         ///<inheritdoc/>

@@ -78,10 +78,13 @@ namespace SandboxTest.Engine.ChildTestEngine
             try
             {
                 RefreshScenarioSuiteContext(scenarioSuiteData);
-                var allInstancesToRun = new List<object>();
-                allInstancesToRun.AddRange(_instance.Controllers);
-                allInstancesToRun.Add(_instance.Runner!);
-                await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.ResetAsync, new object[] { _instance.Runner, new ScenarioSuiteContext(scenarioSuiteData) });
+                if (_instance.Runner.IsRunning)
+                {
+                    var allInstancesToRun = new List<object>();
+                    allInstancesToRun.AddRange(_instance.Controllers);
+                    allInstancesToRun.Add(_instance.Runner!);
+                    await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.ResetAsync, new object[] { _instance.Runner, new ScenarioSuiteContext(scenarioSuiteData) });
+                }
 
                 return new ScenarioSuiteOperationResult(true, scenarioSuiteData);
             }
@@ -212,10 +215,14 @@ namespace SandboxTest.Engine.ChildTestEngine
                 throw new InvalidOperationException($"Could application instance with id {_instance.Id} in scenario suite type {_scenarioSuiteType.FullName} does not have an assigned runner");
             }
             RefreshScenarioSuiteContext(scenarioSuiteData);
-            var allInstancesToRun = new List<object>();
-            allInstancesToRun.AddRange(_instance.Controllers);
-            allInstancesToRun.Add(_instance.Runner);
-            await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.Runner.StopAsync, new object[] { _instance.Runner, new ScenarioSuiteContext(scenarioSuiteData) });
+            if (_instance.Runner.IsRunning)
+            {
+                var allInstancesToRun = new List<object>();
+                allInstancesToRun.AddRange(_instance.Controllers);
+                allInstancesToRun.Add(_instance.Runner);
+                await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.Runner.StopAsync, new object[] { _instance.Runner, new ScenarioSuiteContext(scenarioSuiteData) });
+            }
+
             return new ScenarioSuiteOperationResult(true, scenarioSuiteData);
         }
 

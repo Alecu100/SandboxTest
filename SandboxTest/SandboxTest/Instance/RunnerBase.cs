@@ -9,8 +9,13 @@ namespace SandboxTest.Instance
     public abstract class RunnerBase : IRunner
     {
         protected readonly List<AttachedDynamicMethod> _attachedDynamicMethods = new List<AttachedDynamicMethod>();
+        protected bool _isRunning;
 
+        /// <inheritdoc/>
         public IReadOnlyList<AttachedDynamicMethod> AttachedMethods => _attachedDynamicMethods;
+
+        /// <inheritdoc/>
+        public bool IsRunning { get => _isRunning; }
 
         /// <inheritdoc/>
         public virtual void AddAttachedDynamicMethod(AttachedMethodType methodType, Delegate method, string name, string targetMethodName, int order)

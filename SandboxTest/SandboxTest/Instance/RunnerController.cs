@@ -6,11 +6,15 @@ namespace SandboxTest.Instance
     /// <summary>
     /// Controller that allows manually running and stopping an instance by stopping and starting its associated runner.
     /// </summary>
-    public class RunnerLifecycleController : ControllerBase, IRuntimeContextAccessor
+    public class RunnerController : ControllerBase, IRuntimeContextAccessor
     {
         private IRuntimeContext? _runtimeContext;
 
-        public RunnerLifecycleController(string? name) : base(name)
+        /// <summary>
+        /// Creates a new instance of the <see cref="RunnerController"/>.
+        /// It creates without a name since only one can be assigned to a instance.
+        /// </summary>
+        public RunnerController() : base(null)
         {
         }
 
@@ -23,7 +27,7 @@ namespace SandboxTest.Instance
             var allInstancesToRun = new List<object>();
             allInstancesToRun.AddRange(_runtimeContext!.Controllers);
             allInstancesToRun.Add(_runtimeContext!.Runner);
-            await _runtimeContext.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _runtimeContext.Runner.RunAsync, new object[] { _runtimeContext.Runner });
+            await _runtimeContext.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _runtimeContext.Runner.RunAsync, new object[] { _runtimeContext.Runner, _runtimeContext.ScenarioSuiteContext });
         }
 
         /// <summary>
@@ -35,7 +39,7 @@ namespace SandboxTest.Instance
             var allInstancesToRun = new List<object>();
             allInstancesToRun.AddRange(_runtimeContext!.Controllers);
             allInstancesToRun.Add(_runtimeContext!.Runner);
-            await _runtimeContext.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _runtimeContext.Runner.StopAsync, new object[] { _runtimeContext.Runner });
+            await _runtimeContext.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _runtimeContext.Runner.StopAsync, new object[] { _runtimeContext.Runner, _runtimeContext.ScenarioSuiteContext });
         }
 
 
@@ -48,7 +52,7 @@ namespace SandboxTest.Instance
             var allInstancesToRun = new List<object>();
             allInstancesToRun.AddRange(_runtimeContext!.Controllers);
             allInstancesToRun.Add(_runtimeContext!.Runner);
-            await _runtimeContext.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _runtimeContext.Runner.ResetAsync, new object[] { _runtimeContext.Runner });
+            await _runtimeContext.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _runtimeContext.Runner.ResetAsync, new object[] { _runtimeContext.Runner, _runtimeContext.ScenarioSuiteContext });
         }
 
         void IRuntimeContextAccessor.InitializeContext(IRuntimeContext context)

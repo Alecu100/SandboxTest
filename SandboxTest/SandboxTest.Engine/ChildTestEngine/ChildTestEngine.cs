@@ -15,12 +15,16 @@ namespace SandboxTest.Engine.ChildTestEngine
         private IInstance? _instance;
         private object? _scenarioSuiteInstance;
         private IAttachedMethodsExecutor _attachedMethodsExecutor;
+        private ScenarioSuiteContext? _scenarioSuiteContext;
 
         public ChildTestEngine(ScenariosAssemblyLoadContext scenariosAssemblyLoadContext)
         {
             _scenariosAssemblyLoadContext = scenariosAssemblyLoadContext;
             _attachedMethodsExecutor = new AttachedMethodsExecutor();
         }
+
+        /// <inheritdoc/>
+        public IScenarioSuiteContext? ScenarioSuiteContext { get => _scenarioSuiteContext; }
 
         /// <inheritdoc/>
         public IInstance? RunningInstance { get => _instance; }
@@ -73,6 +77,7 @@ namespace SandboxTest.Engine.ChildTestEngine
 
             try
             {
+                RefreshScenarioSuiteContext(scenarioSuiteData);
                 var allInstancesToRun = new List<object>();
                 allInstancesToRun.AddRange(_instance.Controllers);
                 allInstancesToRun.Add(_instance.Runner!);
@@ -158,6 +163,7 @@ namespace SandboxTest.Engine.ChildTestEngine
                 {
                     throw new InvalidOperationException($"Instance has no runner assigned");
                 }
+                RefreshScenarioSuiteContext(scenarioSuiteData);
                 var allInstancesToRun = new List<object>();
                 allInstancesToRun.AddRange(_instance.Controllers);
                 allInstancesToRun.Add(_instance.Runner);
@@ -184,6 +190,7 @@ namespace SandboxTest.Engine.ChildTestEngine
             }
             try
             {
+                RefreshScenarioSuiteContext(scenarioSuiteData);
                 var scenarioStepRuntime = (IScenarioStepRuntime)step;
                 await scenarioStepRuntime.RunAsync(new ScenarioStepContext(scenarioSuiteData, scenarioData));
                 return new RunScenarioStepOperationResult(true, scenarioSuiteData, scenarioData);
@@ -204,11 +211,17 @@ namespace SandboxTest.Engine.ChildTestEngine
             {
                 throw new InvalidOperationException($"Could application instance with id {_instance.Id} in scenario suite type {_scenarioSuiteType.FullName} does not have an assigned runner");
             }
+            RefreshScenarioSuiteContext(scenarioSuiteData);
             var allInstancesToRun = new List<object>();
             allInstancesToRun.AddRange(_instance.Controllers);
             allInstancesToRun.Add(_instance.Runner);
             await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.Runner.StopAsync, new object[] { _instance.Runner, new ScenarioSuiteContext(scenarioSuiteData) });
             return new ScenarioSuiteOperationResult(true, scenarioSuiteData);
+        }
+
+        private void RefreshScenarioSuiteContext(ScenarioSuiteData scenarioSuiteData)
+        {
+            _scenarioSuiteContext = new ScenarioSuiteContext(scenarioSuiteData);
         }
     }
 }

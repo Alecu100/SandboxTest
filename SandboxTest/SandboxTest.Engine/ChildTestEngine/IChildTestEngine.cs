@@ -17,6 +17,11 @@ namespace SandboxTest.Engine.ChildTestEngine
         IAttachedMethodsExecutor AttachedMethodsExecutor { get; }
 
         /// <summary>
+        /// Gets the current scenario suite context.
+        /// </summary>
+        IScenarioSuiteContext? ScenarioSuiteContext { get; }
+
+        /// <summary>
         /// Runs an application instance
         /// </summary>
         /// <param name="assemblyPath"></param>

@@ -19,6 +19,7 @@
     <ProjectReference Include="..\SandboxTest.Sample.Application2\SandboxTest.Sample.Application2.csproj" />
     <ProjectReference Include="..\SandboxTest.Sample.Application3\SandboxTest.Sample.Application3.csproj" />
     <ProjectReference Include="..\SandboxTest.Sample.Application4.Server\SandboxTest.Sample.Application4.Server.csproj" />
+    <ProjectReference Include="..\SandboxTest.Sample.Application5\SandboxTest.Sample.Application5.Server\SandboxTest.Sample.Application5.Server.csproj" />
     <ProjectReference Include="..\SandboxTest.TestAdapter\SandboxTest.TestAdapter.csproj" />
     <ProjectReference Include="..\SandboxTest.WireMock\SandboxTest.WireMock.csproj" />
     <ProjectReference Include="..\SandboxTest\SandboxTest.csproj" />

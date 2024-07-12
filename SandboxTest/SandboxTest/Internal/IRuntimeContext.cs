@@ -30,6 +30,11 @@ namespace SandboxTest.Internal
         IInstance Instance { get; }
 
         /// <summary>
+        /// Gets the scenario suite context.
+        /// </summary>
+        IScenarioSuiteContext ScenarioSuiteContext { get; }
+
+        /// <summary>
         /// Executes an attached methods chain.
         /// </summary>
         /// <param name="instances"></param>

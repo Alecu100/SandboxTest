@@ -3,7 +3,7 @@ using SandboxTest.Instance;
 using SandboxTest.Scenario;
 using SandboxTest.AspNetCore;
 using Microsoft.AspNetCore.Builder;
-using SandboxTest.Sample.Application4.Server;
+using SandboxTest.Sample.Application5.Server;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using SandboxTest.Application;
 using SandboxTest.Node;
@@ -14,9 +14,9 @@ using static Microsoft.Playwright.Assertions;
 namespace SandboxTest.Sample
 {
     [ScenarioSuite]
-    public class SampleTestScenarioSuite7
+    public class SampleTestScenarioSuite8
     {
-        public readonly IInstance _applicationInstance71 = ApplicationHostedInstance.CreateEmptyInstance("Instance71")
+        public readonly IInstance _applicationInstance81 = ApplicationHostedInstance.CreateEmptyInstance("Instance81")
             .UseApplicationHostedInstanceMessageChannel()
             .UseWebApplicationRunner(args =>
             {
@@ -33,7 +33,7 @@ namespace SandboxTest.Sample
                         name: "test",
                         policy =>
                         {
-                            policy.WithOrigins("https://localhost:5566//*", "https://localhost:5566")
+                            policy.WithOrigins("https://localhost:5533//*", "https://localhost:5533")
                                   .AllowAnyHeader()
                                   .AllowAnyMethod()
                                   .AllowCredentials()
@@ -47,33 +47,39 @@ namespace SandboxTest.Sample
                 webApp.UseCors("test");
                 return Task.CompletedTask;
             })
-            .ConfigureWebApplicationRunnerUrl("https://localhost:5566")
+            .DisableAutoRun()
+            .ConfigureWebApplicationRunnerUrl("https://localhost:5533")
             .AddRunnerController();
 
-        public readonly IInstance _applicationInstance72 = ApplicationInstance.CreateEmptyInstance("Instance72")
-            .UseNodeRunner("localhost", 8088)
-            .ConfigureNodeRunnerWithVite(PathUtils.AppendToPath(PathUtils.LocateFolderPath("SandboxTest")!, "sandboxtest.sample.application4.client"))
+        public readonly IInstance _applicationInstance82 = ApplicationInstance.CreateEmptyInstance("Instance82")
+            .UseNodeRunner("localhost", 8050)
+            .ConfigureNodeRunnerWithVite(PathUtils.AppendToPath(PathUtils.LocateFolderPath("SandboxTest")!, "SandboxTest.Sample.Application5\\sandboxtest.sample.application5.client"))
             .AddPlaywrightController(PlaywrightControllerBrowserType.Chromium, headless: false, slowMod: 50);
 
         [Scenario]
-        public void TestScenario7()
+        public void TestScenario8()
         {
-            var firstStep = _applicationInstance72.AddStep().InvokeController<PlaywrightController>(async (controller, ctx) =>
+            var firstStep = _applicationInstance82.AddStep().InvokeController<PlaywrightController>(async (controller, ctx) =>
             {
-                await Expect(controller.Page.GetByText("This component demonstrates fetching data from the server")).ToBeVisibleAsync();
+                await Expect(controller.Page.GetByText("Loading... Please refresh once the ASP.NET backend has started")).ToBeVisibleAsync();
             });
-            var secondStep = _applicationInstance72.AddStep().AddPreviousStep(firstStep).InvokeController<PlaywrightController>(async (controller, ctx) =>
+            var secondStep = _applicationInstance81.AddStep(firstStep).InvokeController<RunnerController>(async (controller, ctx) =>
             {
-                await Task.Delay(7000);
+                await controller.RunRunnerAsync();
             });
-            var thirdStep = _applicationInstance72.AddStep().AddPreviousStep(secondStep).InvokeController<PlaywrightController>(async (controller, ctx) =>
+            var thirdStep = _applicationInstance82.AddStep(secondStep).InvokeController<PlaywrightController>(async (controller, ctx) =>
             {
                 await controller.Page.ReloadAsync();
-                await Expect(controller.Page.GetByText("Weather forecast")).ToBeVisibleAsync();
+                await Expect(controller.Page.GetByText("Loading... Please refresh once the ASP.NET backend has started")).ToBeHiddenAsync();
             });
-            var forthStep = _applicationInstance72.AddStep().AddPreviousStep(thirdStep).InvokeController<PlaywrightController>(async (controller, ctx) =>
+            var forthStep = _applicationInstance81.AddStep(thirdStep).InvokeController<RunnerController>(async (controller, ctx) =>
             {
-                await Task.Delay(5000);
+                await controller.StopRunnerAsync();
+            });
+            var fithStep = _applicationInstance82.AddStep(forthStep).InvokeController<PlaywrightController>(async (controller, ctx) =>
+            {
+                await controller.Page.ReloadAsync();
+                await Expect(controller.Page.GetByText("Loading... Please refresh once the ASP.NET backend has started")).ToBeVisibleAsync();
             });
         }
     }

@@ -31,7 +31,10 @@ namespace SandboxTest.Engine.ChildTestEngine
         public IRunner Runner { get => _childTestEngine?.RunningInstance?.Runner ?? throw new InvalidOperationException("Instance has no runner assigned") ?? throw new InvalidOperationException("Instance has no runner assigned"); }
 
         /// <inheritdoc/>
-        public IInstance Instance {  get => _childTestEngine?.RunningInstance ?? throw new InvalidOperationException("Instance has no runner assigned"); }
+        public IInstance Instance { get => _childTestEngine?.RunningInstance ?? throw new InvalidOperationException("Instance has no runner assigned"); }
+
+        /// <inheritdoc/>
+        public IScenarioSuiteContext ScenarioSuiteContext { get => _childTestEngine?.ScenarioSuiteContext ?? throw new InvalidOperationException("No scenario suite context found"); }
 
         /// <inheritdoc/>
         public async Task ExecuteAttachedMethodsChain(IEnumerable<object> instances, IEnumerable<AttachedMethodType> includedStepTypes, Delegate targetMethod, IEnumerable<object> arguments)

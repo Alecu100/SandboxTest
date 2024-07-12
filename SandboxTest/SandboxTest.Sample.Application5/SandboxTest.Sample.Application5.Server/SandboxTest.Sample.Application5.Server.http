@@ -1,0 +1,6 @@
+@SandboxTest.Sample.Application5.Server_HostAddress = http://localhost:5186
+
+GET {{SandboxTest.Sample.Application5.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

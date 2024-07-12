@@ -274,6 +274,7 @@ namespace SandboxTest.Node
             var process = RunNodeProcess(commandToRun, workingDirectory, text => output.AppendLine(text));
 
             await process.WaitForExitAsync();
+            process.Close();
 
             return output.ToString();
         }

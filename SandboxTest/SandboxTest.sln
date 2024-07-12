@@ -49,7 +49,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Node", "Sandbox
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Application", "SandboxTest.Application\SandboxTest.Application.csproj", "{3420BE51-D2FC-4E65-A84F-B5A6FD281C36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandboxTest.Sample.Application5.Server", "SandboxTest.Sample.Application5\SandboxTest.Sample.Application5.Server\SandboxTest.Sample.Application5.Server.csproj", "{6B3BE559-80FE-40B4-9D98-C7A7AEC083D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Sample.Application5.Server", "SandboxTest.Sample.Application5\SandboxTest.Sample.Application5.Server\SandboxTest.Sample.Application5.Server.csproj", "{6B3BE559-80FE-40B4-9D98-C7A7AEC083D2}"
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "sandboxtest.sample.application5.client", "SandboxTest.Sample.Application5\sandboxtest.sample.application5.client\sandboxtest.sample.application5.client.esproj", "{526294E2-2256-4C76-B99E-B98E6A0DD7AE}"
 EndProject

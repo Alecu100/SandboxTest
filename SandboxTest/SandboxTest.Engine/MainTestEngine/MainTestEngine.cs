@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Reflection;
 using SandboxTest.Scenario;
 
 namespace SandboxTest.Engine.MainTestEngine
@@ -11,18 +12,7 @@ namespace SandboxTest.Engine.MainTestEngine
         public MainTestEngine()
         {
             _runningScenarioSuiteTestEngines = new List<IScenarioSuiteTestEngine>();
-            AppDomain.CurrentDomain.AssemblyLoad += CurrentDomain_AssemblyLoad;
         }
-
-        private void CurrentDomain_AssemblyLoad(object? sender, AssemblyLoadEventArgs args)
-        {
-            int a = 0;
-            if (args.LoadedAssembly.GetName().Name == "SandboxTest.Sample")
-            {
-                a++;
-            }
-        }
-
         public virtual async Task RunScenariosAsync(IEnumerable<Scenario> scenarios, IMainTestEngineRunContext runContext)
         {
             _cancellationTokenSource = new CancellationTokenSource();
@@ -43,19 +33,22 @@ namespace SandboxTest.Engine.MainTestEngine
             foreach (var scenarioSuitesAssembly in scenarioSuitesAssemblies)
             {
                 var scenariosAssemblyLoadContext = new ScenariosAssemblyLoadContext(scenarioSuitesAssembly.Key.ScenarioSourceAssembly);
-                var scenariosAssembly = scenariosAssemblyLoadContext.LoadFromAssemblyPath(scenarioSuitesAssembly.Key.ScenarioSourceAssembly);
-                assemblyLoadContexts.Add(scenariosAssemblyLoadContext);
-                var scenarioSuites = scenarioSuitesAssembly.GroupBy(x => new { x.ScenarioSuitTypeFullName });
-                foreach (var scenarioSuite in scenarioSuites) 
+                using (scenariosAssemblyLoadContext.EnterContextualReflection())
                 {
-                    scenariosRunningTasks.Add(RunScenarioSuite(scenariosAssembly, scenariosAssemblyLoadContext, scenarioSuite.Key.ScenarioSuitTypeFullName, scenarioSuite, runContext));
+                    var scenariosAssembly = scenariosAssemblyLoadContext.LoadFromAssemblyPath(scenarioSuitesAssembly.Key.ScenarioSourceAssembly);
+                    assemblyLoadContexts.Add(scenariosAssemblyLoadContext);
+                    var scenarioSuites = scenarioSuitesAssembly.GroupBy(x => new { x.ScenarioSuitTypeFullName });
+                    foreach (var scenarioSuite in scenarioSuites)
+                    {
+                        scenariosRunningTasks.Add(RunScenarioSuite(scenariosAssembly, scenariosAssemblyLoadContext, scenarioSuite.Key.ScenarioSuitTypeFullName, scenarioSuite, runContext));
+                    }
                 }
-            }
-            await Task.WhenAll(scenariosRunningTasks);
+                await Task.WhenAll(scenariosRunningTasks);
 
-            foreach (var assemblyLoadContext in assemblyLoadContexts)
-            {
-                assemblyLoadContext.Unload();
+                foreach (var assemblyLoadContext in assemblyLoadContexts)
+                {
+                    assemblyLoadContext.Unload();
+                }
             }
         }
 

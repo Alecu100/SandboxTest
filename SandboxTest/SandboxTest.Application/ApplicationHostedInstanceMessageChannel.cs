@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using SandboxTest.Instance.Hosted;
+﻿using SandboxTest.Instance.Hosted;
 using System.IO.Pipes;
 using System.Text;
 
@@ -37,14 +36,6 @@ namespace SandboxTest.Application
         {
             MessageSeparatorBytes = Guid.Parse(MessageSeparator).ToByteArray();
         }
-
-        /// <summary>
-        /// The default settings for serializing json objects in the json pipes.
-        /// </summary>
-        private static readonly JsonSerializerSettings PipeJsonSerializerSettings = new JsonSerializerSettings
-        {
-            TypeNameHandling = TypeNameHandling.All
-        };
 
         private Lazy<Task<NamedPipeClientStream>>? _instanceClientPipeStream;
         private Lazy<Task<NamedPipeServerStream>>? _instanceServerPipeStream;

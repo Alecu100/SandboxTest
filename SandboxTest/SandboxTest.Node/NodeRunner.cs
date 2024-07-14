@@ -184,6 +184,7 @@ namespace SandboxTest.Node
                 }
             });
             await _runCompletionSource.Task;
+            _isRunning = true;
         }
 
         private bool ParsePortIsInUse(string output)
@@ -250,6 +251,7 @@ namespace SandboxTest.Node
                 remainingNodeProcess.Kill(true);
                 await remainingNodeProcess.WaitForExitAsync();
             }
+            _isRunning = false;
         }
 
         private static async Task<string> RunNodeCommandAsync(string commandToRun)

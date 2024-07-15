@@ -294,7 +294,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// Configures the interceptor to record calls to the specified method.
         /// </summary>
         /// <returns></returns>
-        public MethodInterceptorConfigurator<TInterface, TReturn> RecordsCall()
+        public MethodInterceptorConfigurator<TInterface, TReturn> RecordsAllCalls()
         {
             _interceptedMethod.RecordsCall = true;
             return this;
@@ -305,7 +305,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <param name="timesFunc"></param>
         /// <returns></returns>
-        public bool RecordedCall(Func<int, bool> timesFunc)
+        public bool RecordedCallTimes(Func<int, bool> timesFunc)
         {
             var count = _interceptedMethod.RecordedCalls.Count();
             return timesFunc(count);
@@ -316,9 +316,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <param name="timesFunc"></param>
         /// <returns></returns>
-        public bool RecordedCallOnce()
+        public bool RecordedCallTimesOnce()
         {
-            return RecordedCall(times => times == 1);
+            return RecordedCallTimes(times => times == 1);
         }
 
         /// <summary>
@@ -326,9 +326,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <param name="timesFunc"></param>
         /// <returns></returns>
-        public bool RecordedCallNever()
+        public bool RecordedCallTimesZeo()
         {
-            return RecordedCall(times => times == 0);
+            return RecordedCallTimes(times => times == 0);
         }
 
         public MethodInterceptorConfigurator<TInterface, TReturn> Throws<TException>(TException exception) where TException : Exception
@@ -340,7 +340,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         {
             _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
             {
-                ArgumentsMatcher = args => true,
+                ArgumentsMatcherFunc = args => true,
                 CallReplaceFunc = (target, args) => throw exception,
                 Times = times
             });
@@ -356,7 +356,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         {
             _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
             {
-                ArgumentsMatcher = args => true,
+                ArgumentsMatcherFunc = args => true,
                 CallReplaceFunc = (target, args) => value,
                 Times = times
             });
@@ -372,7 +372,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         {
             _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
             {
-                ArgumentsMatcher = args => true,
+                ArgumentsMatcherFunc = args => true,
                 CallReplaceFunc = (target, args) => callFunc(target),
                 Times = times
             });
@@ -461,7 +461,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// Configures the interceptor to record calls to the specified method.
         /// </summary>
         /// <returns></returns>
-        public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> RecordsCall()
+        public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> RecordsAllCalls()
         {
             _interceptedMethod.RecordsCall = true;
             return this;
@@ -473,7 +473,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <param name="timesFunc"></param>
         /// <returns></returns>
-        public bool RecordedCall(Func<int, bool> timesFunc)
+        public bool RecordedCallTimes(Func<int, bool> timesFunc)
         {
             int count = 0;
             if (_argumentsFunc != null)
@@ -495,9 +495,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <param name="timesFunc"></param>
         /// <returns></returns>
-        public bool RecordedCallOnce()
+        public bool RecordedCallTimesOnce()
         {
-            return RecordedCall(times => times == 1);
+            return RecordedCallTimes(times => times == 1);
         }
 
         /// <summary>
@@ -506,9 +506,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <param name="timesFunc"></param>
         /// <returns></returns>
-        public bool RecordedCallNever()
+        public bool RecordedCallTimesZero()
         {
-            return RecordedCall(times => times == 0);
+            return RecordedCallTimes(times => times == 0);
         }
 
         public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> Calls(TCallFunc callFunc)
@@ -520,7 +520,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         {
             _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
             {
-                ArgumentsMatcher = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
+                ArgumentsMatcherFunc = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
                 CallReplaceFunc = (target, args) => callFunc.Method.Invoke(callFunc.Target, GetCallFuncArguments(target, args)),
                 Times = times
             });
@@ -536,7 +536,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         {
             _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
             {
-                ArgumentsMatcher = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
+                ArgumentsMatcherFunc = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
                 CallReplaceFunc = (target, args) => throw exception,
                 Times = times
             });
@@ -552,7 +552,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         {
             _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
             {
-                ArgumentsMatcher = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
+                ArgumentsMatcherFunc = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
                 CallReplaceFunc = (target, args) => value,
                 Times = times
             });
@@ -637,9 +637,10 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// Configures the interceptor to record calls to the specified method.
         /// </summary>
         /// <returns></returns>
-        public MethodInterceptorConfigurator<TInterface> RecordsCall()
+        public MethodInterceptorConfigurator<TInterface> RecordsAllCalls()
         {
             _interceptedMethod.RecordsCall = true;
+
             return this;
         }
 
@@ -648,7 +649,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <param name="timesFunc"></param>
         /// <returns></returns>
-        public bool RecordedCall(Func<int, bool> timesFunc)
+        public bool RecordedCallTimes(Func<int, bool> timesFunc)
         {
             var count = _interceptedMethod.RecordedCalls.Count()!;
             return timesFunc(count);
@@ -659,9 +660,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <param name="timesFunc"></param>
         /// <returns></returns>
-        public bool RecordedCallOnce()
+        public bool RecordedCallTimesOnce()
         {
-            return RecordedCall(times => times == 1);
+            return RecordedCallTimes(times => times == 1);
         }
 
         /// <summary>
@@ -669,9 +670,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <param name="timesFunc"></param>
         /// <returns></returns>
-        public bool RecordedCallNever()
+        public bool RecordedCallTimesZero()
         {
-            return RecordedCall(times => times == 0);
+            return RecordedCallTimes(times => times == 0);
         }
 
         public MethodInterceptorConfigurator<TInterface> Throws<TException>(TException exception) where TException : Exception
@@ -683,7 +684,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         {
             _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
             {
-                ArgumentsMatcher = args => true,
+                ArgumentsMatcherFunc = args => true,
                 CallReplaceFunc = (target, args) => throw exception,
                 Times = times
             });
@@ -699,7 +700,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         {
             _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
             {
-                ArgumentsMatcher = args => true,
+                ArgumentsMatcherFunc = args => true,
                 CallReplaceAction = (target, args) => callAction.Method.Invoke(callAction.Target, new object[] { target }),
                 Times = times
             });
@@ -788,7 +789,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// Configures the interceptor to record calls to the specified method.
         /// </summary>
         /// <returns></returns>
-        public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> RecordsCall()
+        public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> RecordsAllCalls()
         {
             _interceptedMethod.RecordsCall = true;
             return this;
@@ -800,7 +801,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <param name="timesFunc"></param>
         /// <returns></returns>
-        public bool RecordedCall(Func<int, bool> timesFunc)
+        public bool RecordedCallTimes(Func<int, bool> timesFunc)
         {
             int count = 0;
             if (_argumentsFunc != null)
@@ -822,9 +823,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <param name="timesFunc"></param>
         /// <returns></returns>
-        public bool RecordedCallOnce()
+        public bool RecordedCallTimesOnce()
         {
-            return RecordedCall(times => times == 1);
+            return RecordedCallTimes(times => times == 1);
         }
 
         /// <summary>
@@ -833,9 +834,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// </summary>
         /// <param name="timesFunc"></param>
         /// <returns></returns>
-        public bool RecordedCallNever()
+        public bool RecordedCallTimesZero()
         {
-            return RecordedCall(times => times == 0);
+            return RecordedCallTimes(times => times == 0);
         }
 
         public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> Calls(TCallAction callAction)
@@ -847,7 +848,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         {
             _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
             {
-                ArgumentsMatcher = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
+                ArgumentsMatcherFunc = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
                 CallReplaceAction = (target, args) => callAction.Method.Invoke(callAction.Target, GetCallFuncArguments(target, args)),
                 Times = times
             });
@@ -863,7 +864,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         {
             _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
             {
-                ArgumentsMatcher = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
+                ArgumentsMatcherFunc = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
                 CallReplaceAction = (target, args) => throw exception,
                 Times = times
             });

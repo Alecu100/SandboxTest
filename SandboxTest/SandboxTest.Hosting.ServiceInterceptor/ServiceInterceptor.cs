@@ -91,7 +91,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
                     do
                     {
-                        if (methodInterceptor.CallReplacers.TryPeek(out var callReplacer))
+                        if (methodInterceptor.CallReplacers.TryPeek(out var callReplacer) && (callReplacer.ArgumentsMatcherFunc == null || callReplacer.ArgumentsMatcherFunc.Invoke(args) == true))
                         {
                             if (callReplacer.Times == int.MinValue)
                             {
@@ -121,21 +121,18 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                             {
                                 continue;
                             }
-                            if (callReplacer.Times == int.MinValue)
+                            if (callReplacer.CallReplaceFunc != null)
                             {
-                                if (callReplacer.CallReplaceFunc != null)
-                                {
-                                    return callReplacer.CallReplaceFunc(_wrappedInstance, args);
-                                }
-                                else if (callReplacer.CallReplaceAction != null)
-                                {
-                                    callReplacer.CallReplaceAction(_wrappedInstance, args);
-                                    return null;
-                                }
-                                else
-                                {
-                                    throw new InvalidOperationException("No action or func set for call replacer");
-                                }
+                                return callReplacer.CallReplaceFunc(_wrappedInstance, args);
+                            }
+                            else if (callReplacer.CallReplaceAction != null)
+                            {
+                                callReplacer.CallReplaceAction(_wrappedInstance, args);
+                                return null;
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException("No action or func set for call replacer");
                             }
                         }
                         else

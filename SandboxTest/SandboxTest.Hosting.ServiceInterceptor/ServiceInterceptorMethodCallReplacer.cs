@@ -2,7 +2,7 @@
 {
     public class ServiceInterceptorMethodCallReplacer
     {
-        required public Func<object?[]?, bool> ArgumentsMatcher { get; set; }
+        required public Func<object?[]?, bool> ArgumentsMatcherFunc { get; set; }
 
         /// <summary>
         /// Replaces the call to a specific method for specific arguments with another call that returns something else or throws exception.

@@ -6,4 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EditorConfigFiles Remove="D:\SandboxTest\SandboxTest\SandboxTest\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="D:\SandboxTest\SandboxTest\SandboxTest\.editorconfig" />
+  </ItemGroup>
+
 </Project>

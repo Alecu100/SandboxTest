@@ -78,7 +78,7 @@ namespace SandboxTest.Hosting
         /// <exception cref="InvalidOperationException"></exception>
         public virtual async Task ConfigureBuildAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
-            _hostBuilder = await _hostBuilderFunc(_arguments ?? []);
+            _hostBuilder = await _hostBuilderFunc(_arguments ?? Array.Empty<string>());
             if (_hostBuilder == null)
             {
                 throw new InvalidOperationException("Host builder not found.");

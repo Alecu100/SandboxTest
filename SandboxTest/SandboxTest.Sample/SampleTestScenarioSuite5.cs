@@ -44,7 +44,7 @@ namespace SandboxTest.Sample
         [Scenario]
         public void TestScenario6()
         {
-            var firstStep = _applicationInstance41.AddStep().InvokeController<HostController>((controller, ctx) =>
+            var firstStep = _applicationInstance41.AddStep().UseController<HostController>((controller, ctx) =>
             {
                 var actionDescriptors = controller.Host.Services.GetRequiredService<IActionDescriptorCollectionProvider>();
                 var controllersDescriptors = actionDescriptors.ActionDescriptors
@@ -54,7 +54,7 @@ namespace SandboxTest.Sample
                 return Task.CompletedTask;
             });
 
-            var secondStep = _applicationInstance41.AddStep().InvokeController<HttpClientController>(async (controller, ctx) =>
+            var secondStep = _applicationInstance41.AddStep().UseController<HttpClientController>(async (controller, ctx) =>
             {
                 var httpRequest = new HttpRequestMessage(HttpMethod.Get, "/WeatherForecast");
                 httpRequest.Headers.Add(HeaderNames.Accept, "text/plain");
@@ -65,7 +65,7 @@ namespace SandboxTest.Sample
                 weatherForecasts.Should().NotBeNull();
                 ctx.ScenarioData["weatherforecasts"] = weatherForecasts;
             });
-            var thirdStep = _applicationInstance41.AddStep().AddPreviousStep(firstStep).InvokeController<HttpClientController>(async (controller, ctx) =>
+            var thirdStep = _applicationInstance41.AddStep().AddPreviousStep(firstStep).UseController<HttpClientController>(async (controller, ctx) =>
             {
                 var httpRequest = new HttpRequestMessage(HttpMethod.Get, "/WeatherForecast");
                 httpRequest.Headers.Add(HeaderNames.Accept, "text/plain");
@@ -78,7 +78,7 @@ namespace SandboxTest.Sample
                 previousWeatherForecasts.Should().NotBeNull();
                 previousWeatherForecasts?.Should().NotIntersectWith(weatherForecasts);
             });
-            var fourthStep = _applicationInstance41.AddStep().AddPreviousStep(thirdStep).InvokeController<WebApplicationController>(async (controller, ctx) =>
+            var fourthStep = _applicationInstance41.AddStep().AddPreviousStep(thirdStep).UseController<WebApplicationController>(async (controller, ctx) =>
             {
                 controller.WebApplication.Urls.Should().NotBeNull();
                 controller.WebApplication.Urls.Should().Contain("https://localhost:5600");

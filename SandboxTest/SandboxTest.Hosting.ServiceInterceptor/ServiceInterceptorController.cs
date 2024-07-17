@@ -1,10 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SandboxTest.Hosting.ServiceInterceptor.Internal;
 using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Scenario;
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace SandboxTest.Hosting.ServiceInterceptor
 {
@@ -17,7 +19,8 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         private ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>> _methodInterceptors;
         private ConcurrentBag<ServiceInterceptorRecordedCall> _proxyWrapperRecordedCalls;
         private IServiceCollection? _originalServiceCollection;
-        private List<object> _referencesToKeepAlive = new List<object>();
+        private GCHandle _serviceInterceptorGcHandle;
+        private Dictionary<Assembly, ServiceInterceptorAssembly>? _serviceInterceptorAssemblyCache;
 
         /// <summary>
         /// Creates a new instance of the <see cref="ServiceInterceptorController"/>.
@@ -62,21 +65,21 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             }
             hostApplicationRunner.HostBuilder.ConfigureServices((ctx, services) =>
             {
-                var proxyInterceptorType = typeof(ServiceInterceptor);
                 _originalServiceCollection = new ServiceCollection();
+                _serviceInterceptorGcHandle = GCHandle.Alloc(this);
                 foreach (var service in services)
                 {
                     _originalServiceCollection.Add(service);
                 }
                 services.Clear();
-                services.AddSingleton(this);
                 foreach (var serviceDescriptor in _originalServiceCollection)
                 {
                     if (serviceDescriptor.ServiceType.IsInterface && TypeIsAccessible(serviceDescriptor.ServiceType))
                     {
+                        var serviceInterceptorAssembly = GetServiceInterceptorAssemblyBuilder(serviceDescriptor.ServiceType.Assembly);
                         if (serviceDescriptor.IsKeyedService && serviceDescriptor.KeyedImplementationFactory != null)
                         {
-                            var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(serviceDescriptor.ServiceType, this);
+                            var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(serviceDescriptor.ServiceType, _serviceInterceptorGcHandle, serviceInterceptorAssembly);
                             var serviceProxyInterceptorType = serviceInterceptorTypeBuilder.Build();
                             Func<IServiceProvider, object?, object> proxyInterceptorFactory = (provider, obj) =>
                             {
@@ -92,7 +95,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                         }
                         if (serviceDescriptor.IsKeyedService && serviceDescriptor.KeyedImplementationInstance != null)
                         {
-                            var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(serviceDescriptor.ServiceType, this);
+                            var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(serviceDescriptor.ServiceType, _serviceInterceptorGcHandle, serviceInterceptorAssembly);
                             var serviceInterceptorType = serviceInterceptorTypeBuilder.Build();
                             var serviceInterceptor = Activator.CreateInstance(serviceInterceptorType, new object[] { this, serviceDescriptor.KeyedImplementationInstance })
                                 ?? throw new InvalidOperationException($"Failed to create service interceptor instance for type {serviceDescriptor.ServiceType.Name}");
@@ -105,7 +108,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                         {
                             if (TypeIsAccessible(serviceDescriptor.KeyedImplementationType))
                             {
-                                var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(serviceDescriptor.ServiceType, serviceDescriptor.KeyedImplementationType, this);
+                                var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(serviceDescriptor.ServiceType, serviceDescriptor.KeyedImplementationType, _serviceInterceptorGcHandle, serviceInterceptorAssembly);
                                 var serviceInterceptorType = serviceInterceptorTypeBuilder.Build();
                                 var serviceInterceptorServiceDescriptor = new ServiceDescriptor(serviceDescriptor.ServiceType, serviceDescriptor.ServiceKey, serviceInterceptorType, serviceDescriptor.Lifetime);
                                 services.Add(serviceInterceptorServiceDescriptor);
@@ -119,7 +122,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                         }
                         if (serviceDescriptor.ImplementationFactory != null)
                         {
-                            var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(serviceDescriptor.ServiceType, this);
+                            var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(serviceDescriptor.ServiceType, _serviceInterceptorGcHandle, serviceInterceptorAssembly);
                             var serviceInterceptorType = serviceInterceptorTypeBuilder.Build();
                             Func<IServiceProvider, object> proxyInterceptorFactory = (provider) =>
                             {
@@ -134,20 +137,20 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                         }
                         if (serviceDescriptor.ImplementationInstance != null)
                         {
-                            var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(serviceDescriptor.ServiceType, this);
+                            var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(serviceDescriptor.ServiceType, _serviceInterceptorGcHandle, serviceInterceptorAssembly);
                             var serviceInterceptorType = serviceInterceptorTypeBuilder.Build();
                             var serviceInterceptor = Activator.CreateInstance(serviceInterceptorType, new object[] { this, serviceDescriptor.ImplementationInstance })
                                 ?? throw new InvalidOperationException($"Failed to create service interceptor instance for type {serviceDescriptor.ServiceType.Name}");
 
-                            var dispatchProxyServiceDescriptor = new ServiceDescriptor(serviceDescriptor.ServiceType, serviceInterceptor);
-                            services.Add(dispatchProxyServiceDescriptor);
+                            var serviceInterceptorServiceDescriptor = new ServiceDescriptor(serviceDescriptor.ServiceType, serviceInterceptor);
+                            services.Add(serviceInterceptorServiceDescriptor);
                             continue;
                         }
                         if (serviceDescriptor.ImplementationType != null)
                         {
                             if (TypeIsAccessible(serviceDescriptor.ImplementationType))
                             {
-                                var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(serviceDescriptor.ServiceType, serviceDescriptor.ImplementationType, this);
+                                var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(serviceDescriptor.ServiceType, serviceDescriptor.ImplementationType, _serviceInterceptorGcHandle, serviceInterceptorAssembly);
                                 var serviceInterceptorType = serviceInterceptorTypeBuilder.Build();
                                 var serviceInterceptorServiceDescriptor = new ServiceDescriptor(serviceDescriptor.ServiceType, serviceInterceptorType, serviceDescriptor.Lifetime);
                                 services.Add(serviceInterceptorServiceDescriptor);
@@ -182,6 +185,23 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             return true;
         }
 
+        private ServiceInterceptorAssembly GetServiceInterceptorAssemblyBuilder(Assembly assembly) 
+        {
+            if (_serviceInterceptorAssemblyCache == null)
+            {
+                _serviceInterceptorAssemblyCache = new Dictionary<Assembly, ServiceInterceptorAssembly>();
+            }
+            if (_serviceInterceptorAssemblyCache.ContainsKey(assembly) == false)
+            {
+                var serviceInterceptorAssemblyBuilder = new ServiceInterceptorAssemblyBuilder(assembly);
+                var serviceInterceptorAssembly = serviceInterceptorAssemblyBuilder.Build();
+                _serviceInterceptorAssemblyCache[assembly] = serviceInterceptorAssembly;
+                return serviceInterceptorAssembly;
+            }
+
+            return _serviceInterceptorAssemblyCache[assembly];
+        }
+
         /// <summary>
         /// Clears all the proxy configured actions and the recorded calls.
         /// </summary>
@@ -195,9 +215,19 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             return Task.CompletedTask;
         }
 
-        public void AddReference(object reference)
+        /// <summary>
+        /// Gets the IHostBuilder from the application instance and replaces all the service descriptio entries with new entries that wrap the instances or functions that return instances around proxy interceptors.
+        /// </summary>
+        /// <param name="runner"></param>
+        /// <param name="scenarioSuiteContext"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IHostRunner.StopAsync), 10)]
+        public Task StopAsync()
         {
-            _referencesToKeepAlive.Add(reference);
+            _serviceInterceptorGcHandle.Free();
+            _serviceInterceptorAssemblyCache?.Clear();
+            return Task.CompletedTask;
         }
 
         public ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>> MethodInterceptors { get => _methodInterceptors; }

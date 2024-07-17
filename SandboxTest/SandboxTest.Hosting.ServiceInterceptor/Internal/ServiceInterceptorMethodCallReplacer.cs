@@ -1,8 +1,8 @@
-﻿namespace SandboxTest.Hosting.ServiceInterceptor
+﻿namespace SandboxTest.Hosting.ServiceInterceptor.Internal
 {
     public class ServiceInterceptorMethodCallReplacer
     {
-        required public Func<object?[]?, bool> ArgumentsMatcherFunc { get; set; }
+        public Func<object?[]?, bool>? ArgumentsMatcherFunc { get; set; }
 
         /// <summary>
         /// Replaces the call to a specific method for specific arguments with another call that returns something else or throws exception.

@@ -52,7 +52,7 @@ namespace SandboxTest.Engine.ChildTestEngine
             }
 
             object? result;
-            if (!targetMethod.Method.GetParameters().Any())
+            if (!targetMethod.Method!.GetParameters().Any())
             {
                 result = targetMethod.Method.Invoke(targetMethod.Target, null);
             }
@@ -82,9 +82,9 @@ namespace SandboxTest.Engine.ChildTestEngine
         private List<(AttachedMethodAttribute, MethodToExecute)> GetMethodsToRunBeforeTargetMethod(List<(AttachedMethodAttribute, MethodToExecute)> possibleMethodsToRun, MethodToExecute targetMethod)
         {
             return possibleMethodsToRun
-                .Where(methodWithAttribute => methodWithAttribute.Item1.TargetMethodName.Equals(targetMethod.Method.Name, StringComparison.InvariantCultureIgnoreCase) 
+                .Where(methodWithAttribute => methodWithAttribute.Item1.TargetMethodName.Equals(targetMethod.Method!.Name, StringComparison.InvariantCultureIgnoreCase) 
                     && methodWithAttribute.Item2.Method != targetMethod.Method && methodWithAttribute.Item1.Order < 0
-                    && targetMethod.Target.GetType().IsAssignableTo(AttachedMethodAllowedTargetTypes[methodWithAttribute.Item1.MethodType]))
+                    && targetMethod.Target!.GetType().IsAssignableTo(AttachedMethodAllowedTargetTypes[methodWithAttribute.Item1.MethodType]))
                 .OrderBy(methodWithAttribute => methodWithAttribute.Item1.Order)
                 .ToList();
         }
@@ -92,9 +92,9 @@ namespace SandboxTest.Engine.ChildTestEngine
         private List<(AttachedMethodAttribute, MethodToExecute)> GetMethodsToRunAfterTargetMethod(List<(AttachedMethodAttribute, MethodToExecute)> possibleMethodsToRun, MethodToExecute targetMethod)
         {
             return possibleMethodsToRun
-                .Where(methodWithAttribute => methodWithAttribute.Item1.TargetMethodName.Equals(targetMethod.Method.Name, StringComparison.InvariantCultureIgnoreCase) 
+                .Where(methodWithAttribute => methodWithAttribute.Item1.TargetMethodName.Equals(targetMethod.Method!.Name, StringComparison.InvariantCultureIgnoreCase) 
                 && methodWithAttribute.Item2.Method != targetMethod.Method && methodWithAttribute.Item1.Order >= 0
-                && targetMethod.Target.GetType().IsAssignableTo(AttachedMethodAllowedTargetTypes[methodWithAttribute.Item1.MethodType]))
+                && targetMethod.Target!.GetType().IsAssignableTo(AttachedMethodAllowedTargetTypes[methodWithAttribute.Item1.MethodType]))
                 .OrderBy(methodWithAttribute => methodWithAttribute.Item1.Order)
                 .ToList();
         }
@@ -128,9 +128,9 @@ namespace SandboxTest.Engine.ChildTestEngine
 
         private class MethodToExecute
         {
-            required public object Target { get; set; }
+            public object? Target { get; set; }
 
-            required public MethodInfo Method { get; set; }
+            public MethodInfo? Method { get; set; }
         }
     }
 }

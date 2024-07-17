@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace SandboxTest.Hosting.ServiceInterceptor
+namespace SandboxTest.Hosting.ServiceInterceptor.Internal
 {
     /// <summary>
     /// Represents a recorded method call intercepted by a proxy interceptor.

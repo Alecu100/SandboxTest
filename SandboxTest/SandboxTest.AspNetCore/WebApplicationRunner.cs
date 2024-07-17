@@ -103,7 +103,7 @@ namespace SandboxTest.AspNetCore
         /// <exception cref="InvalidOperationException"></exception>
         public virtual async Task ConfigureBuildAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
-            _webApplicationBuilder = await _webApplicationBuilderFunc(_arguments ?? []);
+            _webApplicationBuilder = await _webApplicationBuilderFunc(_arguments ?? Array.Empty<string>());
             if (_webApplicationBuilder == null)
             {
                 throw new InvalidOperationException("Web application builder not found.");

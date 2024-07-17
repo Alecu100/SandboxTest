@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
+using SandboxTest.Hosting.ServiceInterceptor.Internal;
 
 namespace SandboxTest.Hosting.ServiceInterceptor
 {

@@ -59,26 +59,26 @@ namespace SandboxTest.Sample
         [Scenario]
         public void TestScenario8()
         {
-            var firstStep = _applicationInstance82.AddStep().InvokeController<PlaywrightController>(async (controller, ctx) =>
+            var firstStep = _applicationInstance82.AddStep().UseController<PlaywrightController>(async (controller, ctx) =>
             {
                 await Expect(controller.Page.GetByText("Loading... Please refresh once the ASP.NET backend has started")).ToBeVisibleAsync();
                 await Task.Delay(3000);
             });
-            var secondStep = _applicationInstance81.AddStep(firstStep).InvokeController<RunnerController>(async (controller, ctx) =>
+            var secondStep = _applicationInstance81.AddStep(firstStep).UseController<RunnerController>(async (controller, ctx) =>
             {
                 await controller.RunRunnerAsync();
             });
-            var thirdStep = _applicationInstance82.AddStep(secondStep).InvokeController<PlaywrightController>(async (controller, ctx) =>
+            var thirdStep = _applicationInstance82.AddStep(secondStep).UseController<PlaywrightController>(async (controller, ctx) =>
             {
                 await controller.Page.ReloadAsync();
                 await Expect(controller.Page.GetByText("Loading... Please refresh once the ASP.NET backend has started")).ToBeHiddenAsync();
                 await Task.Delay(3000);
             });
-            var forthStep = _applicationInstance81.AddStep(thirdStep).InvokeController<RunnerController>(async (controller, ctx) =>
+            var forthStep = _applicationInstance81.AddStep(thirdStep).UseController<RunnerController>(async (controller, ctx) =>
             {
                 await controller.StopRunnerAsync();
             });
-            var fithStep = _applicationInstance82.AddStep(forthStep).InvokeController<PlaywrightController>(async (controller, ctx) =>
+            var fithStep = _applicationInstance82.AddStep(forthStep).UseController<PlaywrightController>(async (controller, ctx) =>
             {
                 await controller.Page.ReloadAsync();
                 await Expect(controller.Page.GetByText("Loading... Please refresh once the ASP.NET backend has started")).ToBeVisibleAsync();

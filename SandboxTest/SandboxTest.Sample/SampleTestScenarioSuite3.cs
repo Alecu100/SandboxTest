@@ -25,32 +25,28 @@ namespace SandboxTest.Sample
         [Scenario]
         public void TestScenario2()
         {
-            var firstStep = _applicationInstance21.AddStep().InvokeController<HostController>((controller, ctx) =>
+            var firstStep = _applicationInstance21.AddStep().UseController<HostController>((controller, ctx) =>
             {
                 ctx.ScenarioData["FirstGuid"] = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>().GetNewGuid();
-                return Task.CompletedTask;
             });
-            var secondStep = _applicationInstance21.AddStep().AddPreviousStep(firstStep).InvokeController<HostController>((controller, ctx) =>
+            var secondStep = _applicationInstance21.AddStep().AddPreviousStep(firstStep).UseController<HostController>((controller, ctx) =>
             {
                 var newGuid = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>();
                 newGuid.GetNewGuid().Should().NotBe(ctx.ScenarioData["FirstGuid"]!.ToString());
-                return Task.CompletedTask;
             });
         }
 
         [Scenario]
         public void TestScenario3_Should_Fail()
         {
-            var firstStep = _applicationInstance21.AddStep().InvokeController<HostController>((controller, ctx) =>
+            var firstStep = _applicationInstance21.AddStep().UseController<HostController>((controller, ctx) =>
             {
                 ctx.ScenarioData["FirstGuid"] = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>().GetNewGuid();
-                return Task.CompletedTask;
             });
-            var secondStep = _applicationInstance21.AddStep().AddPreviousStep(firstStep).InvokeController<HostController>((controller, ctx) =>
+            var secondStep = _applicationInstance21.AddStep().AddPreviousStep(firstStep).UseController<HostController>((controller, ctx) =>
             {
                 var newGuid = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>();
                 newGuid.GetNewGuid().Should().Be(ctx.ScenarioData["FirstGuid"]!.ToString());
-                return Task.CompletedTask;
             });
         }
     }

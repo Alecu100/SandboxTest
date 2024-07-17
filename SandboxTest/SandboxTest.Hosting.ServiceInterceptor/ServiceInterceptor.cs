@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace SandboxTest.Hosting.ServiceInterceptor
 {
@@ -7,12 +8,12 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         public const string InvokeMethodName = nameof(Invoke);
 
         protected object? _wrappedInstance;
-        protected ServiceInterceptorController _controller;
+        protected GCHandle _serviceInterceptorControllerHandle;
         protected List<Type> _implementedInterfaceTypes;
 
-        public ServiceInterceptor(ServiceInterceptorController controller, Type wrappedType, object?[]? arguments)
+        public ServiceInterceptor(nint serviceInterceptorControllerHandlePtr, Type wrappedType, object?[]? arguments)
         {
-            _controller = controller;
+            _serviceInterceptorControllerHandle = GCHandle.FromIntPtr(serviceInterceptorControllerHandlePtr);
             _implementedInterfaceTypes = GetType().GetInterfaces().ToList();
             if (wrappedType.IsGenericTypeDefinition)
             {
@@ -29,17 +30,18 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             }
         }
 
-        public ServiceInterceptor(ServiceInterceptorController controller, object wrappedInstance)
+        public ServiceInterceptor(nint serviceInterceptorHandlePtr, object wrappedInstance)
         {
+            _serviceInterceptorControllerHandle = GCHandle.FromIntPtr(serviceInterceptorHandlePtr);
             _wrappedInstance = wrappedInstance;
-            _controller = controller;
             _implementedInterfaceTypes = GetType().GetInterfaces().ToList();
         }
 
 
         protected object? Invoke(MethodInfo? targetMethod, object?[]? args, Type[]? argsTypes)
         {
-            if (_implementedInterfaceTypes == null || _controller == null || _wrappedInstance == null)
+            var serviceInterceptorController = _serviceInterceptorControllerHandle.Target as ServiceInterceptorController;
+            if (_implementedInterfaceTypes == null || serviceInterceptorController == null || _wrappedInstance == null)
             {
                 throw new InvalidOperationException("Proxy interceptor not initialized");
             }
@@ -80,9 +82,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
             foreach (var interfaceType in _implementedInterfaceTypes)
             {
-                if (_controller.MethodInterceptors.ContainsKey(interfaceType) && _controller.MethodInterceptors[interfaceType].ContainsKey(targetMethod))
+                if (serviceInterceptorController.MethodInterceptors.ContainsKey(interfaceType) && serviceInterceptorController.MethodInterceptors[interfaceType].ContainsKey(targetMethod))
                 {
-                    var methodInterceptor = _controller.MethodInterceptors[interfaceType][targetMethod];
+                    var methodInterceptor = serviceInterceptorController.MethodInterceptors[interfaceType][targetMethod];
 
                     if (methodInterceptor.RecordsCall)
                     {

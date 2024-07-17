@@ -99,7 +99,15 @@ namespace SandboxTest.Scenario
             return false;
         }
 
-        public ScenarioStep InvokeController<TController>(Func<TController, IScenarioStepContext, Task> invokeFunc, string? name = default) where TController : IController
+        /// <summary>
+        /// Uses a controller to call it and execute some actions on the instance.
+        /// </summary>
+        /// <typeparam name="TController">The controller type to use to do an action on the instance.</typeparam>
+        /// <param name="callFunc">The actual action to do on the instace.</param>
+        /// <param name="name">Optionally specifies a name to use a specific controller on the instance.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Thrown when no controller is found to use.</exception>
+        public ScenarioStep UseController<TController>(Func<TController, IScenarioStepContext, Task> callFunc, string? name = default) where TController : IController
         {
             if (!_applicationInstance.Controllers.Any(controller => (controller.Name == null && name == null || controller.Name != null && controller.Name.Equals(name)) &&
                 controller.GetType() == typeof(TController)))
@@ -110,7 +118,32 @@ namespace SandboxTest.Scenario
             {
                 var applicationController = (TController)_applicationInstance.Controllers.First(controller => (controller.Name == null && name == null || controller.Name != null && controller.Name.Equals(name)) &&
                     controller.GetType() == typeof(TController));
-                await invokeFunc(applicationController, stepContext);
+                await callFunc(applicationController, stepContext);
+            });
+            return this;
+        }
+
+        /// <summary>
+        /// Uses a controller to call it and execute some actions on the instance.
+        /// </summary>
+        /// <typeparam name="TController">The controller type to use to do an action on the instance.</typeparam>
+        /// <param name="callFunc">The actual action to do on the instace.</param>
+        /// <param name="name">Optionally specifies a name to use a specific controller on the instance.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Thrown when no controller is found to use.</exception>
+        public ScenarioStep UseController<TController>(Action<TController, IScenarioStepContext> callFunc, string? name = default) where TController : IController
+        {
+            if (!_applicationInstance.Controllers.Any(controller => (controller.Name == null && name == null || controller.Name != null && controller.Name.Equals(name)) &&
+                controller.GetType() == typeof(TController)))
+            {
+                throw new InvalidOperationException($"Controller with name {name} and type {typeof(TController).Name} not found in the application instance with id {_applicationInstance.Id}");
+            }
+            _configuredActions.Add((stepContext) =>
+            {
+                var applicationController = (TController)_applicationInstance.Controllers.First(controller => (controller.Name == null && name == null || controller.Name != null && controller.Name.Equals(name)) &&
+                    controller.GetType() == typeof(TController));
+                callFunc(applicationController, stepContext);
+                return Task.CompletedTask;
             });
             return this;
         }

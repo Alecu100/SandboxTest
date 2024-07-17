@@ -38,37 +38,37 @@ namespace SandboxTest.Instance.Hosted
         /// <summary>
         /// Used internally by the test engine.
         /// </summary>
-        required public Guid RunId { get; set; }
+        public Guid RunId { get; set; }
 
         /// <summary>
         /// Used internally by the test engine.
         /// </summary>
-        required public string MainPath { get; set; }
+        public string MainPath { get; set; } = string.Empty;
 
         /// <summary>
         /// Used internally by the test engine.
         /// </summary>
-        required public string AssemblySourceName { get; set; }
+        public string AssemblySourceName { get; set; } = string.Empty;
 
         /// <summary>
         /// Used internally by the test engine.
         /// </summary>
-        required public string ScenarioSuiteTypeFullName { get; set; }
+        public string ScenarioSuiteTypeFullName { get; set; } = string.Empty;
 
         /// <summary>
         /// Used internally by the test engine.
         /// </summary>
-        required public string ApplicationInstanceId { get; set; }
+        public string ApplicationInstanceId { get; set; } = string.Empty;
 
         /// <summary>
         /// Used by implementations of hosted instances to load the assembly with the <see cref="IHostedInstanceInitializer"/> to start the instance.
         /// </summary>
-        required public string HostedInstanceInitializerTypeFullName { get; set; }
+        public string HostedInstanceInitializerTypeFullName { get; set; } = string.Empty;
 
         /// <summary>
         /// Used by implementations of hosted instances to load the assembly with the <see cref="IHostedInstanceInitializer"/> to start the instance.
         /// </summary>
-        required public string HostedInstanceInitializerAssemblyFullName { get; set; }
+        public string HostedInstanceInitializerAssemblyFullName { get; set; } = string.Empty;
 
         public static HostedInstanceData ParseFromCommandLineArguments(string[] args)
         {

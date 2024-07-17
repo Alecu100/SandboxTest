@@ -108,7 +108,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Internal
 
             GenerateInterfaceEvents();
 
-            return _serviceInterceptorTypeBuilder.CreateType();
+            return _serviceInterceptorTypeBuilder.CreateType()!;
         }
 
         private List<Type> GetAllImplementedInterfaces(Type implementedInterfaceType)
@@ -169,7 +169,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Internal
 
             GenerateInterfaceEvents();
 
-            return _serviceInterceptorTypeBuilder.CreateType();
+            return _serviceInterceptorTypeBuilder.CreateType()!;
         }
 
         private static bool InterfacesAreEquivalent(Type interface1, Type interface2)

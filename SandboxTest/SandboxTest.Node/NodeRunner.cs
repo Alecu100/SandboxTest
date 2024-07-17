@@ -295,7 +295,7 @@ namespace SandboxTest.Node
             commandLineProcess.StartInfo.RedirectStandardError = true;
             commandLineProcess.StartInfo.RedirectStandardOutput = true;
             commandLineProcess.StartInfo.RedirectStandardInput = true;
-            commandLineProcess.StartInfo.Arguments = $"\"{Path.Combine(NodePath, NodeCliPath)}\" {commandToRun}";
+            commandLineProcess.StartInfo.Arguments = $"\"{Path.Combine(NodePath!, NodeCliPath)}\" {commandToRun}";
             commandLineProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
 
             if (outputReceived != null)

@@ -78,7 +78,7 @@ namespace SandboxTest.Sample
                 previousWeatherForecasts.Should().NotBeNull();
                 previousWeatherForecasts?.Should().NotIntersectWith(weatherForecasts);
             });
-            var fourthStep = _applicationInstance41.AddStep().AddPreviousStep(thirdStep).UseController<WebApplicationController>(async (controller, ctx) =>
+            var fourthStep = _applicationInstance41.AddStep().AddPreviousStep(thirdStep).UseController<WebApplicationController>((controller, ctx) =>
             {
                 controller.WebApplication.Urls.Should().NotBeNull();
                 controller.WebApplication.Urls.Should().Contain("https://localhost:5600");

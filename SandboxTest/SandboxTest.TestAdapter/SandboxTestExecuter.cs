@@ -9,7 +9,7 @@ namespace SandboxTest.TestAdapter
     [ExtensionUri("executor://sandboxtest.testadapter")]
     public class SandboxTestExecuter : ITestExecutor
     {
-        private IMainTestEngine? _mainTestEngine;
+        private IMainTestEngine _mainTestEngine;
 
         public SandboxTestExecuter()
         {
@@ -29,7 +29,7 @@ namespace SandboxTest.TestAdapter
             }
 
             var scenarios = tests.Select(test => test.ConvertToScenario());
-            var scenarioRunContext = new SandboxTestExecuterRunContext(runContext, frameworkHandle);
+            var scenarioRunContext = new SandboxTestExecuterRunContext(runContext!, frameworkHandle!);
             _ = typeof(ScenarioAttribute);
             _mainTestEngine.RunScenariosAsync(scenarios, scenarioRunContext).Wait();
         }

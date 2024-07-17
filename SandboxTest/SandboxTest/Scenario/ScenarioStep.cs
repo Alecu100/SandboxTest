@@ -217,5 +217,14 @@ namespace SandboxTest.Scenario
             }
             return !first.Equals(second);
         }
+
+        /// <summary>
+        /// Computes and returns the hashcode of the step id.
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
     }
 }

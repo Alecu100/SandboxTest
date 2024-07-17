@@ -117,5 +117,14 @@
             }
             return !first.Equals(second);
         }
+
+        /// <summary>
+        /// Computes and returns the hashcode.
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return StepIndex.GetHashCode() ^ ApplicationInstanceId.GetHashCode();
+        }
     }
 }

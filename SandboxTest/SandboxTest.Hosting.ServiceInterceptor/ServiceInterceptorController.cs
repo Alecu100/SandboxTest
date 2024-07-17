@@ -126,7 +126,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                             var serviceInterceptorType = serviceInterceptorTypeBuilder.Build();
                             Func<IServiceProvider, object> proxyInterceptorFactory = (provider) =>
                             {
-                                var serviceInterceptor = Activator.CreateInstance(serviceInterceptorType, new object[] { this, serviceDescriptor.ImplementationFactory(provider) })
+                                var serviceInterceptor = Activator.CreateInstance(serviceInterceptorType, new object[] { serviceDescriptor.ImplementationFactory(provider) })
                                     ?? throw new InvalidOperationException($"Failed to create service interceptor instance for type {serviceDescriptor.ServiceType.Name}");
                                 return serviceInterceptor;
                             };
@@ -139,7 +139,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                         {
                             var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(serviceDescriptor.ServiceType, _serviceInterceptorGcHandle, serviceInterceptorAssembly);
                             var serviceInterceptorType = serviceInterceptorTypeBuilder.Build();
-                            var serviceInterceptor = Activator.CreateInstance(serviceInterceptorType, new object[] { this, serviceDescriptor.ImplementationInstance })
+                            var serviceInterceptor = Activator.CreateInstance(serviceInterceptorType, new object[] { serviceDescriptor.ImplementationInstance })
                                 ?? throw new InvalidOperationException($"Failed to create service interceptor instance for type {serviceDescriptor.ServiceType.Name}");
 
                             var serviceInterceptorServiceDescriptor = new ServiceDescriptor(serviceDescriptor.ServiceType, serviceInterceptor);

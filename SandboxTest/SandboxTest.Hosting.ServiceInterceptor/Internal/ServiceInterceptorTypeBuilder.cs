@@ -646,7 +646,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Internal
                     ilGenerator.Emit(OpCodes.Call, getTypeFromHandle);
                     ilGenerator.Emit(OpCodes.Callvirt, objectTypeIsValueTypeGetMethod);
                     ilGenerator.Emit(OpCodes.Brfalse, loadArgumentLabel);
-                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 2));
+                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
                     ilGenerator.Emit(OpCodes.Box, wrappedTypeConstructorParameters[parameterIndex]);
                     ilGenerator.Emit(OpCodes.Stloc, localObjectParam);
                     ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
@@ -657,7 +657,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Internal
                     ilGenerator.MarkLabel(loadArgumentLabel);
                     ilGenerator.Emit(OpCodes.Ldloc, localOjectParamList);
                     ilGenerator.Emit(OpCodes.Ldc_I4, (int)parameterIndex);
-                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 2));
+                    ilGenerator.Emit(OpCodes.Ldarg, (short)(parameterIndex + 1));
                     ilGenerator.Emit(OpCodes.Stelem_Ref);
 
                     ilGenerator.MarkLabel(loadNextArgumentLabel);

@@ -11,7 +11,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         protected GCHandle _serviceInterceptorControllerHandle;
         protected List<Type> _implementedInterfaceTypes;
 
-        public ServiceInterceptor(nint serviceInterceptorControllerHandlePtr, Type wrappedType, object?[]? arguments)
+        public ServiceInterceptor(IntPtr serviceInterceptorControllerHandlePtr, Type wrappedType, object?[]? arguments)
         {
             _serviceInterceptorControllerHandle = GCHandle.FromIntPtr(serviceInterceptorControllerHandlePtr);
             _implementedInterfaceTypes = GetType().GetInterfaces().ToList();
@@ -30,7 +30,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             }
         }
 
-        public ServiceInterceptor(nint serviceInterceptorHandlePtr, object wrappedInstance)
+        public ServiceInterceptor(IntPtr serviceInterceptorHandlePtr, object wrappedInstance)
         {
             _serviceInterceptorControllerHandle = GCHandle.FromIntPtr(serviceInterceptorHandlePtr);
             _wrappedInstance = wrappedInstance;

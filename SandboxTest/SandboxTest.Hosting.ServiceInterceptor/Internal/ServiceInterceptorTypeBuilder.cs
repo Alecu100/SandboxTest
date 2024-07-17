@@ -30,12 +30,14 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Internal
             _interfaceType = interfaceType;
             _wrappedType = wrappedType;
             _serviceInterceptorAssembly = serviceInterceptorAssembly;
+            _serviceInterceptorHandle = serviceInterceptorHandle;
         }
 
         public ServiceInterceptorTypeBuilder(Type interfaceType, GCHandle serviceInterceptorHandle, ServiceInterceptorAssembly serviceInterceptorAssembly)
         {
             _interfaceType = interfaceType;
             _serviceInterceptorAssembly = serviceInterceptorAssembly;
+            _serviceInterceptorHandle = serviceInterceptorHandle;
         }
 
         public Type Build()

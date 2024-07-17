@@ -583,7 +583,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Internal
             var ilGenerator = constructor.GetILGenerator();
             ilGenerator.EmitWriteLine("Calling generated constructor for interface type");
             ilGenerator.Emit(OpCodes.Ldarg_0);
-            if (nint.Size == 4)
+            if (IntPtr.Size == 4)
                 ilGenerator.Emit(OpCodes.Ldc_I4, ptrHandleServiceInterceptorController.ToInt32());
             else
                 ilGenerator.Emit(OpCodes.Ldc_I8, ptrHandleServiceInterceptorController.ToInt64());
@@ -614,11 +614,11 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Internal
                 var localObjectParam = ilGenerator.DeclareLocal(typeof(object));
                 ilGenerator.EmitWriteLine("Calling constructor for wrapped type");
                 ilGenerator.Emit(OpCodes.Ldarg_0);
-                if (nint.Size == 4)
+                if (IntPtr.Size == 4)
                     ilGenerator.Emit(OpCodes.Ldc_I4, ptrHandleServiceInterceptorController.ToInt32());
                 else
                     ilGenerator.Emit(OpCodes.Ldc_I8, ptrHandleServiceInterceptorController.ToInt64());
-                if (nint.Size == 4)
+                if (IntPtr.Size == 4)
                     ilGenerator.Emit(OpCodes.Ldc_I4, ptrHandleWrappedType.ToInt32());
                 else
                     ilGenerator.Emit(OpCodes.Ldc_I8, ptrHandleWrappedType.ToInt64());

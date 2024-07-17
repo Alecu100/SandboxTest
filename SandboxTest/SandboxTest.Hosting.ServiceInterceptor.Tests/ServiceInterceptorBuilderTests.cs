@@ -1,8 +1,10 @@
 ﻿using FluentAssertions;
 using SandboxTest.Application;
 using SandboxTest.Dummy;
+using SandboxTest.Hosting.ServiceInterceptor.Internal;
 using SandboxTest.Instance;
 using SandboxTest.Scenario;
+using System.Runtime.InteropServices;
 
 namespace SandboxTest.Hosting.ServiceInterceptor.Tests
 {
@@ -19,7 +21,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Tests
             _dummyApplicationInstance.AddStep().UseController<DummyController>((controller, context) =>
             {
                 var serviceInterceptorController = new ServiceInterceptorController();
-                var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(typeof(ITestInterface<>), typeof(TestInterfaceClass<>), serviceInterceptorController);
+                var gcHandle = GCHandle.Alloc(serviceInterceptorController);
+                var assemblyBuilder = new ServiceInterceptorAssemblyBuilder(typeof(ServiceInterceptorBuilderTests).Assembly).Build();
+                var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(typeof(ITestInterface<>), typeof(TestInterfaceClass<>), gcHandle, assemblyBuilder);
                 var serviceInterceptorListType = serviceInterceptorTypeBuilder.Build();
                 var concreteType = serviceInterceptorListType.MakeGenericType(new Type[] { typeof(TestClassDerived) });
                 var instance = Activator.CreateInstance(concreteType, new object[] { serviceInterceptorController }) as ITestInterface<TestClassDerived>;
@@ -38,7 +42,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Tests
             _dummyApplicationInstance.AddStep().UseController<DummyController>((controller, context) =>
             {
                 var serviceInterceptorController = new ServiceInterceptorController();
-                var serviceInterceptorTypeBuilder2 = new ServiceInterceptorTypeBuilder(typeof(IList<>), typeof(List<>), serviceInterceptorController);
+                var gcHandle = GCHandle.Alloc(serviceInterceptorController);
+                var assemblyBuilder = new ServiceInterceptorAssemblyBuilder(typeof(ServiceInterceptorBuilderTests).Assembly).Build();
+                var serviceInterceptorTypeBuilder2 = new ServiceInterceptorTypeBuilder(typeof(IList<>), typeof(List<>), gcHandle, assemblyBuilder);
                 var listTestClassType = serviceInterceptorTypeBuilder2.Build();
                 var listTestClassTypeConcrete = listTestClassType.MakeGenericType(new Type[] { typeof(TestClassDerived) });
                 var concreteListTestClass2 = Activator.CreateInstance(listTestClassTypeConcrete, new object[] { serviceInterceptorController, new List<TestClassDerived> { new TestClassDerived() } }) as IList<TestClassDerived>;
@@ -55,7 +61,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Tests
             _dummyApplicationInstance.AddStep().UseController<DummyController>((controller, context) =>
             {
                 var serviceInterceptorController = new ServiceInterceptorController();
-                var serviceInterceptorTypeBuilder3 = new ServiceInterceptorTypeBuilder(typeof(IGenericMethodInterface), typeof(GenericMethodInterfaceClass), serviceInterceptorController);
+                var gcHandle = GCHandle.Alloc(serviceInterceptorController);
+                var assemblyBuilder = new ServiceInterceptorAssemblyBuilder(typeof(ServiceInterceptorBuilderTests).Assembly).Build();
+                var serviceInterceptorTypeBuilder3 = new ServiceInterceptorTypeBuilder(typeof(IGenericMethodInterface), typeof(GenericMethodInterfaceClass), gcHandle, assemblyBuilder);
                 var concreteGenericMethodInterface = serviceInterceptorTypeBuilder3.Build();
                 var concreteGenericMethodInterfaceClass = Activator.CreateInstance(concreteGenericMethodInterface, serviceInterceptorController) as IGenericMethodInterface;
                 concreteGenericMethodInterfaceClass!.PrintToConsoleGeneric(new TestClass { Name = "Test Generic Method" });
@@ -69,7 +77,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Tests
             _dummyApplicationInstance.AddStep().UseController<DummyController>((controller, context) =>
             {
                 var serviceInterceptorController = new ServiceInterceptorController();
-                var serviceInterceptorTypeBuilder4 = new ServiceInterceptorTypeBuilder(typeof(IRandomGenerator), typeof(RandomGenerator), serviceInterceptorController);
+                var gcHandle = GCHandle.Alloc(serviceInterceptorController);
+                var assemblyBuilder = new ServiceInterceptorAssemblyBuilder(typeof(ServiceInterceptorBuilderTests).Assembly).Build();
+                var serviceInterceptorTypeBuilder4 = new ServiceInterceptorTypeBuilder(typeof(IRandomGenerator), typeof(RandomGenerator), gcHandle, assemblyBuilder);
                 var randomGeneratorInterceptorType = serviceInterceptorTypeBuilder4.Build();
                 var randomGenerator = Activator.CreateInstance(randomGeneratorInterceptorType, serviceInterceptorController) as IRandomGenerator;
                 var randomShort = randomGenerator!.GetRandomShort();

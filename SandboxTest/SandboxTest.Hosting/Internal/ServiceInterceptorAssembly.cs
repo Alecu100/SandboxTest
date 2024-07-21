@@ -1,7 +1,7 @@
 ﻿using System.Reflection.Emit;
 
 
-namespace SandboxTest.Hosting.ServiceInterceptor.Internal
+namespace SandboxTest.Hosting.Internal
 {
     public class ServiceInterceptorAssembly
     {

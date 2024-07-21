@@ -1,8 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
-using SandboxTest.Hosting.ServiceInterceptor.Internal;
+using SandboxTest.Hosting.Internal;
 
-namespace SandboxTest.Hosting.ServiceInterceptor
+namespace SandboxTest.Hosting
 {
     /// <summary>
     /// Represents the configured interceptor for a specific method of a type.
@@ -21,14 +21,14 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         }
 
         /// <summary>
-        /// Tells the incerceptor to record method calls.
+        /// Represents calls to record with specific arguments.
         /// </summary>
-        public bool RecordsCall { get; set; }
+        public ConcurrentBag<ServiceInterceptorCallToRecord> CallsToRecord { get; set; } = new ConcurrentBag<ServiceInterceptorCallToRecord>();
 
         /// <summary>
         /// A list of all the recorded calls.
         /// </summary>
-        public ConcurrentBag<object?[]?> RecordedCalls { get; set; } = new ConcurrentBag<object?[]?>();
+        public ConcurrentBag<object?[]?> CallRecodings { get; set; } = new ConcurrentBag<object?[]?>();
 
         /// <summary>
         /// The method to intercept.
@@ -38,6 +38,6 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// <summary>
         /// Configured method call replacers.
         /// </summary>
-        public ConcurrentQueue<ServiceInterceptorMethodCallReplacer> CallReplacers { get; set; } = new ConcurrentQueue<ServiceInterceptorMethodCallReplacer>();
+        public ConcurrentQueue<ServiceInterceptorCallReplacer> CallReplacers { get; set; } = new ConcurrentQueue<ServiceInterceptorCallReplacer>();
     }
 }

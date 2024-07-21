@@ -1,8 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace SandboxTest.Hosting.ServiceInterceptor
+namespace SandboxTest.Hosting
 {
     public class ServiceInterceptor
     {
@@ -87,9 +86,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                 {
                     var methodInterceptor = serviceInterceptorController.MethodInterceptors[interfaceType][targetMethod];
 
-                    if (methodInterceptor.RecordsCall)
+                    if (methodInterceptor.CallsToRecord.Any(callToRecord => methodInterceptor.CallsToRecord.Any(callToRecord => callToRecord.ArgumentsMatcherFunc == null || callToRecord.ArgumentsMatcherFunc.Invoke(args) == true)))
                     {
-                        methodInterceptor.RecordedCalls.Add(args);
+                        methodInterceptor.CallRecodings.Add(args);
                     }
 
                     do

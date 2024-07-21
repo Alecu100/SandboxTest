@@ -1,4 +1,4 @@
-﻿namespace SandboxTest.Hosting.ServiceInterceptor.Tests
+﻿namespace SandboxTest.Hosting.Tests
 {
     public class TestInterfaceClass<T> : ITestInterface<T> where T : TestClass
     {

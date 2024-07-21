@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace SandboxTest.Hosting.ServiceInterceptor.Tests
+namespace SandboxTest.Hosting.Tests
 {
     public class ListTestClass<T> : IListTestClass<T> where T : TestClass
     {

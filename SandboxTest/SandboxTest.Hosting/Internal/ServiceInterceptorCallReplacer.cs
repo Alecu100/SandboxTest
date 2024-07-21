@@ -1,6 +1,6 @@
-﻿namespace SandboxTest.Hosting.ServiceInterceptor.Internal
+﻿namespace SandboxTest.Hosting.Internal
 {
-    public class ServiceInterceptorMethodCallReplacer
+    public class ServiceInterceptorCallReplacer
     {
         public Func<object?[]?, bool>? ArgumentsMatcherFunc { get; set; }
 

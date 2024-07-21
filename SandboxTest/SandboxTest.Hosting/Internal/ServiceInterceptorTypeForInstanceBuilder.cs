@@ -3,7 +3,7 @@ using System.Reflection.Emit;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace SandboxTest.Hosting.ServiceInterceptor.Internal
+namespace SandboxTest.Hosting.Internal
 {
     public class ServiceInterceptorTypeForInstanceBuilder : ServiceInterceptorTypeBuilderBase
     {

@@ -11,7 +11,6 @@
   <ItemGroup>
     <ProjectReference Include="..\SandboxTest.Application\SandboxTest.Application.csproj" />
     <ProjectReference Include="..\SandboxTest.AspNetCore\SandboxTest.AspNetCore.csproj" />
-    <ProjectReference Include="..\SandboxTest.Hosting.ServiceInterceptor\SandboxTest.Hosting.ServiceInterceptor.csproj" />
     <ProjectReference Include="..\SandboxTest.Net.Http\SandboxTest.Net.Http.csproj" />
     <ProjectReference Include="..\SandboxTest.Node\SandboxTest.Node.csproj" />
     <ProjectReference Include="..\SandboxTest.Playwright\SandboxTest.Playwright.csproj" />

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using SandboxTest.Hosting.ServiceInterceptor.Internal;
+using SandboxTest.Hosting.Internal;
 using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Scenario;
@@ -9,7 +8,7 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace SandboxTest.Hosting.ServiceInterceptor
+namespace SandboxTest.Hosting
 {
     /// <summary>
     /// Represents a service proxy wrapper controller that uses the dependency injection mechanism from standard IHost to replace all the implementations with proxy wrappers containing the original instance.
@@ -18,7 +17,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
     public class ServiceInterceptorController : IController
     {
         private ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>> _methodInterceptors;
-        private ConcurrentBag<ServiceInterceptorRecordedCall> _proxyWrapperRecordedCalls;
+        private ConcurrentBag<ServiceInterceptorCallRecording> _proxyWrapperRecordedCalls;
         private IServiceCollection? _originalServiceCollection;
         private GCHandle _serviceInterceptorGcHandle;
         private Dictionary<Assembly, ServiceInterceptorAssembly>? _serviceInterceptorAssemblyCache;
@@ -30,7 +29,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         public ServiceInterceptorController()
         {
             _methodInterceptors = new ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>>();
-            _proxyWrapperRecordedCalls = new ConcurrentBag<ServiceInterceptorRecordedCall>();
+            _proxyWrapperRecordedCalls = new ConcurrentBag<ServiceInterceptorCallRecording>();
         }
 
         /// <summary>
@@ -234,10 +233,5 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         }
 
         public ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>> MethodInterceptors { get => _methodInterceptors; }
-
-        /// <summary>
-        /// Returns a list of all the recored proxy wrapper calls.
-        /// </summary>
-        public ConcurrentBag<ServiceInterceptorRecordedCall> ProxyWrapperRecordedCalls { get => _proxyWrapperRecordedCalls; }
     }
 }

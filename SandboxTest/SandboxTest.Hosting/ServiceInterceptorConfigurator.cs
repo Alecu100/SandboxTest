@@ -1,9 +1,9 @@
-﻿using SandboxTest.Hosting.ServiceInterceptor.Internal;
+﻿using SandboxTest.Hosting.Internal;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace SandboxTest.Hosting.ServiceInterceptor
+namespace SandboxTest.Hosting
 {
     public class ServiceInterceptorConfigurator<TInterface>
     {
@@ -284,9 +284,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// <returns></returns>
         public MethodInterceptorConfigurator<TInterface, TReturn> Reset()
         {
-            _interceptedMethod.RecordsCall = false;
+            _interceptedMethod.CallRecodings.Clear();
             _interceptedMethod.CallReplacers.Clear();
-            _interceptedMethod.RecordedCalls.Clear();
+            _interceptedMethod.CallRecodings.Clear();
 
             return this;
         }
@@ -297,7 +297,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// <returns></returns>
         public MethodInterceptorConfigurator<TInterface, TReturn> RecordsAllCalls()
         {
-            _interceptedMethod.RecordsCall = true;
+            _interceptedMethod.CallsToRecord.Add(new ServiceInterceptorCallToRecord());
             return this;
         }
 
@@ -308,7 +308,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// <returns></returns>
         public bool RecordedCallTimes(Func<int, bool> timesFunc)
         {
-            var count = _interceptedMethod.RecordedCalls.Count();
+            var count = _interceptedMethod.CallRecodings.Count();
             return timesFunc(count);
         }
 
@@ -339,7 +339,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         public MethodInterceptorConfigurator<TInterface, TReturn> Throws<TException>(TException exception, int times) where TException : Exception
         {
-            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorCallReplacer
             {
                 ArgumentsMatcherFunc = args => true,
                 CallReplaceFunc = (target, args) => throw exception,
@@ -355,7 +355,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         public MethodInterceptorConfigurator<TInterface, TReturn> ReturnsValue(TReturn value, int times)
         {
-            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorCallReplacer
             {
                 ArgumentsMatcherFunc = args => true,
                 CallReplaceFunc = (target, args) => value,
@@ -371,7 +371,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         public MethodInterceptorConfigurator<TInterface, TReturn> Calls(Func<object, TReturn> callFunc, int times)
         {
-            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorCallReplacer
             {
                 ArgumentsMatcherFunc = args => true,
                 CallReplaceFunc = (target, args) => callFunc(target),
@@ -439,9 +439,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// <returns></returns>
         public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> Reset()
         {
-            _interceptedMethod.RecordsCall = false;
+            _interceptedMethod.CallsToRecord.Clear();
             _interceptedMethod.CallReplacers.Clear();
-            _interceptedMethod.RecordedCalls.Clear();
+            _interceptedMethod.CallRecodings.Clear();
 
             return this;
         }
@@ -462,9 +462,17 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// Configures the interceptor to record calls to the specified method.
         /// </summary>
         /// <returns></returns>
-        public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> RecordsAllCalls()
+        public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> RecordCalls()
         {
-            _interceptedMethod.RecordsCall = true;
+            if (_argumentsFunc != null)
+            {
+                _interceptedMethod.CallsToRecord.Add(new ServiceInterceptorCallToRecord { ArgumentsMatcherFunc = (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! });
+            }
+
+            else
+            {
+                _interceptedMethod.CallsToRecord.Add(new ServiceInterceptorCallToRecord());
+            }
             return this;
         }
 
@@ -479,12 +487,12 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             int count = 0;
             if (_argumentsFunc != null)
             {
-                count = _interceptedMethod.RecordedCalls.Count(x => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, x)!);
+                count = _interceptedMethod.CallRecodings.Count(x => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, x)!);
                 return timesFunc(count);
             }
             else
             {
-                count = _interceptedMethod.RecordedCalls.Count()!;
+                count = _interceptedMethod.CallRecodings.Count()!;
             }
 
             return timesFunc(count);
@@ -519,7 +527,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> Calls(TCallFunc callFunc, int times)
         {
-            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorCallReplacer
             {
                 ArgumentsMatcherFunc = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
                 CallReplaceFunc = (target, args) => callFunc.Method.Invoke(callFunc.Target, GetCallFuncArguments(target, args)),
@@ -535,7 +543,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> Throws<TException>(TException exception, int times) where TException : Exception
         {
-            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorCallReplacer
             {
                 ArgumentsMatcherFunc = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
                 CallReplaceFunc = (target, args) => throw exception,
@@ -551,7 +559,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         public MethodInterceptorConfigurator<TInterface, TCallFunc, TArgumentFunc, TExpressionFunc, TReturn> ReturnsValue(TReturn value, int times)
         {
-            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorCallReplacer
             {
                 ArgumentsMatcherFunc = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
                 CallReplaceFunc = (target, args) => value,
@@ -627,9 +635,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// <returns></returns>
         public MethodInterceptorConfigurator<TInterface> Reset()
         {
-            _interceptedMethod.RecordsCall = false;
+            _interceptedMethod.CallsToRecord.Clear();
             _interceptedMethod.CallReplacers.Clear();
-            _interceptedMethod.RecordedCalls.Clear();
+            _interceptedMethod.CallRecodings.Clear();
 
             return this;
         }
@@ -638,10 +646,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// Configures the interceptor to record calls to the specified method.
         /// </summary>
         /// <returns></returns>
-        public MethodInterceptorConfigurator<TInterface> RecordsAllCalls()
+        public MethodInterceptorConfigurator<TInterface> RecordsCalls()
         {
-            _interceptedMethod.RecordsCall = true;
-
+            _interceptedMethod.CallsToRecord.Add(new ServiceInterceptorCallToRecord());
             return this;
         }
 
@@ -652,7 +659,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// <returns></returns>
         public bool RecordedCallTimes(Func<int, bool> timesFunc)
         {
-            var count = _interceptedMethod.RecordedCalls.Count()!;
+            var count = _interceptedMethod.CallRecodings.Count()!;
             return timesFunc(count);
         }
 
@@ -683,7 +690,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         public MethodInterceptorConfigurator<TInterface> Throws<TException>(TException exception, int times) where TException : Exception
         {
-            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorCallReplacer
             {
                 ArgumentsMatcherFunc = args => true,
                 CallReplaceFunc = (target, args) => throw exception,
@@ -699,7 +706,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         public MethodInterceptorConfigurator<TInterface> Calls(Action<object> callAction, int times)
         {
-            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorCallReplacer
             {
                 ArgumentsMatcherFunc = args => true,
                 CallReplaceAction = (target, args) => callAction.Method.Invoke(callAction.Target, new object[] { target }),
@@ -767,9 +774,9 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// <returns></returns>
         public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> Reset()
         {
-            _interceptedMethod.RecordsCall = false;
+            _interceptedMethod.CallRecodings.Clear();
             _interceptedMethod.CallReplacers.Clear();
-            _interceptedMethod.RecordedCalls.Clear();
+            _interceptedMethod.CallRecodings.Clear();
 
             return this;
         }
@@ -790,9 +797,16 @@ namespace SandboxTest.Hosting.ServiceInterceptor
         /// Configures the interceptor to record calls to the specified method.
         /// </summary>
         /// <returns></returns>
-        public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> RecordsAllCalls()
+        public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> RecordsCalls()
         {
-            _interceptedMethod.RecordsCall = true;
+            if (_argumentsFunc != null)
+            {
+                _interceptedMethod.CallsToRecord.Add(new ServiceInterceptorCallToRecord { ArgumentsMatcherFunc = (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! });
+            }
+            else
+            {
+                _interceptedMethod.CallsToRecord.Add(new ServiceInterceptorCallToRecord());
+            }
             return this;
         }
 
@@ -807,12 +821,12 @@ namespace SandboxTest.Hosting.ServiceInterceptor
             int count = 0;
             if (_argumentsFunc != null)
             {
-                count = _interceptedMethod.RecordedCalls.Count(x => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, x)!);
+                count = _interceptedMethod.CallRecodings.Count(x => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, x)!);
                 return timesFunc(count);
             }
             else
             {
-                count = _interceptedMethod.RecordedCalls.Count()!;
+                count = _interceptedMethod.CallRecodings.Count()!;
             }
 
             return timesFunc(count);
@@ -847,7 +861,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> Calls(TCallAction callAction, int times)
         {
-            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorCallReplacer
             {
                 ArgumentsMatcherFunc = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
                 CallReplaceAction = (target, args) => callAction.Method.Invoke(callAction.Target, GetCallFuncArguments(target, args)),
@@ -863,7 +877,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
 
         public MethodInterceptorConfigurator<TInterface, TCallAction, TArgumentAction, TExpressionAction> Throws<TException>(TException exception, int times) where TException : Exception
         {
-            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorMethodCallReplacer
+            _interceptedMethod.CallReplacers.Enqueue(new ServiceInterceptorCallReplacer
             {
                 ArgumentsMatcherFunc = _argumentsFunc != null ? (args) => (bool)_argumentsFunc.Method.Invoke(_argumentsFunc.Target, args)! : (args) => true,
                 CallReplaceAction = (target, args) => throw exception,

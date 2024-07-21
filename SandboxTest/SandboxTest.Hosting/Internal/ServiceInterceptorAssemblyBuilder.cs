@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Reflection.Emit;
 
-namespace SandboxTest.Hosting.ServiceInterceptor.Internal
+namespace SandboxTest.Hosting.Internal
 {
     /// <summary>
     /// Creates a service interceptor assembly for an assembly that contains services which need to be intercepted.

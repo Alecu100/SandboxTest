@@ -1,12 +1,12 @@
 ﻿using FluentAssertions;
 using SandboxTest.Application;
 using SandboxTest.Dummy;
-using SandboxTest.Hosting.ServiceInterceptor.Internal;
+using SandboxTest.Hosting.Internal;
 using SandboxTest.Instance;
 using SandboxTest.Scenario;
 using System.Runtime.InteropServices;
 
-namespace SandboxTest.Hosting.ServiceInterceptor.Tests
+namespace SandboxTest.Hosting.Tests
 {
     [ScenarioSuite]
     public class ServiceInterceptorBuilderTests

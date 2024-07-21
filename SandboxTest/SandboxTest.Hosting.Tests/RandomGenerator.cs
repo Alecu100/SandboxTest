@@ -1,4 +1,4 @@
-﻿namespace SandboxTest.Hosting.ServiceInterceptor.Tests
+﻿namespace SandboxTest.Hosting.Tests
 {
     public class RandomGenerator : IRandomGenerator
     {
@@ -14,7 +14,7 @@
             return _random.Next();
         }
 
-        public double GetRandomDouble() 
+        public double GetRandomDouble()
         {
             return _random.NextDouble();
         }

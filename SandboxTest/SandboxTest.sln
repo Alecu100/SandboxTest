@@ -25,10 +25,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Hosting", "Sand
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Sample.Application3", "SandboxTest.Sample.Application3\SandboxTest.Sample.Application3.csproj", "{2515B286-F664-4154-B74E-779030FC900B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Hosting.ServiceInterceptor", "SandboxTest.Hosting.ServiceInterceptor\SandboxTest.Hosting.ServiceInterceptor.csproj", "{4CA9BB40-9126-4908-9478-CE8056D1BBC5}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Hosting.ServiceInterceptor.Tests", "SandboxTest.Hosting.ServiceInterceptor.Tests\SandboxTest.Hosting.ServiceInterceptor.Tests.csproj", "{8C1FC335-5112-4226-ABF8-029FA6785A88}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{6D4445A6-E876-4088-A2E6-7536725136DB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.AspNetCore.EndpointInterceptor", "SandboxTest.AspNetCore.EndpointInterceptor\SandboxTest.AspNetCore.EndpointInterceptor.csproj", "{670DF7D0-BEC5-4CB9-BBB1-BE82D7058400}"
@@ -52,6 +48,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Sample.Application5.Server", "SandboxTest.Sample.Application5\SandboxTest.Sample.Application5.Server\SandboxTest.Sample.Application5.Server.csproj", "{6B3BE559-80FE-40B4-9D98-C7A7AEC083D2}"
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "sandboxtest.sample.application5.client", "SandboxTest.Sample.Application5\sandboxtest.sample.application5.client\sandboxtest.sample.application5.client.esproj", "{526294E2-2256-4C76-B99E-B98E6A0DD7AE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandboxTest.Hosting.Tests", "SandboxTest.Hosting.Tests\SandboxTest.Hosting.Tests.csproj", "{80396C47-8672-4DC1-BD79-0BAD50457967}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -103,14 +101,6 @@ Global
 		{2515B286-F664-4154-B74E-779030FC900B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2515B286-F664-4154-B74E-779030FC900B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2515B286-F664-4154-B74E-779030FC900B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4CA9BB40-9126-4908-9478-CE8056D1BBC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4CA9BB40-9126-4908-9478-CE8056D1BBC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4CA9BB40-9126-4908-9478-CE8056D1BBC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4CA9BB40-9126-4908-9478-CE8056D1BBC5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8C1FC335-5112-4226-ABF8-029FA6785A88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8C1FC335-5112-4226-ABF8-029FA6785A88}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8C1FC335-5112-4226-ABF8-029FA6785A88}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8C1FC335-5112-4226-ABF8-029FA6785A88}.Release|Any CPU.Build.0 = Release|Any CPU
 		{670DF7D0-BEC5-4CB9-BBB1-BE82D7058400}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{670DF7D0-BEC5-4CB9-BBB1-BE82D7058400}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{670DF7D0-BEC5-4CB9-BBB1-BE82D7058400}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -159,6 +149,10 @@ Global
 		{526294E2-2256-4C76-B99E-B98E6A0DD7AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{526294E2-2256-4C76-B99E-B98E6A0DD7AE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{526294E2-2256-4C76-B99E-B98E6A0DD7AE}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{80396C47-8672-4DC1-BD79-0BAD50457967}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80396C47-8672-4DC1-BD79-0BAD50457967}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80396C47-8672-4DC1-BD79-0BAD50457967}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80396C47-8672-4DC1-BD79-0BAD50457967}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

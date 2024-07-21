@@ -1,7 +1,6 @@
-﻿using SandboxTest.Hosting.ServiceInterceptor.Tests;
-using System.Collections;
+﻿using System.Collections;
 
-namespace SandboxTest.Hosting.ServiceInterceptor.ManualDebugger
+namespace SandboxTest.Hosting.Tests
 {
     public class CustomList<T> : ICustomList<T> where T : TestClass
     {

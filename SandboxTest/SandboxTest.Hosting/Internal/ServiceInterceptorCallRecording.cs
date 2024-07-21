@@ -1,17 +1,17 @@
 ﻿using System.Reflection;
 
-namespace SandboxTest.Hosting.ServiceInterceptor.Internal
+namespace SandboxTest.Hosting.Internal
 {
     /// <summary>
     /// Represents a recorded method call intercepted by a proxy interceptor.
     /// </summary>
-    public class ServiceInterceptorRecordedCall
+    public class ServiceInterceptorCallRecording
     {
         private Type _interfaceType;
         private MethodInfo _method;
         private object?[]? _args;
 
-        public ServiceInterceptorRecordedCall(Type interfaceType, MethodInfo method, object?[]? args = null)
+        public ServiceInterceptorCallRecording(Type interfaceType, MethodInfo method, object?[]? args = null)
         {
             _interfaceType = interfaceType;
             _method = method;

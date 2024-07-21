@@ -23,7 +23,12 @@ namespace SandboxTest.Sample.Application4.Server.Controllers
         {
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
+#if NET7_0_OR_GREATER
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+#endif
+#if NET6_0
+                Date = DateTime.Now.AddDays(index),
+#endif
                 TemperatureC = Random.Shared.Next(-20, 55),
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
             })

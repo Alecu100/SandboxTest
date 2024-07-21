@@ -174,15 +174,17 @@ namespace SandboxTest.AspNetCore
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public override Task RunAsync(IScenarioSuiteContext scenarioSuiteContext)
+        public override async Task RunAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             if (_webApplication == null)
             {
                 throw new InvalidOperationException("Web application not built");
             }
-            _runTask = Task.Run(async () => await _webApplication.RunAsync(_url));
+
+            _webApplication.Urls.Clear();
+            _webApplication.Urls.Add(_url!);
+            await _webApplication.StartAsync();
             _isRunning = true;
-            return Task.CompletedTask;
         }
 
         /// <summary>

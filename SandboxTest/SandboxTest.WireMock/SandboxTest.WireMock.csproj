@@ -6,9 +6,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="WireMock.Net" Version="1.5.60" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+    <PackageReference Include="WireMock.Net" Version="1.5.60" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="WireMock.Net" Version="1.5.60" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="WireMock.Net" Version="1.5.40" />
+  </ItemGroup>
+
 
 
   <ItemGroup>

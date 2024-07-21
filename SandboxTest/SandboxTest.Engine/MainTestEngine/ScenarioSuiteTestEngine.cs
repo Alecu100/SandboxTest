@@ -432,7 +432,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 var runInstanceResult = await scenarioSuiteTestEngineApplicationInstance.RunInstanceAsync(_scenarioSuiteData!, token) as ScenarioSuiteOperationResult;
                 if (runInstanceResult == null || runInstanceResult.IsSuccesful == false)
                 {
-                    _scenarioFailedErrors.Add($"Failed to start instance with id {instance.Id}");
+                    _scenarioFailedErrors.Add($"Failed to start instance with id {instance.Id} with error: {runInstanceResult?.ErrorMessage}");
                 }
                 await _mainTestEngineRunContext.LogMessage(LogLevel.Informational, $"Instance {instance.Id} started succesfully");
                 if (scenarioSuiteData != null && runInstanceResult?.ScenarioSuiteData != null)

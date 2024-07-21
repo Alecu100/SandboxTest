@@ -23,7 +23,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Tests
                 var serviceInterceptorController = new ServiceInterceptorController();
                 var gcHandle = GCHandle.Alloc(serviceInterceptorController);
                 var assemblyBuilder = new ServiceInterceptorAssemblyBuilder(typeof(ServiceInterceptorBuilderTests).Assembly).Build();
-                var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeBuilder(typeof(ITestInterface<>), typeof(TestInterfaceClass<>), gcHandle, assemblyBuilder);
+                var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeForTypeBuilder(typeof(ITestInterface<>), typeof(TestInterfaceClass<>), gcHandle, assemblyBuilder);
                 var serviceInterceptorListType = serviceInterceptorTypeBuilder.Build();
                 var concreteType = serviceInterceptorListType.MakeGenericType(new Type[] { typeof(TestClassDerived) });
                 var instance = Activator.CreateInstance(concreteType) as ITestInterface<TestClassDerived>;
@@ -44,7 +44,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Tests
                 var serviceInterceptorController = new ServiceInterceptorController();
                 var gcHandle = GCHandle.Alloc(serviceInterceptorController);
                 var assemblyBuilder = new ServiceInterceptorAssemblyBuilder(typeof(ServiceInterceptorBuilderTests).Assembly).Build();
-                var serviceInterceptorTypeBuilder2 = new ServiceInterceptorTypeBuilder(typeof(IList<>), typeof(List<>), gcHandle, assemblyBuilder);
+                var serviceInterceptorTypeBuilder2 = new ServiceInterceptorTypeForTypeBuilder(typeof(IList<>), typeof(List<>), gcHandle, assemblyBuilder);
                 var listTestClassType = serviceInterceptorTypeBuilder2.Build();
                 var listTestClassTypeConcrete = listTestClassType.MakeGenericType(new Type[] { typeof(TestClassDerived) });
                 var concreteListTestClass2 = Activator.CreateInstance(listTestClassTypeConcrete, new object[] { new List<TestClassDerived> { new TestClassDerived() } }) as IList<TestClassDerived>;
@@ -63,7 +63,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Tests
                 var serviceInterceptorController = new ServiceInterceptorController();
                 var gcHandle = GCHandle.Alloc(serviceInterceptorController);
                 var assemblyBuilder = new ServiceInterceptorAssemblyBuilder(typeof(ServiceInterceptorBuilderTests).Assembly).Build();
-                var serviceInterceptorTypeBuilder3 = new ServiceInterceptorTypeBuilder(typeof(IGenericMethodInterface), typeof(GenericMethodInterfaceClass), gcHandle, assemblyBuilder);
+                var serviceInterceptorTypeBuilder3 = new ServiceInterceptorTypeForTypeBuilder(typeof(IGenericMethodInterface), typeof(GenericMethodInterfaceClass), gcHandle, assemblyBuilder);
                 var concreteGenericMethodInterface = serviceInterceptorTypeBuilder3.Build();
                 var concreteGenericMethodInterfaceClass = Activator.CreateInstance(concreteGenericMethodInterface) as IGenericMethodInterface;
                 concreteGenericMethodInterfaceClass!.PrintToConsoleGeneric(new TestClass { Name = "Test Generic Method" });
@@ -79,7 +79,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor.Tests
                 var serviceInterceptorController = new ServiceInterceptorController();
                 var gcHandle = GCHandle.Alloc(serviceInterceptorController);
                 var assemblyBuilder = new ServiceInterceptorAssemblyBuilder(typeof(ServiceInterceptorBuilderTests).Assembly).Build();
-                var serviceInterceptorTypeBuilder4 = new ServiceInterceptorTypeBuilder(typeof(IRandomGenerator), typeof(RandomGenerator), gcHandle, assemblyBuilder);
+                var serviceInterceptorTypeBuilder4 = new ServiceInterceptorTypeForTypeBuilder(typeof(IRandomGenerator), typeof(RandomGenerator), gcHandle, assemblyBuilder);
                 var randomGeneratorInterceptorType = serviceInterceptorTypeBuilder4.Build();
                 var randomGenerator = Activator.CreateInstance(randomGeneratorInterceptorType) as IRandomGenerator;
                 var randomShort = randomGenerator!.GetRandomShort();

@@ -78,6 +78,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                     if (serviceDescriptor.ServiceType.IsInterface && TypeIsAccessible(serviceDescriptor.ServiceType))
                     {
                         var serviceInterceptorAssembly = GetServiceInterceptorAssemblyBuilder(serviceDescriptor.ServiceType.Assembly);
+#if NET8_0_OR_GREATER
                         if (serviceDescriptor.IsKeyedService && serviceDescriptor.KeyedImplementationFactory != null)
                         {
                             var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeForInstanceBuilder(serviceDescriptor.ServiceType, _serviceInterceptorGcHandle, serviceInterceptorAssembly);
@@ -121,6 +122,7 @@ namespace SandboxTest.Hosting.ServiceInterceptor
                                 continue;
                             }
                         }
+#endif
                         if (serviceDescriptor.ImplementationFactory != null)
                         {
                             var serviceInterceptorTypeBuilder = new ServiceInterceptorTypeForInstanceBuilder(serviceDescriptor.ServiceType, _serviceInterceptorGcHandle, serviceInterceptorAssembly);

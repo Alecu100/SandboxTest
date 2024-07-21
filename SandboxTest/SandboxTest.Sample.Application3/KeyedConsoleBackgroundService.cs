@@ -29,8 +29,10 @@ namespace SandboxTest.Sample.Application3
                     var guidGenerator = _serviceProvider.GetRequiredService<IRandomGuidGenerator>();
                     var consoleService = _serviceProvider.GetRequiredService<IConsoleService>();
                     consoleService.WriteToConsole($"Running console background service");
+#if NET8_0_OR_GREATER
                     var keyedConsoleService = _serviceProvider.GetRequiredKeyedService<IConsoleService>("KeyedConsoleService");
                     keyedConsoleService.WriteToConsole(guidGenerator.GetNewGuid().ToString());
+#endif
                 }
             }
         }

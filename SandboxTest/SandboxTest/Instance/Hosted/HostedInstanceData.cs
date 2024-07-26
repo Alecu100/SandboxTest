@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections;
+using System.ComponentModel;
 
 namespace SandboxTest.Instance.Hosted
 {
@@ -102,6 +103,22 @@ namespace SandboxTest.Instance.Hosted
             return hostedInstanceData;
         }
 
+        public static HostedInstanceData ParseFromEnvironmentVariables(IDictionary env)
+        {
+            var hostedInstanceData = new HostedInstanceData
+            {
+                RunId = GetEnvironmentVariableValue<Guid>(env, RunIdEnv),
+                ApplicationInstanceId = GetEnvironmentVariableValue<string>(env, ApplicationInstanceIdEnv)!,
+                AssemblySourceName = GetEnvironmentVariableValue<string>(env, AssemblySourceNameEnv)!,
+                MainPath = GetEnvironmentVariableValue<string>(env, MainPathArg)!,
+                ScenarioSuiteTypeFullName = GetEnvironmentVariableValue<string>(env, ScenarioSuiteTypeFullNameEnv)!,
+                HostedInstanceInitializerAssemblyFullName = GetEnvironmentVariableValue<string>(env, HostedInstanceInitializerAssemblyFullNameEnv)!,
+                HostedInstanceInitializerTypeFullName = GetEnvironmentVariableValue<string>(env, HostedInstanceInitializerTypeFullNameEnv)!
+            };
+
+            return hostedInstanceData;
+        }
+
         /// <summary>
         /// Converts the hosted instance data to a list of command line arguments to be passed when starting from the command line a hosted instance.
         /// </summary>
@@ -154,14 +171,24 @@ namespace SandboxTest.Instance.Hosted
             return (TValue?)TypeDescriptor.GetConverter(typeof(TValue)).ConvertFromInvariantString(argumentValue);
         }
 
-        private static TValue? GetEnvironmentVariableValue<TValue>(string[] args, string name)
+        private static TValue? GetEnvironmentVariableValue<TValue>(string[] env, string name)
         {
-            var argument = args.FirstOrDefault(arg => arg.StartsWith($"{name}="));
+            var argument = env.FirstOrDefault(arg => arg.StartsWith($"{name}="));
             if (argument == null)
             {
                 return default;
             }
             var argumentValue = argument.Substring(argument.IndexOf('=') + 1).Trim().Trim('\"');
+            return (TValue?)TypeDescriptor.GetConverter(typeof(TValue)).ConvertFromInvariantString(argumentValue);
+        }
+
+        private static TValue? GetEnvironmentVariableValue<TValue>(IDictionary env, string name)
+        {
+            var argumentValue = env[name]?.ToString();
+            if (argumentValue == null)
+            {
+                return default;
+            }
             return (TValue?)TypeDescriptor.GetConverter(typeof(TValue)).ConvertFromInvariantString(argumentValue);
         }
     }

@@ -41,6 +41,11 @@ namespace SandboxTest.Application
         public virtual IHostedInstanceMessageChannel? MessageChannel { get => _messageChannel; }
 
         /// <summary>
+        /// For application hosted instances, they run on the same machine so their address always resolves to 127.0.0.1.
+        /// </summary>
+        public string Address { get => "127.0.0.1"; }
+
+        /// <summary>
         /// Starts the host for the application instance from the command line.
         /// </summary>
         /// <param name="instanceContext"></param>

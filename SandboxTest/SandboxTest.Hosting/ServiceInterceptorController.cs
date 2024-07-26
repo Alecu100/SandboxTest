@@ -17,7 +17,6 @@ namespace SandboxTest.Hosting
     public class ServiceInterceptorController : IController
     {
         private ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>> _methodInterceptors;
-        private ConcurrentBag<ServiceInterceptorCallRecording> _proxyWrapperRecordedCalls;
         private IServiceCollection? _originalServiceCollection;
         private GCHandle _serviceInterceptorGcHandle;
         private Dictionary<Assembly, ServiceInterceptorAssembly>? _serviceInterceptorAssemblyCache;
@@ -29,7 +28,6 @@ namespace SandboxTest.Hosting
         public ServiceInterceptorController()
         {
             _methodInterceptors = new ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, ServiceInterceptedMethod>>();
-            _proxyWrapperRecordedCalls = new ConcurrentBag<ServiceInterceptorCallRecording>();
         }
 
         /// <summary>
@@ -213,12 +211,11 @@ namespace SandboxTest.Hosting
         public Task ResetAsync()
         {
             _methodInterceptors.Clear();
-            _proxyWrapperRecordedCalls.Clear();
             return Task.CompletedTask;
         }
 
         /// <summary>
-        /// Gets the IHostBuilder from the application instance and replaces all the service descriptio entries with new entries that wrap the instances or functions that return instances around proxy interceptors.
+        /// Gets the IHostBuilder from the instance and replaces all the service descriptors with new ones that return service interceptors as wrappers around the original instances.
         /// </summary>
         /// <param name="runner"></param>
         /// <param name="scenarioSuiteContext"></param>

@@ -76,3 +76,5 @@ SandboxTest/SandboxTest.Sample.Application5/SandboxTest.Sample.Application5.Serv
 SandboxTest/SandboxTest.Sample.Application5/sandboxtest.sample.application5.client/
 SandboxTest/SandboxTest.Hosting.Tests/bin/
 SandboxTest/SandboxTest.Hosting.Tests/obj/
+SandboxTest/SandboxTest.Container/bin/
+SandboxTest/SandboxTest.Container/obj/

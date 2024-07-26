@@ -33,5 +33,10 @@
         /// <param name="instanceData"></param>
         /// <returns></returns>
         Task StopAsync(IHostedInstanceContext instanceContext, HostedInstanceData instanceData);
+
+        /// <summary>
+        /// Gets the address of the host which can be an ip or dns address.
+        /// </summary>
+        string Address { get; }
     }
 }

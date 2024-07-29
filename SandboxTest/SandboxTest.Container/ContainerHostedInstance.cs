@@ -202,7 +202,7 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
         protected virtual async Task GenerateDockerFile()
         {
             _dockerImageSuffix = Environment.CurrentDirectory.GetHashCode();
-            _dockerFileFullName = $"{Environment.CurrentDirectory.Trim('\\', '/')}\\DockerFile.SandboxTest.{_id}.{_dockerImageSuffix}";
+            _dockerFileFullName = $"{Environment.CurrentDirectory.Trim('\\', '/')}\\SandboxTest.{_id}.{_dockerImageSuffix}.DockerFile";
             var dockerFileEnvironmentVariablesSection = string.Join(Environment.NewLine, _environmentVariables.Select(environmentVariable => $"ENV {environmentVariable.Key}={environmentVariable.Value}"));
             var dockerFileExposedPortsSection = string.Join(Environment.NewLine, _exposedPorts.Select(exposedPort => $"EXPOSE {exposedPort.Key}:{exposedPort.Value}"));
             var dockerFileContent = string.Format(DockerFileFormat, _baseImage, dockerFileEnvironmentVariablesSection, dockerFileExposedPortsSection);
@@ -240,6 +240,7 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
 
                 await tarArchiveOutputStream.CloseEntryAsync(default);
             }
+            await tarArchiveOutputStream.FlushAsync();
             tarArchiveOutputStream.Close();
             tarStream.Position = 0;
 

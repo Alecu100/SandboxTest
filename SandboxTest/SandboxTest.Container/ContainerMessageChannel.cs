@@ -1,4 +1,5 @@
 ﻿using SandboxTest.Instance.Hosted;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 
 namespace SandboxTest.Container
@@ -32,12 +33,21 @@ namespace SandboxTest.Container
             throw new NotImplementedException();
         }
 
-        public Task StartAsync(string applicationId, Guid runId, bool isInstance)
+        public async Task StartAsync(string applicationId, Guid runId, bool isInstance)
         {
             if (isInstance)
             {
                 _socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-                _socket.ConnectAsync(_host, _port);
+                await _socket.ConnectAsync(_host, _port);
+            }
+            else
+            {
+                var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+                foreach (var networkInterface in networkInterfaces) 
+                {
+                    var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                }
             }
         }
 

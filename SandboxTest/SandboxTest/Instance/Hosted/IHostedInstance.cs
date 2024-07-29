@@ -37,6 +37,6 @@
         /// <summary>
         /// Gets the address of the host which can be an ip or dns address.
         /// </summary>
-        string Address { get; }
+        IReadOnlyList<string> Addresses { get; }
     }
 }

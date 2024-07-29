@@ -8,6 +8,8 @@ namespace SandboxTest.Application
     /// </summary>
     public class ApplicationHostedInstance : ApplicationInstance, IHostedInstance
     {
+        private readonly List<string> _addresses = new List<string> { "127.0.0.1" };
+
         private Process? _applicationInstanceProcess;
 
         private IHostedInstanceMessageChannel? _messageChannel;
@@ -43,7 +45,7 @@ namespace SandboxTest.Application
         /// <summary>
         /// For application hosted instances, they run on the same machine so their address always resolves to 127.0.0.1.
         /// </summary>
-        public string Address { get => "127.0.0.1"; }
+        public IReadOnlyList<string> Addresses { get => _addresses; }
 
         /// <summary>
         /// Starts the host for the application instance from the command line.

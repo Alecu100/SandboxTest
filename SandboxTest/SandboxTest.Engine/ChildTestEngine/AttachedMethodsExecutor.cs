@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Instance.Hosted;
 
 namespace SandboxTest.Engine.ChildTestEngine
 {
@@ -16,6 +17,14 @@ namespace SandboxTest.Engine.ChildTestEngine
                         {
                 AttachedMethodType.ControllerToRunner,
                 typeof(IRunner)
+            },
+            {
+                AttachedMethodType.HostedInstanceToHostedInstance,
+                typeof(IHostedInstance)
+            },
+                        {
+                AttachedMethodType.MessageChannelToHostedInstance,
+                typeof(IHostedInstance)
             }
         };
 

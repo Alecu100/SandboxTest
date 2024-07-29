@@ -21,6 +21,11 @@
         HostedInstanceToHostedInstance,
 
         /// <summary>
+        /// This represents an attached method by the message channel to the hosted instance to execute it after or before the given target method from the instance.
+        /// </summary>
+        MessageChannelToHostedInstance,
+
+        /// <summary>
         /// This represents an attached method by the message channel to the runner to execute it after or before the given target method from the runner.
         /// </summary>
         MessageChannelToRunner

@@ -3,6 +3,7 @@ using SandboxTest.Engine.ChildTestEngine;
 using SandboxTest.Engine.Operations;
 using SandboxTest.Engine.Utils;
 using SandboxTest.Instance;
+using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Instance.Hosted;
 using SandboxTest.Scenario;
 
@@ -18,6 +19,7 @@ namespace SandboxTest.Engine.MainTestEngine
         private readonly Type _scenarioSuiteType;
         private HostedInstanceData? _hostedInstanceData;
         private IChildTestEngine? _childTestEngine;
+        private IAttachedMethodsExecutor _attachedMethodsExecutor;
         private string? _mainAssemblyPath;
         private string? _assemblySourceName;
         private string? _mainPath;
@@ -40,6 +42,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 TypeNameHandling = TypeNameHandling.All,
                 SerializationBinder = new ScenarioAssemblyLoadContextSerializationBinder(_scenariosAssemblyLoadContext)
             };
+            _attachedMethodsExecutor = new AttachedMethodsExecutor();
         }
 
         /// <summary>
@@ -67,7 +70,11 @@ namespace SandboxTest.Engine.MainTestEngine
 
                 _assignedHostedInstance = (IHostedInstance)_assignedInstance;
                 var scenarioSuiteDataClone = CloneBySerializingToJson(scenarioSuiteData);
-                await _assignedHostedInstance.StartAsync(new HostedInstanceContext(_mainTestEngineRunContext, scenarioSuiteDataClone), _hostedInstanceData, token);
+                var allInstancesToRun = new List<object>();
+                allInstancesToRun.Add(_assignedHostedInstance.MessageChannel!);
+                allInstancesToRun.Add(_assignedHostedInstance);
+                await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.HostedInstanceToHostedInstance, AttachedMethodType.MessageChannelToHostedInstance },
+                    _assignedHostedInstance.StartAsync, new object[] { _assignedHostedInstance, new HostedInstanceContext(_mainTestEngineRunContext, scenarioSuiteDataClone), _hostedInstanceData, token });
                 await _assignedHostedInstance.MessageChannel!.StartAsync(_assignedInstance.Id, _runId, false);
                 return scenarioSuiteDataClone;
             }

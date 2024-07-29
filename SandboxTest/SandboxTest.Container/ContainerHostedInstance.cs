@@ -190,9 +190,13 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
             _messageChannel = messageChannel;
         }
 
-        public IHostedInstance OnConfigureBuild()
+        /// <summary>
+        /// Configures the container image building process.
+        /// </summary>
+        /// <param name="configureBuildFunc"></param>
+        public void OnConfigureBuild(Func<ContainerHostedInstance, IHostedInstanceContext, Task>? configureBuildFunc)
         {
-            return this;
+            _configureBuildFunc = configureBuildFunc;
         }
 
         protected virtual async Task GenerateDockerFile()

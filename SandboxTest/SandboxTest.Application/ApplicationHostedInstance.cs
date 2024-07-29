@@ -8,7 +8,7 @@ namespace SandboxTest.Application
     /// </summary>
     public class ApplicationHostedInstance : ApplicationInstance, IHostedInstance
     {
-        private readonly List<string> _addresses = new List<string> { "127.0.0.1" };
+        private List<string>? _addresses;
 
         private Process? _applicationInstanceProcess;
 
@@ -45,7 +45,7 @@ namespace SandboxTest.Application
         /// <summary>
         /// For application hosted instances, they run on the same machine so their address always resolves to 127.0.0.1.
         /// </summary>
-        public IReadOnlyList<string> Addresses { get => _addresses; }
+        public IReadOnlyList<string> Addresses { get => _addresses ?? throw new InvalidOperationException("Appliction hosted instance not started"); }
 
         /// <summary>
         /// Starts the host for the application instance from the command line.
@@ -57,8 +57,8 @@ namespace SandboxTest.Application
         public virtual async Task StartAsync(IHostedInstanceContext instanceContext, HostedInstanceData instanceData, CancellationToken token)
         {
             var applicationRunnerPath = $"{instanceData.MainPath}\\SandboxTest.Application.exe";
-
             _applicationInstanceProcess = await instanceContext.LaunchProcessAsync(applicationRunnerPath, instanceContext.IsBeingDebugged, instanceData.MainPath, string.Join(' ', instanceData.ToCommandLineArguments()));
+            _addresses = new List<string> { "127.0.0.1" };
         }
 
         /// <summary>
@@ -75,6 +75,19 @@ namespace SandboxTest.Application
                 throw new InvalidOperationException("Application instance process not started");
             }
             _applicationInstanceProcess.Kill(true);
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public Task StartedAsync()
+        {
+            _addresses = new List<string> { "127.0.0.1" };
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public Task StoppingAsync()
+        {
             return Task.CompletedTask;
         }
     }

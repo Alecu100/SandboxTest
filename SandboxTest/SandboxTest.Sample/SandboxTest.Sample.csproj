@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SandboxTest.Application\SandboxTest.Application.csproj" />
     <ProjectReference Include="..\SandboxTest.AspNetCore\SandboxTest.AspNetCore.csproj" />
+    <ProjectReference Include="..\SandboxTest.Container\SandboxTest.Container.csproj" />
     <ProjectReference Include="..\SandboxTest.Net.Http\SandboxTest.Net.Http.csproj" />
     <ProjectReference Include="..\SandboxTest.Node\SandboxTest.Node.csproj" />
     <ProjectReference Include="..\SandboxTest.Playwright\SandboxTest.Playwright.csproj" />
@@ -19,6 +20,7 @@
     <ProjectReference Include="..\SandboxTest.Sample.Application3\SandboxTest.Sample.Application3.csproj" />
     <ProjectReference Include="..\SandboxTest.Sample.Application4.Server\SandboxTest.Sample.Application4.Server.csproj" />
     <ProjectReference Include="..\SandboxTest.Sample.Application5\SandboxTest.Sample.Application5.Server\SandboxTest.Sample.Application5.Server.csproj" />
+    <ProjectReference Include="..\SandboxTest.Sample.Application6\SandboxTest.Sample.Application6.csproj" />
     <ProjectReference Include="..\SandboxTest.TestAdapter\SandboxTest.TestAdapter.csproj" />
     <ProjectReference Include="..\SandboxTest.WireMock\SandboxTest.WireMock.csproj" />
     <ProjectReference Include="..\SandboxTest\SandboxTest.csproj" />

@@ -4,13 +4,11 @@ using ICSharpCode.SharpZipLib.Tar;
 using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Instance.Hosted;
-using System.IO;
-using System.Net;
 using System.Text;
 
 namespace SandboxTest.Container
 {
-    public class ContainterHostedInstance : InstanceBase, IHostedInstance
+    public class ContainerHostedInstance : InstanceBase, IHostedInstance
     {
         protected const string DockerFileFormat = @"
 FROM {0} AS base
@@ -30,8 +28,8 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
         protected string _baseImage;
         protected HashSet<KeyValuePair<string, string>> _exposedPorts = new HashSet<KeyValuePair<string, string>>();
         protected HashSet<KeyValuePair<string, string>> _environmentVariables = new HashSet<KeyValuePair<string, string>>();
-        protected Func<ContainterHostedInstance, IHostedInstanceContext, Task>? _configureBuildFunc;
-        protected Func<IReadOnlyList<IPAddress>, ICollection<IPAddress>>? _ipAddressesFilterFunc;
+        protected Func<ContainerHostedInstance, IHostedInstanceContext, Task>? _configureBuildFunc;
+        protected Func<IReadOnlyList<string>, ICollection<string>>? _ipAddressesFilterFunc;
         protected IDictionary<string, AuthConfig> _authConfigs = new Dictionary<string, AuthConfig>();
         protected Credentials? _credentials;
         protected string? _registryAddress;
@@ -40,7 +38,17 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
         protected string? _imageName;
         protected string? _containerId;
 
-        public ContainterHostedInstance(string id) : base(id)
+        /// <summary>
+        /// Creates an empty container hosted instance.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public static ContainerHostedInstance CreateEmptyInstance(string id)
+        {
+            return new ContainerHostedInstance(id);
+        }
+
+        public ContainerHostedInstance(string id) : base(id)
         {
 #if NET6_0
             _baseImage = "mcr.microsoft.com/dotnet/aspnet:6.0";
@@ -79,7 +87,7 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
         /// <summary>
         /// Gets or sets the ip address filter to filter out unwanted ip addresses from using them.
         /// </summary>
-        public Func<IReadOnlyList<IPAddress>, ICollection<IPAddress>>? IpAddressesFilterFunc { get => _ipAddressesFilterFunc; }
+        public Func<IReadOnlyList<string>, IEnumerable<string>>? IpAddressesFilterFunc { get => _ipAddressesFilterFunc; }
 
         /// <summary>
         /// Gets or sets the credentials used to connect to the provided docker registry.
@@ -125,12 +133,11 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
                 throw new InvalidOperationException("Configure build not ran");
             }
 
-            var imageContents = await GenerateImageContents();
+            using var imageContents = await GenerateImageContents();
             _imageName = $"sandbox-test.{_id.ToLowerInvariant()}.{_dockerImageSuffix}";
             await _dockerClient.Images.BuildImageFromDockerfileAsync(
                 new ImageBuildParameters { AuthConfigs = _authConfigs, Dockerfile = _dockerFileFullName, Tags = new string[] { _imageName } }, 
                 imageContents, _authConfigs.Values, null,  new ContainerBuildProgress(json => Task.CompletedTask));
-            await imageContents.DisposeAsync();
         }
 
         public virtual async Task StartAsync(IHostedInstanceContext instanceContext, HostedInstanceData instanceData, CancellationToken token)
@@ -142,6 +149,21 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
             var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters { Image =  _imageName, Name = Id });
             _containerId = createContainerResponse.ID;
             await _dockerClient.Containers.StartContainerAsync(_containerId, new ContainerStartParameters());
+            var containerInspectResponse = await _dockerClient.Containers.InspectContainerAsync(_containerId);
+            _addresses = new List<string>();
+            _addresses.Add(containerInspectResponse.NetworkSettings.IPAddress);
+            if (containerInspectResponse.NetworkSettings.SecondaryIPAddresses != null && containerInspectResponse.NetworkSettings.SecondaryIPAddresses.Any())
+            {
+                _addresses.AddRange(containerInspectResponse.NetworkSettings.SecondaryIPAddresses.Select(address => address.Addr));
+            }
+            if (containerInspectResponse.NetworkSettings.SecondaryIPv6Addresses != null && containerInspectResponse.NetworkSettings.SecondaryIPv6Addresses.Any())
+            {
+                _addresses.AddRange(containerInspectResponse.NetworkSettings.SecondaryIPv6Addresses.Select(address => address.Addr));
+            }
+            if (_ipAddressesFilterFunc != null)
+            {
+                _addresses = _ipAddressesFilterFunc(_addresses).ToList();
+            }
         }
 
         /// <summary>
@@ -160,6 +182,7 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
             await _dockerClient.Containers.StopContainerAsync(_containerId, new ContainerStopParameters { WaitBeforeKillSeconds = 5 });
             await _dockerClient.Containers.RemoveContainerAsync(_containerId, new ContainerRemoveParameters { Force = true, RemoveLinks = true, RemoveVolumes = true });
             await _dockerClient.Images.DeleteImageAsync(_imageName, new ImageDeleteParameters { Force = true });
+            _dockerClient.Dispose();
         }
 
         public void UseMessageChannel(IHostedInstanceMessageChannel messageChannel)
@@ -201,24 +224,32 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
                 fileTarEntry.Size = fileStream.Length;
                 await tarArchiveOutputStream.PutNextEntryAsync(fileTarEntry, default);
 
-                //Now write the bytes of data
-                byte[] localBuffer = new byte[32 * 1024];
+                var fileDataBuffer = new byte[32 * 1024];
                 while (true)
                 {
-                    var numRead = await fileStream.ReadAsync(localBuffer, 0, localBuffer.Length);
+                    var numRead = await fileStream.ReadAsync(fileDataBuffer, 0, fileDataBuffer.Length);
                     if (numRead <= 0)
                         break;
 
-                    await tarArchiveOutputStream.WriteAsync(localBuffer, 0, numRead);
+                    await tarArchiveOutputStream.WriteAsync(fileDataBuffer, 0, numRead);
                 }
 
                 await tarArchiveOutputStream.CloseEntryAsync(default);
             }
             tarArchiveOutputStream.Close();
-
-            //Reset the stream and return it, so it can be used by the caller
             tarStream.Position = 0;
+
             return tarStream;
+        }
+
+        public Task StartedAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task StoppingAsync()
+        {
+            throw new NotImplementedException();
         }
     }
 }

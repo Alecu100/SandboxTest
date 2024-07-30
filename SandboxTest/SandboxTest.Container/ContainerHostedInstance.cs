@@ -34,7 +34,7 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
         protected Credentials? _credentials;
         protected string? _registryAddress;
         protected int _dockerImageSuffix;
-        protected string? _dockerFileFullName;
+        protected string? _dockerFileName;
         protected string? _imageName;
         protected string? _containerId;
 
@@ -128,7 +128,7 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
         [AttachedMethod(AttachedMethodType.HostedInstanceToHostedInstance, nameof(StartAsync), -200)]
         public virtual async Task BuildAsync(IHostedInstanceContext instanceContext, HostedInstanceData instanceData, CancellationToken token)
         {
-            if (_dockerClient == null || _dockerFileFullName == null)
+            if (_dockerClient == null || _dockerFileName == null)
             {
                 throw new InvalidOperationException("Configure build not ran");
             }
@@ -136,7 +136,7 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
             using var imageContents = await GenerateImageContents();
             _imageName = $"sandbox-test.{_id.ToLowerInvariant()}.{_dockerImageSuffix}";
             await _dockerClient.Images.BuildImageFromDockerfileAsync(
-                new ImageBuildParameters { AuthConfigs = _authConfigs, Dockerfile = _dockerFileFullName, Tags = new string[] { _imageName } }, 
+                new ImageBuildParameters { AuthConfigs = _authConfigs, Dockerfile = _dockerFileName, Tags = new string[] { _imageName } }, 
                 imageContents, _authConfigs.Values, null,  new ContainerBuildProgress(json => Task.CompletedTask));
         }
 
@@ -201,12 +201,12 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
 
         protected virtual async Task GenerateDockerFile()
         {
-            _dockerImageSuffix = Environment.CurrentDirectory.GetHashCode();
-            _dockerFileFullName = $"{Environment.CurrentDirectory.Trim('\\', '/')}\\SandboxTest.{_id}.{_dockerImageSuffix}.DockerFile";
+            _dockerImageSuffix = Environment.CurrentDirectory.GetHashCode() <= 0 ? Environment.CurrentDirectory.GetHashCode() * -1 : Environment.CurrentDirectory.GetHashCode();
+            _dockerFileName = $"SandboxTest.{_id}.{_dockerImageSuffix}.DockerFile";
             var dockerFileEnvironmentVariablesSection = string.Join(Environment.NewLine, _environmentVariables.Select(environmentVariable => $"ENV {environmentVariable.Key}={environmentVariable.Value}"));
             var dockerFileExposedPortsSection = string.Join(Environment.NewLine, _exposedPorts.Select(exposedPort => $"EXPOSE {exposedPort.Key}:{exposedPort.Value}"));
             var dockerFileContent = string.Format(DockerFileFormat, _baseImage, dockerFileEnvironmentVariablesSection, dockerFileExposedPortsSection);
-            await File.WriteAllTextAsync(_dockerFileFullName, dockerFileContent);
+            await File.WriteAllTextAsync(_dockerFileName, dockerFileContent);
         }
 
         protected virtual async Task<Stream> GenerateImageContents()

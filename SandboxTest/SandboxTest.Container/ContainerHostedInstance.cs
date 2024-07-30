@@ -188,7 +188,7 @@ ENTRYPOINT [""dotnet"", ""{3}.dll""]
                 throw new InvalidOperationException("Container not started");
             }
             await _dockerClient.Containers.StopContainerAsync(_containerId, new ContainerStopParameters { WaitBeforeKillSeconds = 5 });
-            await _dockerClient.Containers.RemoveContainerAsync(_containerId, new ContainerRemoveParameters { Force = true, RemoveLinks = true, RemoveVolumes = true });
+            await _dockerClient.Containers.RemoveContainerAsync(_containerId, new ContainerRemoveParameters { Force = true, RemoveVolumes = true });
             await _dockerClient.Images.DeleteImageAsync(_imageName, new ImageDeleteParameters { Force = true });
             _dockerClient.Dispose();
         }

@@ -12,14 +12,15 @@ namespace SandboxTest.Container
     {
         protected const string DockerFileFormat = @"
 FROM {0} AS base
-USER app
+USER root
 
 {1}
 
 {2}
 
+WORKDIR /app
 COPY . .
-ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
+ENTRYPOINT [""dotnet"", ""{3}.dll""]
 ";
 
         protected DockerClient? _dockerClient;
@@ -33,7 +34,7 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
         protected IDictionary<string, AuthConfig> _authConfigs = new Dictionary<string, AuthConfig>();
         protected Credentials? _credentials;
         protected string? _registryAddress;
-        protected int _dockerImageSuffix;
+        protected string? _dockerImageSuffix;
         protected string? _dockerFileName;
         protected string? _imageName;
         protected string? _containerId;
@@ -121,7 +122,7 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
             _dockerClient = new DockerClientConfiguration()
                 .CreateClient();
 
-            await GenerateDockerFile();
+            await GenerateDockerFile(instanceData);
         }
 
 
@@ -136,7 +137,7 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
             using var imageContents = await GenerateImageContents();
             _imageName = $"sandbox-test.{_id.ToLowerInvariant()}.{_dockerImageSuffix}";
             await _dockerClient.Images.BuildImageFromDockerfileAsync(
-                new ImageBuildParameters { AuthConfigs = _authConfigs, Dockerfile = _dockerFileName, Tags = new string[] { _imageName } }, 
+                new ImageBuildParameters { AuthConfigs = _authConfigs, Dockerfile = _dockerFileName, Tags = new string[] { _imageName! } }, 
                 imageContents, _authConfigs.Values, null,  new ContainerBuildProgress(json => Task.CompletedTask));
         }
 
@@ -146,7 +147,14 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
             {
                 throw new InvalidOperationException("Image not built");
             }
-            var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters { Image =  _imageName, Name = Id });
+            var containerName = $"sandboxtest.container.{Id.ToLower()}.{_dockerImageSuffix}";
+            var existingContainers = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true });
+            var existingContainer = existingContainers.FirstOrDefault(container => container.Names.Any(name => name.Trim('/', '\\', ' ').Equals(containerName, StringComparison.InvariantCultureIgnoreCase)));
+            if (existingContainer != null)
+            {
+                await _dockerClient.Containers.RemoveContainerAsync(existingContainer.ID, new ContainerRemoveParameters { Force = true, RemoveVolumes = true });
+            }
+            var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters { Image =  _imageName, Name = containerName });
             _containerId = createContainerResponse.ID;
             await _dockerClient.Containers.StartContainerAsync(_containerId, new ContainerStartParameters());
             var containerInspectResponse = await _dockerClient.Containers.InspectContainerAsync(_containerId);
@@ -199,13 +207,27 @@ ENTRYPOINT [""dotnet"", ""SandboxTest.Container.exe""]
             _configureBuildFunc = configureBuildFunc;
         }
 
-        protected virtual async Task GenerateDockerFile()
+        protected virtual async Task GenerateDockerFile(HostedInstanceData instanceData)
         {
-            _dockerImageSuffix = Environment.CurrentDirectory.GetHashCode() <= 0 ? Environment.CurrentDirectory.GetHashCode() * -1 : Environment.CurrentDirectory.GetHashCode();
+            var hashcodeSum = (ushort)1;
+            var hashcodeXor = ushort.MaxValue;
+            unchecked
+            {
+                foreach (var ch in Environment.CurrentDirectory)
+                {
+                    hashcodeSum += ch;
+                    hashcodeXor ^= ch;
+                }
+
+                _dockerImageSuffix = ((uint)hashcodeSum + hashcodeXor << 16).ToString();
+            }
+
             _dockerFileName = $"SandboxTest.{_id}.{_dockerImageSuffix}.DockerFile";
-            var dockerFileEnvironmentVariablesSection = string.Join(Environment.NewLine, _environmentVariables.Select(environmentVariable => $"ENV {environmentVariable.Key}={environmentVariable.Value}"));
+            var dockerFileEnvironmentVariablesSection = string.Join(Environment.NewLine, _environmentVariables.Select(environmentVariable => $"ENV {environmentVariable.Key}={environmentVariable.Value}")
+                .Union(instanceData.ToEnvironmentVariables()).Select(envVar => $"ENV {envVar}"));
             var dockerFileExposedPortsSection = string.Join(Environment.NewLine, _exposedPorts.Select(exposedPort => $"EXPOSE {exposedPort.Key}:{exposedPort.Value}"));
-            var dockerFileContent = string.Format(DockerFileFormat, _baseImage, dockerFileEnvironmentVariablesSection, dockerFileExposedPortsSection);
+            var dockerFileDotNetArgument = typeof(Program).Assembly.GetName().Name;
+            var dockerFileContent = string.Format(DockerFileFormat, _baseImage, dockerFileEnvironmentVariablesSection, dockerFileExposedPortsSection, dockerFileDotNetArgument);
             await File.WriteAllTextAsync(_dockerFileName, dockerFileContent);
         }
 

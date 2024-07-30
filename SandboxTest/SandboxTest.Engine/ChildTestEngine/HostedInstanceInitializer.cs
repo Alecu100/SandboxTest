@@ -32,12 +32,12 @@ namespace SandboxTest.Engine.ChildTestEngine
                 _applicationInstanceId = hostedInstanceData.ApplicationInstanceId;
                 _assemblySourceName = hostedInstanceData.AssemblySourceName;
                 _scenarioSuiteTypeFullName = hostedInstanceData.ScenarioSuiteTypeFullName;
-                _childTestEngine = new ChildTestEngine(new ScenariosAssemblyLoadContext($"{_mainPath}\\{_assemblySourceName}"));
+                _childTestEngine = new ChildTestEngine(new ScenariosAssemblyLoadContext($"{_mainPath}{Path.DirectorySeparatorChar}{_assemblySourceName}"));
                 if (_runId == default || _mainPath == default || _applicationInstanceId == default || _assemblySourceName == default || _scenarioSuiteTypeFullName == default)
                 {
                     throw new ArgumentException("All required arguments for application instance runner have not been provided");
                 }
-                var result = await _childTestEngine.LoadInstanceAsync($"{_mainPath}\\{_assemblySourceName}", _scenarioSuiteTypeFullName!, _applicationInstanceId);
+                var result = await _childTestEngine.LoadInstanceAsync($"{_mainPath}{Path.DirectorySeparatorChar}{_assemblySourceName}", _scenarioSuiteTypeFullName!, _applicationInstanceId);
                 if (result.IsSuccesful == false)
                 {
                     throw new InvalidOperationException($"Failed to load instance from scenario suite {_scenarioSuiteTypeFullName} with id {_applicationInstanceId}");

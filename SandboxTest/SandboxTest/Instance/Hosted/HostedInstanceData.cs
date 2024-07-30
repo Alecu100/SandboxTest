@@ -110,7 +110,7 @@ namespace SandboxTest.Instance.Hosted
                 RunId = GetEnvironmentVariableValue<Guid>(env, RunIdEnv),
                 ApplicationInstanceId = GetEnvironmentVariableValue<string>(env, ApplicationInstanceIdEnv)!,
                 AssemblySourceName = GetEnvironmentVariableValue<string>(env, AssemblySourceNameEnv)!,
-                MainPath = GetEnvironmentVariableValue<string>(env, MainPathArg)!,
+                MainPath = GetEnvironmentVariableValue<string>(env, MainPathEnv)!,
                 ScenarioSuiteTypeFullName = GetEnvironmentVariableValue<string>(env, ScenarioSuiteTypeFullNameEnv)!,
                 HostedInstanceInitializerAssemblyFullName = GetEnvironmentVariableValue<string>(env, HostedInstanceInitializerAssemblyFullNameEnv)!,
                 HostedInstanceInitializerTypeFullName = GetEnvironmentVariableValue<string>(env, HostedInstanceInitializerTypeFullNameEnv)!

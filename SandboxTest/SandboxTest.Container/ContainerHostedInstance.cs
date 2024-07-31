@@ -30,7 +30,6 @@ ENTRYPOINT [""dotnet"", ""{3}.dll""]
         protected HashSet<KeyValuePair<string, string>> _exposedPorts = new HashSet<KeyValuePair<string, string>>();
         protected HashSet<KeyValuePair<string, string>> _environmentVariables = new HashSet<KeyValuePair<string, string>>();
         protected Func<ContainerHostedInstance, IHostedInstanceContext, Task>? _configureBuildFunc;
-        protected Func<IReadOnlyList<string>, ICollection<string>>? _ipAddressesFilterFunc;
         protected IDictionary<string, AuthConfig> _authConfigs = new Dictionary<string, AuthConfig>();
         protected Credentials? _credentials;
         protected string? _registryAddress;
@@ -84,11 +83,6 @@ ENTRYPOINT [""dotnet"", ""{3}.dll""]
         /// Gets or sets the base image used to build the container.
         /// </summary>
         public string BaseImage { get => _baseImage; set => _baseImage = value; }
-
-        /// <summary>
-        /// Gets or sets the ip address filter to filter out unwanted ip addresses from using them.
-        /// </summary>
-        public Func<IReadOnlyList<string>, IEnumerable<string>>? IpAddressesFilterFunc { get => _ipAddressesFilterFunc; }
 
         /// <summary>
         /// Gets or sets the credentials used to connect to the provided docker registry.
@@ -167,10 +161,6 @@ ENTRYPOINT [""dotnet"", ""{3}.dll""]
             if (containerInspectResponse.NetworkSettings.SecondaryIPv6Addresses != null && containerInspectResponse.NetworkSettings.SecondaryIPv6Addresses.Any())
             {
                 _addresses.AddRange(containerInspectResponse.NetworkSettings.SecondaryIPv6Addresses.Select(address => address.Addr));
-            }
-            if (_ipAddressesFilterFunc != null)
-            {
-                _addresses = _ipAddressesFilterFunc(_addresses).ToList();
             }
         }
 
@@ -267,16 +257,6 @@ ENTRYPOINT [""dotnet"", ""{3}.dll""]
             tarStream.Position = 0;
 
             return tarStream;
-        }
-
-        public Task StartedAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task StoppingAsync()
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using SandboxTest.Sample.Application6;
 using Microsoft.Extensions.DependencyInjection;
 using static Microsoft.Playwright.Assertions;
+using System.Diagnostics;
 
 namespace SandboxTest.Sample
 {
@@ -76,6 +77,5 @@ namespace SandboxTest.Sample
                 await Task.Delay(3000);
             });
         }
-
     }
 }

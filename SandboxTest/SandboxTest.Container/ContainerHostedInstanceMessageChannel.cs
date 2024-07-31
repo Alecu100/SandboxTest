@@ -1,6 +1,11 @@
-﻿using SandboxTest.Instance.Hosted;
+﻿using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Instance.Hosted;
+using System.IO;
+using System.IO.Pipes;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Text;
 
 namespace SandboxTest.Container
 {
@@ -9,9 +14,26 @@ namespace SandboxTest.Container
     /// </summary>
     public class ContainerHostedInstanceMessageChannel : IHostedInstanceMessageChannel
     {
+        /// <summary>
+        /// One guid is enough to separate messages.
+        /// </summary>
+        private const string MessageSeparator = "e1ac64f9-6ddd-4437-a787-3a09c144d44e";
+
+        private byte[] _socketBuffer = new byte[10000];
+
         private short _port;
         private Socket? _socket;
-        private string _host;
+        private List<string>? _containerAddresses;
+
+        /// <summary>
+        /// The actual bytes of the Guid to separate messages and notify the end of a message.
+        /// </summary>
+        private static byte[] MessageSeparatorBytes;
+
+        static ContainerHostedInstanceMessageChannel()
+        {
+            MessageSeparatorBytes = Guid.Parse(MessageSeparator).ToByteArray();
+        }
 
         /// <summary>
         /// Creates a new instance of the <see cref="ContainerHostedInstanceMessageChannel"/> with the 
@@ -23,37 +45,135 @@ namespace SandboxTest.Container
             _port = port;
         }
 
-        public Task<string> ReceiveMessageAsync()
+        /// <summary>
+        /// Receives messages from the socket blocking the caller until a new message is received.
+        /// </summary>
+        /// <returns>The messages received from the socket</returns>
+        public async Task<string> ReceiveMessageAsync()
         {
-            throw new NotImplementedException();
+            int bytesRead;
+            var offset = 0;
+            do
+            {
+                bytesRead = await _socket!.ReceiveAsync(_socketBuffer.AsMemory(offset), SocketFlags.Partial);
+                offset += bytesRead;
+                if (_socketBuffer.Length <= offset + 1)
+                {
+                    var newSocketBuffer = new byte[_socketBuffer.Length + 5000];
+                    _socketBuffer.CopyTo(newSocketBuffer, 0);
+                    _socketBuffer = newSocketBuffer;
+                }
+                if (offset > MessageSeparatorBytes.Length)
+                {
+                    var index = 0;
+                    while (index < MessageSeparatorBytes.Length && MessageSeparatorBytes[index] == _socketBuffer[offset - MessageSeparatorBytes.Length + index])
+                    {
+                        index++;
+                    }
+                    if (index == MessageSeparatorBytes.Length)
+                    {
+                        break;
+                    }
+                }
+            }
+            while (bytesRead > 0 || offset == 0);
+            return Encoding.UTF8.GetString(_socketBuffer, 0, offset - MessageSeparatorBytes.Length);
         }
 
-        public Task SendMessageAsync(string message)
+        /// <summary>
+        /// Sends a message to the socket, blocking the caller until the message is sent.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public async Task SendMessageAsync(string message)
         {
-            throw new NotImplementedException();
+            if (_socket == null)
+            {
+                throw new InvalidOperationException("Container message channel not started");
+            }
+            var totalSent = 0;
+            var sent = 0;
+            var messageBytes = Encoding.UTF8.GetBytes(message).Union(MessageSeparatorBytes).ToArray();
+            do
+            {
+                await _socket.SendAsync(messageBytes.AsMemory(totalSent), SocketFlags.Partial);
+                totalSent += sent;
+            }
+            while (totalSent < messageBytes.Length);
         }
 
-        public async Task StartAsync(string applicationId, Guid runId, bool isInstance)
+        /// <summary>
+        /// Gets the ip addresses in the test host after the container hosted instance has started and has the ip addresses assigned.
+        /// </summary>
+        /// <param name="containerHostedInstance">The container from which to take the ip addresses</param>
+        /// <param name="instanceContext"></param>
+        /// <param name="instanceData"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        [AttachedMethod(AttachedMethodType.MessageChannelToHostedInstance, nameof(ContainerHostedInstance.StartAsync), 100)]
+        public Task StartAsync(ContainerHostedInstance containerHostedInstance, IHostedInstanceContext instanceContext, HostedInstanceData instanceData, CancellationToken token)
+        {
+            _containerAddresses = new List<string>(containerHostedInstance.Addresses);
+            return Task.CompletedTask;
+        }
+
+        public async Task OpenAsync(string applicationId, Guid runId, bool isInstance)
         {
             if (isInstance)
             {
-                _socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-                await _socket.ConnectAsync(_host, _port);
+                var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+                var cancellationTokenSource = new CancellationTokenSource();
+                var acceptTasks = new List<Task<Socket>>();
+                var sockets = new List<Socket>();
+
+                foreach (var ipAddress in networkInterfaces.Select(address => address.GetIPProperties().UnicastAddresses.Select(address => address.Address)).SelectMany(x => x))
+                {
+                    var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                    socket.Bind(new IPEndPoint(ipAddress, _port));
+                    socket.Listen(1);
+                    acceptTasks.Add(socket.AcceptAsync(cancellationTokenSource.Token).AsTask());
+                    sockets.Add(socket);
+                }
+
+                _socket = await await Task.WhenAny(acceptTasks);
+                cancellationTokenSource.Cancel();
+                foreach (var socket in sockets) 
+                {
+                    if (socket != _socket)
+                    {
+                        socket.Dispose();
+                    }
+                }
             }
             else
             {
-                var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+                var connectTasks = new List<Task<Socket>>();
+                var sockets = new List<Socket>();
+                var cancellationTokenSource = new CancellationTokenSource();
 
-                foreach (var networkInterface in networkInterfaces) 
+                foreach (var ipAddress in _containerAddresses!)
                 {
                     var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                    var connectFunc = async () =>
+                    {
+                        await socket.ConnectAsync(new IPEndPoint(IPAddress.Parse(ipAddress), _port));
+                        return socket;
+                    };
+                    connectTasks.Add(connectFunc());
+                    sockets.Add(socket);
+                }
+
+                _socket = await await Task.WhenAny(connectTasks);
+                cancellationTokenSource.Cancel();
+                foreach (var socket in sockets) 
+                {
+                    if (socket != _socket)
+                    {
+                        socket.Dispose();
+                    }
                 }
             }
-        }
-
-        public Task StopAsync()
-        {
-            throw new NotImplementedException();
         }
     }
 }

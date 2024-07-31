@@ -72,7 +72,7 @@ namespace SandboxTest.Engine.ChildTestEngine
             try
             {
                 var messageSink = _hostedInstance.MessageChannel;
-                await messageSink.StartAsync(_applicationInstanceId, _runId, true);
+                await messageSink.OpenAsync(_applicationInstanceId, _runId, true);
                 while (!_runFinishedTaskCompletionSource.Task.IsCompleted)
                 {
                     var messageJson = await messageSink.ReceiveMessageAsync();

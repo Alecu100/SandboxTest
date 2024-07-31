@@ -125,7 +125,7 @@ namespace SandboxTest.Application
         /// <param name="runId"></param>
         /// <param name="isApplicationInstance"></param>
         /// <returns></returns>
-        public Task StartAsync(string applicationId, Guid runId, bool isApplicationInstance)
+        public Task OpenAsync(string applicationId, Guid runId, bool isApplicationInstance)
         {
             if (!isApplicationInstance)
             {
@@ -146,25 +146,6 @@ namespace SandboxTest.Application
                 });
             }
             return Task.CompletedTask;
-        }
-
-
-        /// <summary>
-        /// Closes opened server or client pipe streams.
-        /// </summary>
-        /// <returns></returns>
-        public async Task StopAsync()
-        {
-            if (_instanceClientPipeStream != null)
-            {
-                var clientPipeStream = await _instanceClientPipeStream.Value;
-                clientPipeStream.Close();
-            }
-            if (_instanceServerPipeStream != null)
-            {
-                var serverClientPipeStream = await _instanceServerPipeStream.Value;
-                serverClientPipeStream.Close();
-            }
         }
     }
 }

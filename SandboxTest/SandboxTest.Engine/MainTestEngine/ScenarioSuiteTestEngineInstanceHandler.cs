@@ -75,7 +75,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 allInstancesToRun.Add(_assignedHostedInstance);
                 await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.HostedInstanceToHostedInstance, AttachedMethodType.MessageChannelToHostedInstance },
                     _assignedHostedInstance.StartAsync, new object[] { _assignedHostedInstance, new HostedInstanceContext(_mainTestEngineRunContext, scenarioSuiteDataClone), _hostedInstanceData, token });
-                await _assignedHostedInstance.MessageChannel!.StartAsync(_assignedInstance.Id, _runId, false);
+                await _assignedHostedInstance.MessageChannel!.OpenAsync(_assignedInstance.Id, _runId, false);
                 return scenarioSuiteDataClone;
             }
             else

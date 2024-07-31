@@ -77,18 +77,5 @@ namespace SandboxTest.Application
             _applicationInstanceProcess.Kill(true);
             return Task.CompletedTask;
         }
-
-        /// <inheritdoc/>
-        public Task StartedAsync()
-        {
-            _addresses = new List<string> { "127.0.0.1" };
-            return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
-        public Task StoppingAsync()
-        {
-            return Task.CompletedTask;
-        }
     }
 }

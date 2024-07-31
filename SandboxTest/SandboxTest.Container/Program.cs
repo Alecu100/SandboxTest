@@ -7,16 +7,9 @@ namespace SandboxTest.Container
         static async Task<int> Main()
         {
             var hostedInstanceData = HostedInstanceData.ParseFromEnvironmentVariables(Environment.GetEnvironmentVariables());
-            Console.WriteLine(string.Join(';', hostedInstanceData.ToCommandLineArguments()));
-            Console.WriteLine($"Environment.CurrentDirectory {Environment.CurrentDirectory} is null {Environment.CurrentDirectory}");
-            Console.WriteLine($"Path.DirectorySeparatorChar {Path.DirectorySeparatorChar} is null {Path.DirectorySeparatorChar}");
-            Console.WriteLine($"hostedInstanceData.HostedInstanceInitializerTypeFullName {hostedInstanceData.HostedInstanceInitializerTypeFullName} is null {hostedInstanceData.HostedInstanceInitializerTypeFullName}");
-            Console.WriteLine($"hostedInstanceData.MainPath {hostedInstanceData.MainPath} is null {hostedInstanceData.MainPath == null}");
             hostedInstanceData.HostedInstanceInitializerAssemblyFullName = 
-                $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}{hostedInstanceData.HostedInstanceInitializerAssemblyFullName.Substring(hostedInstanceData.MainPath.Length).Trim('\\', '/')}";
+                $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}{hostedInstanceData.HostedInstanceInitializerAssemblyFullName.Substring(hostedInstanceData.MainPath!.Length).Trim('\\', '/')}";
             hostedInstanceData.MainPath = $"{Environment.CurrentDirectory}";
-            Console.WriteLine("Host data updated");
-            Console.WriteLine(string.Join(';', hostedInstanceData.ToCommandLineArguments()));
             await Task.Delay(60000);
             var assemblyLoadContext = new ContainerHostedInstanceLoadContext(Path.GetFullPath(hostedInstanceData.HostedInstanceInitializerAssemblyFullName));
             var hostedInstanceInitializerAssembly = assemblyLoadContext.LoadFromAssemblyPath(hostedInstanceData.HostedInstanceInitializerAssemblyFullName);

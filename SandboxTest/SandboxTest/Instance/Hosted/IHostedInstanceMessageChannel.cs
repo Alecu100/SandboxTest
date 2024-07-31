@@ -8,18 +8,12 @@
     public interface IHostedInstanceMessageChannel
     {
         /// <summary>
-        /// Starts the message channel before sending messages
+        /// Opens the message channel to enable message sending and receiving.
         /// </summary>
         /// <param name="runId">A unique identifier that represents the current test run.</param>
         /// <param name="isInstance">Denotes on which side of the communication the channel is, on the instance side or on the test side.</param>
         /// <returns></returns>
-        Task StartAsync(string applicationId, Guid runId, bool isInstance);
-
-        /// <summary>
-        /// Stops the application message sink
-        /// </summary>
-        /// <returns></returns>
-        Task StopAsync();
+        Task OpenAsync(string applicationId, Guid runId, bool isInstance);
 
         /// <summary>
         /// Sends a message to the application instance.

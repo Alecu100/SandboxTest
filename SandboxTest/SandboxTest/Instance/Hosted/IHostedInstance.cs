@@ -27,18 +27,6 @@
         Task StartAsync(IHostedInstanceContext instanceContext, HostedInstanceData instanceData, CancellationToken token);
 
         /// <summary>
-        /// Called inside the hosted instance once it has started.
-        /// </summary>
-        /// <returns></returns>
-        Task StartedAsync();
-
-        /// <summary>
-        /// Called inside the hosted instance before it is stopped.
-        /// </summary>
-        /// <returns></returns>
-        Task StoppingAsync();
-
-        /// <summary>
         /// Stops the current host for the application instance.
         /// </summary>
         /// <param name="instanceContext"></param>

@@ -16,18 +16,16 @@ USER root
 
 {1}
 
-{2}
-
 WORKDIR /app
 COPY . .
-ENTRYPOINT [""dotnet"", ""{3}.dll""]
+ENTRYPOINT [""dotnet"", ""{2}.dll""]
 ";
 
         protected DockerClient? _dockerClient;
         protected IHostedInstanceMessageChannel? _messageChannel;
         protected List<string>? _addresses;
         protected string _baseImage;
-        protected HashSet<KeyValuePair<string, string>> _exposedPorts = new HashSet<KeyValuePair<string, string>>();
+        protected HashSet<KeyValuePair<short, short>> _exposedPorts = new HashSet<KeyValuePair<short, short>>();
         protected HashSet<KeyValuePair<string, string>> _environmentVariables = new HashSet<KeyValuePair<string, string>>();
         protected Func<ContainerHostedInstance, IHostedInstanceContext, Task>? _configureBuildFunc;
         protected IDictionary<string, AuthConfig> _authConfigs = new Dictionary<string, AuthConfig>();
@@ -72,7 +70,7 @@ ENTRYPOINT [""dotnet"", ""{3}.dll""]
         /// <summary>
         /// Gets the exposed ports collection allowing new ports to be exposed.
         /// </summary>
-        public ICollection<KeyValuePair<string, string>> ExposedPorts { get => _exposedPorts; }
+        public ICollection<KeyValuePair<short, short>> ExposedPorts { get => _exposedPorts; }
 
         /// <summary>
         /// Gets the environment variables collection allowing new environment variables to be added to the container.
@@ -141,6 +139,7 @@ ENTRYPOINT [""dotnet"", ""{3}.dll""]
             {
                 throw new InvalidOperationException("Image not built");
             }
+
             var containerName = $"sandboxtest.container.{Id.ToLower()}.{_dockerImageSuffix}";
             var existingContainers = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true });
             var existingContainer = existingContainers.FirstOrDefault(container => container.Names.Any(name => name.Trim('/', '\\', ' ').Equals(containerName, StringComparison.InvariantCultureIgnoreCase)));
@@ -148,7 +147,18 @@ ENTRYPOINT [""dotnet"", ""{3}.dll""]
             {
                 await _dockerClient.Containers.RemoveContainerAsync(existingContainer.ID, new ContainerRemoveParameters { Force = true, RemoveVolumes = true });
             }
-            var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters { Image =  _imageName, Name = containerName });
+            var hostConfig = new HostConfig
+            {
+                PortBindings = new Dictionary<string, IList<PortBinding>>(),
+                NetworkMode = "bridge"
+            };
+            var exposedPorts = new Dictionary<string, EmptyStruct>();
+            foreach (var exposedPort in _exposedPorts.GroupBy(port => port.Value))
+            {
+                hostConfig.PortBindings[exposedPort.Key.ToString()] = exposedPort.Select(port => new PortBinding { HostPort = port.Key.ToString(), HostIP = "0.0.0.0" }).ToList();
+                exposedPorts[exposedPort.First().Value.ToString()] = new EmptyStruct();
+            }
+            var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters { Image = _imageName, Name = containerName, HostConfig = hostConfig });
             _containerId = createContainerResponse.ID;
             await _dockerClient.Containers.StartContainerAsync(_containerId, new ContainerStartParameters());
             var containerInspectResponse = await _dockerClient.Containers.InspectContainerAsync(_containerId);
@@ -162,6 +172,7 @@ ENTRYPOINT [""dotnet"", ""{3}.dll""]
             {
                 _addresses.AddRange(containerInspectResponse.NetworkSettings.SecondaryIPv6Addresses.Select(address => address.Addr));
             }
+            _addresses.Add("127.0.0.1");
         }
 
         /// <summary>
@@ -215,9 +226,8 @@ ENTRYPOINT [""dotnet"", ""{3}.dll""]
             _dockerFileName = $"SandboxTest.{_id}.{_dockerImageSuffix}.DockerFile";
             var dockerFileEnvironmentVariablesSection = string.Join(Environment.NewLine, _environmentVariables.Select(environmentVariable => $"ENV {environmentVariable.Key}={environmentVariable.Value}")
                 .Union(instanceData.ToEnvironmentVariables()).Select(envVar => $"ENV {envVar}"));
-            var dockerFileExposedPortsSection = string.Join(Environment.NewLine, _exposedPorts.Select(exposedPort => $"EXPOSE {exposedPort.Key}:{exposedPort.Value}"));
             var dockerFileDotNetArgument = typeof(Program).Assembly.GetName().Name;
-            var dockerFileContent = string.Format(DockerFileFormat, _baseImage, dockerFileEnvironmentVariablesSection, dockerFileExposedPortsSection, dockerFileDotNetArgument);
+            var dockerFileContent = string.Format(DockerFileFormat, _baseImage, dockerFileEnvironmentVariablesSection, dockerFileDotNetArgument);
             await File.WriteAllTextAsync(_dockerFileName, dockerFileContent);
         }
 

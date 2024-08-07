@@ -8,7 +8,8 @@ using Microsoft.AspNetCore.Builder;
 using SandboxTest.Sample.Application6;
 using Microsoft.Extensions.DependencyInjection;
 using static Microsoft.Playwright.Assertions;
-using System.Diagnostics;
+using SandboxTest.Net.Http;
+using FluentAssertions;
 
 namespace SandboxTest.Sample
 {
@@ -16,7 +17,7 @@ namespace SandboxTest.Sample
     public class SampleTestScenarioSuite9
     {
         public readonly IInstance _applicationInstance91 = ContainerHostedInstance.CreateEmptyInstance("Instance91")
-            .UseContainerHostedInstanceMessageChannel()
+            .UseContainerHostedInstanceMessageChannel(7008)
             .UseWebApplicationRunner(args =>
             {
                 var builder = WebApplication.CreateBuilder(args);
@@ -46,35 +47,15 @@ namespace SandboxTest.Sample
                 return Task.CompletedTask;
             })
             .ConfigureWebApplicationRunnerUrl("https://localhost:6633")
-            .AddPlaywrightController(PlaywrightControllerBrowserType.Chromium, headless: false, slowMod: 50);
+            .AddHttpClientController();
 
         [Scenario]
         public void TestScenario9()
         {
-            var firstStep = _applicationInstance91.AddStep().UseController<PlaywrightController>(async (controller, ctx) =>
+            var firstStep = _applicationInstance91.AddStep().UseController<HttpClientController>(async (controller, ctx) =>
             {
-                await Expect(controller.Page.GetByText("Loading... Please refresh once the ASP.NET backend has started")).ToBeVisibleAsync();
-                await Task.Delay(3000);
-            });
-            var secondStep = _applicationInstance91.AddStep(firstStep).UseController<RunnerController>(async (controller, ctx) =>
-            {
-                await controller.RunRunnerAsync();
-            });
-            var thirdStep = _applicationInstance91.AddStep(secondStep).UseController<PlaywrightController>(async (controller, ctx) =>
-            {
-                await controller.Page.ReloadAsync();
-                await Expect(controller.Page.GetByText("Loading... Please refresh once the ASP.NET backend has started")).ToBeHiddenAsync();
-                await Task.Delay(3000);
-            });
-            var forthStep = _applicationInstance91.AddStep(thirdStep).UseController<RunnerController>(async (controller, ctx) =>
-            {
-                await controller.StopRunnerAsync();
-            });
-            var fithStep = _applicationInstance91.AddStep(forthStep).UseController<PlaywrightController>(async (controller, ctx) =>
-            {
-                await controller.Page.ReloadAsync();
-                await Expect(controller.Page.GetByText("Loading... Please refresh once the ASP.NET backend has started")).ToBeVisibleAsync();
-                await Task.Delay(3000);
+                var response = await controller.HttpClient.GetAsync("");
+                response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
             });
         }
     }

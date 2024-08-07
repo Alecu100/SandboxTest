@@ -1,7 +1,5 @@
 ﻿using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Instance.Hosted;
-using System.IO;
-using System.IO.Pipes;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -94,13 +92,30 @@ namespace SandboxTest.Container
             }
             var totalSent = 0;
             var sent = 0;
-            var messageBytes = Encoding.UTF8.GetBytes(message).Union(MessageSeparatorBytes).ToArray();
+            var messageBytes = Encoding.UTF8.GetBytes(message).ToList();
+            messageBytes.AddRange(MessageSeparatorBytes);
+            var messageArray = messageBytes.ToArray();
             do
             {
-                await _socket.SendAsync(messageBytes.AsMemory(totalSent), SocketFlags.Partial);
+                await _socket.SendAsync(messageArray.AsMemory(totalSent), SocketFlags.Partial);
                 totalSent += sent;
             }
-            while (totalSent < messageBytes.Length);
+            while (totalSent < messageArray.Length);
+        }
+
+        /// <summary>
+        /// Adds to the container hosted instance the port assigned to it as an exposed and published port.
+        /// </summary>
+        /// <param name="containerHostedInstance">The container to which to expose and publish the port</param>
+        /// <param name="instanceContext"></param>
+        /// <param name="instanceData"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        [AttachedMethod(AttachedMethodType.MessageChannelToHostedInstance, nameof(ContainerHostedInstance.ConfigureBuildAsync), -100)]
+        public Task ConfigureBuildAsync(ContainerHostedInstance containerHostedInstance, IHostedInstanceContext instanceContext, HostedInstanceData instanceData, CancellationToken token)
+        {
+            containerHostedInstance.ExposedPorts.Add(new KeyValuePair<short, short>(_port, _port));
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -129,9 +144,10 @@ namespace SandboxTest.Container
 
                 foreach (var ipAddress in networkInterfaces.Select(address => address.GetIPProperties().UnicastAddresses.Select(address => address.Address)).SelectMany(x => x))
                 {
-                    var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-                    socket.Bind(new IPEndPoint(ipAddress, _port));
-                    socket.Listen(1);
+                    var ipEndpoint = new IPEndPoint(ipAddress, _port);
+                    var socket = new Socket(ipEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    socket.Bind(ipEndpoint);
+                    socket.Listen();
                     acceptTasks.Add(socket.AcceptAsync(cancellationTokenSource.Token).AsTask());
                     sockets.Add(socket);
                 }
@@ -154,11 +170,23 @@ namespace SandboxTest.Container
 
                 foreach (var ipAddress in _containerAddresses!)
                 {
-                    var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                    var ipEndpoint = new IPEndPoint(IPAddress.Parse(ipAddress), _port);
+                    var socket = new Socket(ipEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                     var connectFunc = async () =>
                     {
-                        await socket.ConnectAsync(new IPEndPoint(IPAddress.Parse(ipAddress), _port));
-                        return socket;
+                        while (true)
+                        {
+
+                            try
+                            {
+                                await socket.ConnectAsync(ipEndpoint, cancellationTokenSource.Token);
+                                return socket;
+                            }
+                            catch(SocketException)
+                            {
+                            }
+                        }
+
                     };
                     connectTasks.Add(connectFunc());
                     sockets.Add(socket);

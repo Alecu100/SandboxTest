@@ -158,7 +158,7 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
                 hostConfig.PortBindings[exposedPort.Key.ToString()] = exposedPort.Select(port => new PortBinding { HostPort = port.Key.ToString(), HostIP = "0.0.0.0" }).ToList();
                 exposedPorts[exposedPort.First().Value.ToString()] = new EmptyStruct();
             }
-            var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters { Image = _imageName, Name = containerName, HostConfig = hostConfig });
+            var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters { Image = _imageName, Name = containerName, HostConfig = hostConfig, ExposedPorts = exposedPorts });
             _containerId = createContainerResponse.ID;
             await _dockerClient.Containers.StartContainerAsync(_containerId, new ContainerStartParameters());
             var containerInspectResponse = await _dockerClient.Containers.InspectContainerAsync(_containerId);

@@ -1,4 +1,5 @@
-﻿using SandboxTest.Instance.AttachedMethod;
+﻿using Docker.DotNet.Models;
+using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Instance.Hosted;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -53,7 +54,7 @@ namespace SandboxTest.Container
             var offset = 0;
             do
             {
-                bytesRead = await _socket!.ReceiveAsync(_socketBuffer.AsMemory(offset), SocketFlags.Partial);
+                bytesRead = await _socket!.ReceiveAsync(_socketBuffer.AsMemory(offset), SocketFlags.None);
                 offset += bytesRead;
                 if (_socketBuffer.Length <= offset + 1)
                 {
@@ -97,7 +98,7 @@ namespace SandboxTest.Container
             var messageArray = messageBytes.ToArray();
             do
             {
-                await _socket.SendAsync(messageArray.AsMemory(totalSent), SocketFlags.Partial);
+                sent = await _socket.SendAsync(messageArray.AsMemory(totalSent), SocketFlags.None);
                 totalSent += sent;
             }
             while (totalSent < messageArray.Length);
@@ -154,7 +155,7 @@ namespace SandboxTest.Container
 
                 _socket = await await Task.WhenAny(acceptTasks);
                 cancellationTokenSource.Cancel();
-                foreach (var socket in sockets) 
+                foreach (var socket in sockets)
                 {
                     if (socket != _socket)
                     {

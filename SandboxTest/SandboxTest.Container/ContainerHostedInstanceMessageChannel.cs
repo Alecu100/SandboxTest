@@ -230,66 +230,70 @@ namespace SandboxTest.Container
 
                 foreach (var ipAddress in candidateIpAddresses)
                 {
-                    candidateTasks.Add(Task.Run(async () =>
-                    {
-                        while (!cancellationTokenSource.IsCancellationRequested)
-                        {
-                            var ipEndpoint = new IPEndPoint(ipAddress, _port);
-                            var socket = new Socket(ipEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                            try
-                            {
-                                socket.Bind(ipEndpoint);
-                                socket.Listen();
-                                using var incomingSocket = await socket.AcceptAsync(cancellationTokenSource.Token);
-                                if (await CheckHostSidePing(incomingSocket))
-                                {
-                                    cancellationTokenSource.Cancel();
-                                    _hostSocket = socket;
-                                    break;
-                                }
-                                await Task.Delay(BackOffMiliseconds);
-                            }
-                            catch (Exception)
-                            {
-                                socket.Dispose();
-                            }
-                        }
-                    }));
+                    candidateTasks.Add(TryLocalIpAddress(cancellationTokenSource, ipAddress));
                 }
             }
             else
             {
-                var candidateIpAddresses = _containerAddresses!.Select(ipAddressString => IPAddress.Parse(ipAddressString));
+                var candidateIpAddresses = _containerAddresses!.Select(IPAddress.Parse);
 
                 foreach (var ipAddress in candidateIpAddresses)
                 {
-                    candidateTasks.Add(Task.Run(async () =>
-                    {
-                        var ipEndpoint = new IPEndPoint(ipAddress, _port);
-
-                        while (!cancellationTokenSource.IsCancellationRequested)
-                        {
-                            try
-                            {
-                                using var socket = new Socket(ipEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                                await socket.ConnectAsync(ipEndpoint, cancellationTokenSource.Token);
-                                if (await CheckTestSidePing(socket))
-                                {
-                                    cancellationTokenSource.Cancel();
-                                    _hostIpEndpoint = ipEndpoint;
-                                    return;
-                                }
-                            }
-                            catch (Exception)
-                            {
-                            }
-                            await Task.Delay(BackOffMiliseconds);
-                        }
-                    }));
+                    candidateTasks.Add(TryContainerIpAddress(cancellationTokenSource, ipAddress));
                 }
             }
 
             await Task.WhenAll(candidateTasks);
+        }
+
+        private async Task TryLocalIpAddress(CancellationTokenSource cancellationTokenSource, IPAddress ipAddress)
+        {
+            while (!cancellationTokenSource.IsCancellationRequested)
+            {
+                var ipEndpoint = new IPEndPoint(ipAddress, _port);
+                var socket = new Socket(ipEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                try
+                {
+                    socket.Bind(ipEndpoint);
+                    socket.Listen();
+                    using var incomingSocket = await socket.AcceptAsync(cancellationTokenSource.Token);
+                    if (await CheckHostSidePing(incomingSocket))
+                    {
+                        cancellationTokenSource.Cancel();
+                        _hostSocket = socket;
+                        break;
+                    }
+                    await Task.Delay(BackOffMiliseconds);
+                }
+                catch (Exception)
+                {
+                    socket.Dispose();
+                }
+            }
+        }
+
+        private async Task TryContainerIpAddress(CancellationTokenSource cancellationTokenSource, IPAddress ipAddress)
+        {
+            var ipEndpoint = new IPEndPoint(ipAddress, _port);
+
+            while (!cancellationTokenSource.IsCancellationRequested)
+            {
+                try
+                {
+                    using var socket = new Socket(ipEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    await socket.ConnectAsync(ipEndpoint, cancellationTokenSource.Token);
+                    if (await CheckTestSidePing(socket))
+                    {
+                        cancellationTokenSource.Cancel();
+                        _hostIpEndpoint = ipEndpoint;
+                        return;
+                    }
+                }
+                catch (Exception)
+                {
+                }
+                await Task.Delay(BackOffMiliseconds);
+            }
         }
 
         private async Task<bool> CheckHostSidePing(Socket socket, byte[]? buffer = null)

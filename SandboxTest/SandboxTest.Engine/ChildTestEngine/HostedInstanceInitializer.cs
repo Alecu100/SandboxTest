@@ -2,6 +2,7 @@
 using SandboxTest.Engine.Operations;
 using SandboxTest.Engine.Utils;
 using SandboxTest.Instance.Hosted;
+using System.Runtime.Loader;
 
 namespace SandboxTest.Engine.ChildTestEngine
 {
@@ -16,6 +17,7 @@ namespace SandboxTest.Engine.ChildTestEngine
         private string? _scenarioSuiteTypeFullName;
         private string? _instanceId;
         private Task? _handleMessagesTask;
+        private ScenariosAssemblyLoadContext? _scenariosAssemblyLoadContext;
 
         public HostedInstanceInitializer()
         {
@@ -32,17 +34,22 @@ namespace SandboxTest.Engine.ChildTestEngine
                 _instanceId = hostedInstanceData.InstanceId;
                 _assemblySourceName = hostedInstanceData.AssemblySourceName;
                 _scenarioSuiteTypeFullName = hostedInstanceData.ScenarioSuiteTypeFullName;
-                _childTestEngine = new ChildTestEngine(new ScenariosAssemblyLoadContext($"{_mainPath}{Path.DirectorySeparatorChar}{_assemblySourceName}"));
-                if (_runId == default || _mainPath == default || _instanceId == default || _assemblySourceName == default || _scenarioSuiteTypeFullName == default)
+                _scenariosAssemblyLoadContext = new ScenariosAssemblyLoadContext($"{_mainPath}{Path.DirectorySeparatorChar}{_assemblySourceName}");
+                using (var contextualReflectionScope = _scenariosAssemblyLoadContext.EnterContextualReflection())
                 {
-                    throw new ArgumentException("All required arguments for application instance runner have not been provided");
+                    _childTestEngine = new ChildTestEngine(_scenariosAssemblyLoadContext);
+                    if (_runId == default || _mainPath == default || _instanceId == default || _assemblySourceName == default || _scenarioSuiteTypeFullName == default)
+                    {
+                        throw new ArgumentException("All required arguments for application instance runner have not been provided");
+                    }
+                    var result = await _childTestEngine.LoadInstanceAsync($"{_mainPath}{Path.DirectorySeparatorChar}{_assemblySourceName}", _scenarioSuiteTypeFullName!, _instanceId);
+                    if (result.IsSuccesful == false)
+                    {
+                        throw new InvalidOperationException($"Failed to load instance from scenario suite {_scenarioSuiteTypeFullName} with id {_instanceId}");
+                    }
+                    _hostedInstance = _childTestEngine.RunningInstance as IHostedInstance;
                 }
-                var result = await _childTestEngine.LoadInstanceAsync($"{_mainPath}{Path.DirectorySeparatorChar}{_assemblySourceName}", _scenarioSuiteTypeFullName!, _instanceId);
-                if (result.IsSuccesful == false)
-                {
-                    throw new InvalidOperationException($"Failed to load instance from scenario suite {_scenarioSuiteTypeFullName} with id {_instanceId}");
-                }
-                _hostedInstance = _childTestEngine.RunningInstance as IHostedInstance;
+
                 _handleMessagesTask = Task.Run(HandleMessages);
             }
             catch (Exception ex)
@@ -63,7 +70,7 @@ namespace SandboxTest.Engine.ChildTestEngine
 
         private async Task HandleMessages()
         {
-            if (_childTestEngine == null || _instanceId == null || _hostedInstance == null || _hostedInstance.MessageChannel == null)
+            if (_childTestEngine == null || _instanceId == null || _hostedInstance == null || _hostedInstance.MessageChannel == null || _scenariosAssemblyLoadContext == null)
             {
                 _runFinishedTaskCompletionSource.SetResult(-1);
                 return;
@@ -71,35 +78,38 @@ namespace SandboxTest.Engine.ChildTestEngine
 
             try
             {
-                var messageSink = _hostedInstance.MessageChannel;
-                await messageSink.OpenAsync(_instanceId, _runId, true);
-                while (!_runFinishedTaskCompletionSource.Task.IsCompleted)
+                using (var contextualReflectionScope = _scenariosAssemblyLoadContext.EnterContextualReflection())
                 {
-                    var messageJson = await messageSink.ReceiveMessageAsync();
-                    var message = JsonConvert.DeserializeObject<Operation>(messageJson, JsonUtils.JsonSerializerSettings);
-                    switch (message)
+                    var messageSink = _hostedInstance.MessageChannel;
+                    await messageSink.OpenAsync(_instanceId, _runId, true);
+                    while (!_runFinishedTaskCompletionSource.Task.IsCompleted)
                     {
-                        case RunInstanceOperation runInstanceOperation:
-                            var result = await _childTestEngine.RunInstanceAsync(runInstanceOperation.ScenarioSuiteData);
-                            await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
-                            break;
-                        case StopInstanceOperation stopInstanceOperation:
-                            result = await _childTestEngine.StopInstanceAsync(stopInstanceOperation.ScenarioSuiteData);
-                            await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
-                            _runFinishedTaskCompletionSource.SetResult(1);
-                            break;
-                        case RunScenarioStepOperation runStepOperation:
-                            result = await _childTestEngine.RunStepAsync(runStepOperation.StepId, runStepOperation.ScenarioSuiteData, runStepOperation.ScenarioData);
-                            await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
-                            break;
-                        case ResetInstanceOperation resetInstanceOperation:
-                            result = await _childTestEngine.ResetInstanceAsync(resetInstanceOperation.ScenarioSuiteData);
-                            await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
-                            break;
-                        case LoadScenarioOperation loadScenarioOperation:
-                            result = await _childTestEngine.LoadScenarioAsync(loadScenarioOperation.ScenarioMethodName);
-                            await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
-                            break;
+                        var messageJson = await messageSink.ReceiveMessageAsync();
+                        var message = JsonConvert.DeserializeObject<Operation>(messageJson, JsonUtils.JsonSerializerSettings);
+                        switch (message)
+                        {
+                            case RunInstanceOperation runInstanceOperation:
+                                var result = await _childTestEngine.RunInstanceAsync(runInstanceOperation.ScenarioSuiteData);
+                                await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
+                                break;
+                            case StopInstanceOperation stopInstanceOperation:
+                                result = await _childTestEngine.StopInstanceAsync(stopInstanceOperation.ScenarioSuiteData);
+                                await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
+                                _runFinishedTaskCompletionSource.SetResult(1);
+                                break;
+                            case RunScenarioStepOperation runStepOperation:
+                                result = await _childTestEngine.RunStepAsync(runStepOperation.StepId, runStepOperation.ScenarioSuiteData, runStepOperation.ScenarioData);
+                                await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
+                                break;
+                            case ResetInstanceOperation resetInstanceOperation:
+                                result = await _childTestEngine.ResetInstanceAsync(resetInstanceOperation.ScenarioSuiteData);
+                                await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
+                                break;
+                            case LoadScenarioOperation loadScenarioOperation:
+                                result = await _childTestEngine.LoadScenarioAsync(loadScenarioOperation.ScenarioMethodName);
+                                await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
+                                break;
+                        }
                     }
                 }
             }

@@ -33,16 +33,15 @@ namespace SandboxTest.Engine.MainTestEngine
             foreach (var scenarioSuitesAssembly in scenarioSuitesAssemblies)
             {
                 var scenariosAssemblyLoadContext = new ScenariosAssemblyLoadContext(scenarioSuitesAssembly.Key.ScenarioSourceAssembly);
-                using (scenariosAssemblyLoadContext.EnterContextualReflection())
+                using var reflectionScope = scenariosAssemblyLoadContext.EnterContextualReflection();
+                var scenariosAssembly = scenariosAssemblyLoadContext.LoadFromAssemblyPath(scenarioSuitesAssembly.Key.ScenarioSourceAssembly);
+                assemblyLoadContexts.Add(scenariosAssemblyLoadContext);
+                var scenarioSuites = scenarioSuitesAssembly.GroupBy(x => new { x.ScenarioSuitTypeFullName });
+                foreach (var scenarioSuite in scenarioSuites)
                 {
-                    var scenariosAssembly = scenariosAssemblyLoadContext.LoadFromAssemblyPath(scenarioSuitesAssembly.Key.ScenarioSourceAssembly);
-                    assemblyLoadContexts.Add(scenariosAssemblyLoadContext);
-                    var scenarioSuites = scenarioSuitesAssembly.GroupBy(x => new { x.ScenarioSuitTypeFullName });
-                    foreach (var scenarioSuite in scenarioSuites)
-                    {
-                        scenariosRunningTasks.Add(RunScenarioSuite(scenariosAssembly, scenariosAssemblyLoadContext, scenarioSuite.Key.ScenarioSuitTypeFullName, scenarioSuite, runContext));
-                    }
+                    scenariosRunningTasks.Add(RunScenarioSuite(scenariosAssembly, scenariosAssemblyLoadContext, scenarioSuite.Key.ScenarioSuitTypeFullName, scenarioSuite, runContext));
                 }
+                
                 await Task.WhenAll(scenariosRunningTasks);
 
                 foreach (var assemblyLoadContext in assemblyLoadContexts)

@@ -47,7 +47,6 @@ namespace SandboxTest.Engine
 
         protected override Assembly? Load(AssemblyName name)
         {
-            var currentAssemblies = AppDomain.CurrentDomain.GetAssemblies();
             var foundExistingAssembly = Assemblies.FirstOrDefault(assembly => AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), name));
             if (foundExistingAssembly != null) 
             {
@@ -55,6 +54,11 @@ namespace SandboxTest.Engine
             }
 
             foundExistingAssembly = Default.Assemblies.FirstOrDefault(assembly => AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), name));
+            if (foundExistingAssembly != null)
+            {
+                return foundExistingAssembly;
+            }
+            foundExistingAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), name));
             if (foundExistingAssembly != null)
             {
                 return foundExistingAssembly;

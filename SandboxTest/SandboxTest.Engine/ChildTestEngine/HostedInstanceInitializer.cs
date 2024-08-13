@@ -14,7 +14,7 @@ namespace SandboxTest.Engine.ChildTestEngine
         private string? _mainPath;
         private string? _assemblySourceName;
         private string? _scenarioSuiteTypeFullName;
-        private string? _applicationInstanceId;
+        private string? _instanceId;
         private Task? _handleMessagesTask;
 
         public HostedInstanceInitializer()
@@ -29,18 +29,18 @@ namespace SandboxTest.Engine.ChildTestEngine
             {
                 _runId = hostedInstanceData.RunId;
                 _mainPath = hostedInstanceData.MainPath;
-                _applicationInstanceId = hostedInstanceData.ApplicationInstanceId;
+                _instanceId = hostedInstanceData.InstanceId;
                 _assemblySourceName = hostedInstanceData.AssemblySourceName;
                 _scenarioSuiteTypeFullName = hostedInstanceData.ScenarioSuiteTypeFullName;
                 _childTestEngine = new ChildTestEngine(new ScenariosAssemblyLoadContext($"{_mainPath}{Path.DirectorySeparatorChar}{_assemblySourceName}"));
-                if (_runId == default || _mainPath == default || _applicationInstanceId == default || _assemblySourceName == default || _scenarioSuiteTypeFullName == default)
+                if (_runId == default || _mainPath == default || _instanceId == default || _assemblySourceName == default || _scenarioSuiteTypeFullName == default)
                 {
                     throw new ArgumentException("All required arguments for application instance runner have not been provided");
                 }
-                var result = await _childTestEngine.LoadInstanceAsync($"{_mainPath}{Path.DirectorySeparatorChar}{_assemblySourceName}", _scenarioSuiteTypeFullName!, _applicationInstanceId);
+                var result = await _childTestEngine.LoadInstanceAsync($"{_mainPath}{Path.DirectorySeparatorChar}{_assemblySourceName}", _scenarioSuiteTypeFullName!, _instanceId);
                 if (result.IsSuccesful == false)
                 {
-                    throw new InvalidOperationException($"Failed to load instance from scenario suite {_scenarioSuiteTypeFullName} with id {_applicationInstanceId}");
+                    throw new InvalidOperationException($"Failed to load instance from scenario suite {_scenarioSuiteTypeFullName} with id {_instanceId}");
                 }
                 _hostedInstance = _childTestEngine.RunningInstance as IHostedInstance;
                 _handleMessagesTask = Task.Run(HandleMessages);
@@ -63,7 +63,7 @@ namespace SandboxTest.Engine.ChildTestEngine
 
         private async Task HandleMessages()
         {
-            if (_childTestEngine == null || _applicationInstanceId == null || _hostedInstance == null || _hostedInstance.MessageChannel == null)
+            if (_childTestEngine == null || _instanceId == null || _hostedInstance == null || _hostedInstance.MessageChannel == null)
             {
                 _runFinishedTaskCompletionSource.SetResult(-1);
                 return;
@@ -72,7 +72,7 @@ namespace SandboxTest.Engine.ChildTestEngine
             try
             {
                 var messageSink = _hostedInstance.MessageChannel;
-                await messageSink.OpenAsync(_applicationInstanceId, _runId, true);
+                await messageSink.OpenAsync(_instanceId, _runId, true);
                 while (!_runFinishedTaskCompletionSource.Task.IsCompleted)
                 {
                     var messageJson = await messageSink.ReceiveMessageAsync();

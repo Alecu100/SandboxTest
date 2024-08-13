@@ -32,7 +32,7 @@ namespace SandboxTest.Sample
                         name: "test",
                         policy =>
                         {
-                            policy.WithOrigins("https://localhost:6633//*", "https://localhost:6633")
+                            policy.WithOrigins("http://localhost:6633//*", "http://localhost:6633")
                                   .AllowAnyHeader()
                                   .AllowAnyMethod()
                                   .AllowCredentials()
@@ -46,7 +46,7 @@ namespace SandboxTest.Sample
                 webApp.UseCors("test");
                 return Task.CompletedTask;
             })
-            .ConfigureWebApplicationRunnerUrl("https://localhost:6633")
+            .ConfigureWebApplicationRunnerUrl("http://localhost:6633")
             .AddHttpClientController();
 
         [Scenario]

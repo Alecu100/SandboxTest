@@ -1,8 +1,7 @@
-﻿using Docker.DotNet.Models;
-using SandboxTest.Instance.AttachedMethod;
+﻿using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Instance.Hosted;
-using System.Net;
 using System.Net.NetworkInformation;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -16,22 +15,34 @@ namespace SandboxTest.Container
         /// <summary>
         /// One guid is enough to separate messages.
         /// </summary>
-        private const string MessageSeparator = "e1ac64f9-6ddd-4437-a787-3a09c144d44e";
-
-        private byte[] _socketBuffer = new byte[10000];
-
-        private short _port;
-        private Socket? _socket;
-        private List<string>? _containerAddresses;
+        private const string MessageSeparatorEnd = "e1ac64f9-6ddd-4437-a787-3a09c144d44e";
+        private const string MessageSeparatorStart = "30d57f7b-3aa4-4b0a-89a7-1ec5b9c2937b";
+        private const string HostSideMessage = "pong";
+        private const string TestSideMessage = "ping";
+        private const int BackOffMiliseconds = 5;
+        private static byte[] HostSideMessageBytes;
+        private static byte[] TestSideMessageBytes;
 
         /// <summary>
         /// The actual bytes of the Guid to separate messages and notify the end of a message.
         /// </summary>
-        private static byte[] MessageSeparatorBytes;
+        private static byte[] MessageSeparatorEndBytes;
+        private static byte[] MessageSeparatorStartBytes;
+
+        private byte[] _socketReceiveBuffer = new byte[10000];
+        private short _port;
+        private Socket? _hostSocket;
+        private List<string>? _containerAddresses;
+        private bool _isInHost;
+        private IPEndPoint? _hostIpEndpoint;
+
 
         static ContainerHostedInstanceMessageChannel()
         {
-            MessageSeparatorBytes = Guid.Parse(MessageSeparator).ToByteArray();
+            MessageSeparatorEndBytes = Guid.Parse(MessageSeparatorEnd).ToByteArray();
+            MessageSeparatorStartBytes = Guid.Parse(MessageSeparatorStart).ToByteArray();
+            HostSideMessageBytes = Encoding.UTF8.GetBytes(HostSideMessage);
+            TestSideMessageBytes = Encoding.UTF8.GetBytes(TestSideMessage);
         }
 
         /// <summary>
@@ -50,33 +61,60 @@ namespace SandboxTest.Container
         /// <returns>The messages received from the socket</returns>
         public async Task<string> ReceiveMessageAsync()
         {
-            int bytesRead;
-            var offset = 0;
-            do
+            if (_isInHost)
             {
-                bytesRead = await _socket!.ReceiveAsync(_socketBuffer.AsMemory(offset), SocketFlags.None);
-                offset += bytesRead;
-                if (_socketBuffer.Length <= offset + 1)
+                if (_hostSocket == null)
                 {
-                    var newSocketBuffer = new byte[_socketBuffer.Length + 5000];
-                    _socketBuffer.CopyTo(newSocketBuffer, 0);
-                    _socketBuffer = newSocketBuffer;
+                    throw new InvalidOperationException("Container message channel not started");
                 }
-                if (offset > MessageSeparatorBytes.Length)
+                while (true)
                 {
-                    var index = 0;
-                    while (index < MessageSeparatorBytes.Length && MessageSeparatorBytes[index] == _socketBuffer[offset - MessageSeparatorBytes.Length + index])
+                    try
                     {
-                        index++;
+                        using var incomingSocket = await _hostSocket.AcceptAsync();
+                        if (await CheckHostSidePing(incomingSocket, _socketReceiveBuffer))
+                        {
+                            var totalReceived = await Receive(incomingSocket, _socketReceiveBuffer);
+                            if (totalReceived > 0)
+                            {
+                                return Encoding.UTF8.GetString(_socketReceiveBuffer, 0, totalReceived);
+                            }
+                        }
+                        incomingSocket.Dispose();
                     }
-                    if (index == MessageSeparatorBytes.Length)
+                    catch (Exception)
                     {
-                        break;
                     }
+                    await Task.Delay(BackOffMiliseconds);
                 }
             }
-            while (bytesRead > 0 || offset == 0);
-            return Encoding.UTF8.GetString(_socketBuffer, 0, offset - MessageSeparatorBytes.Length);
+
+            if (_hostIpEndpoint == null)
+            {
+                throw new InvalidOperationException("Host ip endpoint not found");
+            }
+            while (true)
+            {
+                try
+                {
+                    using var socket = new Socket(_hostIpEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    await socket.ConnectAsync(_hostIpEndpoint);
+                    if (!await CheckTestSidePing(socket, _socketReceiveBuffer))
+                    {
+                        await Task.Delay(BackOffMiliseconds);
+                        continue;
+                    }
+                    var totalReceived = await Receive(socket, _socketReceiveBuffer);
+                    if (totalReceived > 0)
+                    {
+                        return Encoding.UTF8.GetString(_socketReceiveBuffer, 0, totalReceived);
+                    }
+                }
+                catch (Exception)
+                {
+                }
+                await Task.Delay(BackOffMiliseconds);
+            }
         }
 
         /// <summary>
@@ -87,21 +125,59 @@ namespace SandboxTest.Container
         /// <exception cref="InvalidOperationException"></exception>
         public async Task SendMessageAsync(string message)
         {
-            if (_socket == null)
+            var messageBytes = Encoding.UTF8.GetBytes(message);
+
+            if (_isInHost)
             {
-                throw new InvalidOperationException("Container message channel not started");
+                if (_hostSocket == null)
+                {
+                    throw new InvalidOperationException("Container message channel not started");
+                }
+
+                while (true)
+                {
+                    Socket? incomingSocket = null;
+                    try
+                    {
+                        incomingSocket = await _hostSocket.AcceptAsync();
+                        if (!await CheckHostSidePing(incomingSocket, _socketReceiveBuffer))
+                        {
+                            incomingSocket.Dispose();
+                        }
+                        await Send(incomingSocket, messageBytes, messageBytes.Length);
+                        break;
+                    }
+                    catch(Exception)
+                    {
+                        incomingSocket?.Dispose();
+                    }
+                    await Task.Delay(BackOffMiliseconds);
+                }
+                return;
             }
-            var totalSent = 0;
-            var sent = 0;
-            var messageBytes = Encoding.UTF8.GetBytes(message).ToList();
-            messageBytes.AddRange(MessageSeparatorBytes);
-            var messageArray = messageBytes.ToArray();
-            do
+
+            if (_hostIpEndpoint == null)
             {
-                sent = await _socket.SendAsync(messageArray.AsMemory(totalSent), SocketFlags.None);
-                totalSent += sent;
+                throw new InvalidOperationException("Host ip endpoint not found");
             }
-            while (totalSent < messageArray.Length);
+            while (true)
+            {
+                try
+                {
+                    using var socket = new Socket(_hostIpEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    await socket.ConnectAsync(_hostIpEndpoint);
+                    if (! await CheckTestSidePing(socket, _socketReceiveBuffer))
+                    {
+                        continue;
+                    }
+                    await Send(socket, messageBytes, messageBytes.Length);
+                    break;
+                }
+                catch (Exception)
+                {
+                }
+                await Task.Delay(BackOffMiliseconds);
+            }
         }
 
         /// <summary>
@@ -134,75 +210,203 @@ namespace SandboxTest.Container
             return Task.CompletedTask;
         }
 
-        public async Task OpenAsync(string applicationId, Guid runId, bool isInstance)
+        /// <summary>
+        /// Starts the container message channel.
+        /// </summary>
+        /// <param name="instanceId">The instance id.</param>
+        /// <param name="runId">The run id, unique for each scenario suite run.</param>
+        /// <param name="isInHost"></param>
+        /// <returns></returns>
+        public async Task OpenAsync(string instanceId, Guid runId, bool isInHost)
         {
-            if (isInstance)
+            _isInHost = isInHost;
+            var cancellationTokenSource = new CancellationTokenSource();
+            var candidateTasks = new List<Task>();
+
+            if (_isInHost)
             {
                 var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
-                var cancellationTokenSource = new CancellationTokenSource();
-                var acceptTasks = new List<Task<Socket>>();
-                var sockets = new List<Socket>();
+                var candidateIpAddresses = networkInterfaces.Select(address => address.GetIPProperties().UnicastAddresses.Select(address => address.Address)).SelectMany(x => x);
 
-                foreach (var ipAddress in networkInterfaces.Select(address => address.GetIPProperties().UnicastAddresses.Select(address => address.Address)).SelectMany(x => x))
+                foreach (var ipAddress in candidateIpAddresses)
                 {
-                    var ipEndpoint = new IPEndPoint(ipAddress, _port);
-                    var socket = new Socket(ipEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    socket.Bind(ipEndpoint);
-                    socket.Listen();
-                    acceptTasks.Add(socket.AcceptAsync(cancellationTokenSource.Token).AsTask());
-                    sockets.Add(socket);
-                }
-
-                _socket = await await Task.WhenAny(acceptTasks);
-                cancellationTokenSource.Cancel();
-                foreach (var socket in sockets)
-                {
-                    if (socket != _socket)
+                    candidateTasks.Add(Task.Run(async () =>
                     {
-                        socket.Dispose();
-                    }
+                        while (!cancellationTokenSource.IsCancellationRequested)
+                        {
+                            var ipEndpoint = new IPEndPoint(ipAddress, _port);
+                            var socket = new Socket(ipEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                            try
+                            {
+                                socket.Bind(ipEndpoint);
+                                socket.Listen();
+                                using var incomingSocket = await socket.AcceptAsync(cancellationTokenSource.Token);
+                                if (await CheckHostSidePing(incomingSocket))
+                                {
+                                    cancellationTokenSource.Cancel();
+                                    _hostSocket = socket;
+                                    break;
+                                }
+                                await Task.Delay(BackOffMiliseconds);
+                            }
+                            catch (Exception)
+                            {
+                                socket.Dispose();
+                            }
+                        }
+                    }));
                 }
             }
             else
             {
-                var connectTasks = new List<Task<Socket>>();
-                var sockets = new List<Socket>();
-                var cancellationTokenSource = new CancellationTokenSource();
+                var candidateIpAddresses = _containerAddresses!.Select(ipAddressString => IPAddress.Parse(ipAddressString));
 
-                foreach (var ipAddress in _containerAddresses!)
+                foreach (var ipAddress in candidateIpAddresses)
                 {
-                    var ipEndpoint = new IPEndPoint(IPAddress.Parse(ipAddress), _port);
-                    var socket = new Socket(ipEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    var connectFunc = async () =>
+                    candidateTasks.Add(Task.Run(async () =>
                     {
-                        while (true)
-                        {
+                        var ipEndpoint = new IPEndPoint(ipAddress, _port);
 
+                        while (!cancellationTokenSource.IsCancellationRequested)
+                        {
                             try
                             {
+                                using var socket = new Socket(ipEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                                 await socket.ConnectAsync(ipEndpoint, cancellationTokenSource.Token);
-                                return socket;
+                                if (await CheckTestSidePing(socket))
+                                {
+                                    cancellationTokenSource.Cancel();
+                                    _hostIpEndpoint = ipEndpoint;
+                                    return;
+                                }
                             }
-                            catch(SocketException)
+                            catch (Exception)
                             {
                             }
+                            await Task.Delay(BackOffMiliseconds);
                         }
+                    }));
+                }
+            }
 
-                    };
-                    connectTasks.Add(connectFunc());
-                    sockets.Add(socket);
+            await Task.WhenAll(candidateTasks);
+        }
+
+        private async Task<bool> CheckHostSidePing(Socket socket, byte[]? buffer = null)
+        {
+            if (buffer == null)
+            {
+                buffer = new byte[1000];
+            }
+
+            try
+            {
+                var totalReceived = await Receive(socket, buffer);
+                if (totalReceived == 0)
+                {
+                    return false;
+                }
+                var ping = Encoding.UTF8.GetString(buffer, 0, totalReceived);
+                if (!ping.Equals(TestSideMessage, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return false;
+                }
+                await Send(socket, HostSideMessageBytes, HostSideMessageBytes.Length);
+                return true;
+            }
+            catch (Exception) 
+            {
+                return false;
+            }
+        }
+
+        private async Task<bool> CheckTestSidePing(Socket socket, byte[]? buffer = null)
+        {
+            if (buffer == null)
+            {
+                buffer = new byte[1000];
+            }
+
+            try
+            {
+                await Send(socket, TestSideMessageBytes, TestSideMessageBytes.Length);
+                var totalReceived = await Receive(socket, buffer);
+                if (totalReceived == 0)
+                {
+                    return false;
+                }
+                var ping = Encoding.UTF8.GetString(buffer, 0, totalReceived);
+                if (!ping.Equals(HostSideMessage, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return false;
                 }
 
-                _socket = await await Task.WhenAny(connectTasks);
-                cancellationTokenSource.Cancel();
-                foreach (var socket in sockets) 
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private async Task<int> Receive(Socket socket, byte[] buffer)
+        {
+            var received = 0;
+            var totalReceived = 0;
+            var receivedMessageSeparatorStart = false;
+            do
+            {
+                received = await socket.ReceiveAsync(buffer.AsMemory(totalReceived), SocketFlags.None);
+                totalReceived += received;
+                var index = 0;
+                while (received > 0 && index < MessageSeparatorStartBytes.Length && buffer[index] == MessageSeparatorStartBytes[index])
                 {
-                    if (socket != _socket)
+                    index++;
+                }
+                if (index == MessageSeparatorStartBytes.Length)
+                {
+                    receivedMessageSeparatorStart = true;
+                }
+                else
+                {
+                    totalReceived = 0;
+                }
+                if (totalReceived > MessageSeparatorEndBytes.Length)
+                {
+                    index = 0;
+                    while (index < MessageSeparatorEndBytes.Length && MessageSeparatorEndBytes[index] == buffer[totalReceived - MessageSeparatorEndBytes.Length + index])
                     {
-                        socket.Dispose();
+                        index++;
+                    }
+                    if (index == MessageSeparatorEndBytes.Length)
+                    {
+                        break;
                     }
                 }
             }
+            while (totalReceived < buffer.Length && receivedMessageSeparatorStart == false && received > 0);
+            totalReceived = totalReceived - MessageSeparatorEndBytes.Length - MessageSeparatorStartBytes.Length;
+            for (int i = 0; totalReceived > 0 && i < totalReceived + MessageSeparatorStartBytes.Length; i++)
+            {
+                buffer[i] = buffer[i + MessageSeparatorStartBytes.Length];
+            }
+            return totalReceived > 0 ? totalReceived : 0;
+        }
+
+        private async Task Send(Socket socket, byte[] buffer, int count)
+        {
+            var sent = 0;
+            var totalSent = 0;
+            var delimitedBufferList = new List<byte>(MessageSeparatorStartBytes);
+            delimitedBufferList.AddRange(buffer.Take(count));
+            delimitedBufferList.AddRange(MessageSeparatorEndBytes);
+            var delimitedBuffer = delimitedBufferList.ToArray();
+            do
+            {
+                sent = await socket.SendAsync(delimitedBuffer.AsMemory(totalSent), SocketFlags.None);
+                totalSent += sent;
+            }
+            while (totalSent < count);
         }
     }
 }

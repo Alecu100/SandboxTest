@@ -24,9 +24,9 @@ namespace SandboxTest.Instance.Hosted
 
         public const string ScenarioSuiteTypeFullNameEnv = "Sandbox_Test_Scenario_Suite_Type_Full_Name";
 
-        public const string ApplicationInstanceIdArg = "application-instance-id";
+        public const string InstanceIdArg = "instance-id";
 
-        public const string ApplicationInstanceIdEnv = "Sandbox_Test_Application_Instance_Id";
+        public const string InstanceIdEnv = "Sandbox_Test_Instance_Id";
 
         public const string HostedInstanceInitializerTypeFullNameArg = "hosted-instance-initializer-type-full-name";
 
@@ -59,7 +59,7 @@ namespace SandboxTest.Instance.Hosted
         /// <summary>
         /// Used internally by the test engine.
         /// </summary>
-        public string ApplicationInstanceId { get; set; } = string.Empty;
+        public string InstanceId { get; set; } = string.Empty;
 
         /// <summary>
         /// Used by implementations of hosted instances to load the assembly with the <see cref="IHostedInstanceInitializer"/> to start the instance.
@@ -76,7 +76,7 @@ namespace SandboxTest.Instance.Hosted
             var hostedInstanceData = new HostedInstanceData
             {
                 RunId = GetCommandLineArgumentValue<Guid>(args, RunIdArg),
-                ApplicationInstanceId = GetCommandLineArgumentValue<string>(args, ApplicationInstanceIdArg)!,
+                InstanceId = GetCommandLineArgumentValue<string>(args, InstanceIdArg)!,
                 AssemblySourceName = GetCommandLineArgumentValue<string>(args, AssemblySourceNameArg)!,
                 MainPath = GetCommandLineArgumentValue<string>(args, MainPathArg)!,
                 ScenarioSuiteTypeFullName = GetCommandLineArgumentValue<string>(args, ScenarioSuiteTypeFullNameArg)!,
@@ -92,7 +92,7 @@ namespace SandboxTest.Instance.Hosted
             var hostedInstanceData = new HostedInstanceData
             {
                 RunId = GetEnvironmentVariableValue<Guid>(env, RunIdEnv),
-                ApplicationInstanceId = GetEnvironmentVariableValue<string>(env, ApplicationInstanceIdEnv)!,
+                InstanceId = GetEnvironmentVariableValue<string>(env, InstanceIdEnv)!,
                 AssemblySourceName = GetEnvironmentVariableValue<string>(env, AssemblySourceNameEnv)!,
                 MainPath = GetEnvironmentVariableValue<string>(env, MainPathArg)!,
                 ScenarioSuiteTypeFullName = GetEnvironmentVariableValue<string>(env, ScenarioSuiteTypeFullNameEnv)!,
@@ -108,7 +108,7 @@ namespace SandboxTest.Instance.Hosted
             var hostedInstanceData = new HostedInstanceData
             {
                 RunId = GetEnvironmentVariableValue<Guid>(env, RunIdEnv),
-                ApplicationInstanceId = GetEnvironmentVariableValue<string>(env, ApplicationInstanceIdEnv)!,
+                InstanceId = GetEnvironmentVariableValue<string>(env, InstanceIdEnv)!,
                 AssemblySourceName = GetEnvironmentVariableValue<string>(env, AssemblySourceNameEnv)!,
                 MainPath = GetEnvironmentVariableValue<string>(env, MainPathEnv)!,
                 ScenarioSuiteTypeFullName = GetEnvironmentVariableValue<string>(env, ScenarioSuiteTypeFullNameEnv)!,
@@ -128,7 +128,7 @@ namespace SandboxTest.Instance.Hosted
             var args = new List<string>
             {
                 $"--{RunIdArg}=\"{RunId}\"",
-                $"--{ApplicationInstanceIdArg}=\"{ApplicationInstanceId}\"",
+                $"--{InstanceIdArg}=\"{InstanceId}\"",
                 $"--{MainPathArg}=\"{MainPath}\"",
                 $"--{AssemblySourceNameArg}=\"{AssemblySourceName}\"",
                 $"--{ScenarioSuiteTypeFullNameArg}=\"{ScenarioSuiteTypeFullName}\"",
@@ -149,7 +149,7 @@ namespace SandboxTest.Instance.Hosted
             var env = new List<string>
             {
                 $"{RunIdEnv}=\"{RunId}\"",
-                $"{ApplicationInstanceIdEnv}=\"{ApplicationInstanceId}\"",
+                $"{InstanceIdEnv}=\"{InstanceId}\"",
                 $"{MainPathEnv}=\"{MainPath}\"",
                 $"{AssemblySourceNameEnv}=\"{AssemblySourceName}\"",
                 $"{ScenarioSuiteTypeFullNameEnv}=\"{ScenarioSuiteTypeFullName}\"",

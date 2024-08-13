@@ -60,7 +60,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 _hostedInstanceData = new HostedInstanceData
                 {
                     RunId = _runId,
-                    ApplicationInstanceId = _assignedInstance.Id,
+                    InstanceId = _assignedInstance.Id,
                     AssemblySourceName = _assemblySourceName,
                     MainPath = _mainPath!,
                     HostedInstanceInitializerAssemblyFullName = typeof(HostedInstanceInitializer).Assembly.Location,

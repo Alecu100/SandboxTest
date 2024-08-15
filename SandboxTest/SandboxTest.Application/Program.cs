@@ -1,5 +1,5 @@
 ﻿using SandboxTest.Instance.Hosted;
-using System.Runtime.Loader;
+using SandboxTest.Loader;
 
 namespace SandboxTest.Application
 {
@@ -8,12 +8,17 @@ namespace SandboxTest.Application
         static async Task<int> Main(string[] args)
         {
             var hostedInstanceData = HostedInstanceData.ParseFromCommandLineArguments(args);
-            var assemblyLoadContext = new ApplicationHostedInstanceLoadContext(Path.GetFullPath(hostedInstanceData.HostedInstanceInitializerAssemblyFullName));
-            var hostedInstanceInitializerAssembly = assemblyLoadContext.LoadFromAssemblyPath(hostedInstanceData.HostedInstanceInitializerAssemblyFullName);
-            var hostedInstanceInitializerType = hostedInstanceInitializerAssembly.GetTypes().First(type => type.IsAssignableTo(typeof(IHostedInstanceInitializer)));
-            var hostedInstanceInitializer = (IHostedInstanceInitializer)Activator.CreateInstance(hostedInstanceInitializerType)!;
+            var scenarioAssemblyLoadContext = new ScenariosAssemblyLoadContext(Path.GetFullPath(hostedInstanceData.HostedInstanceInitializerAssemblyFullName));
+            IHostedInstanceInitializer? hostedInstanceInitializer = null;
 
-            await hostedInstanceInitializer.InitalizeAsync(hostedInstanceData);
+            using (var reflectionContext = scenarioAssemblyLoadContext.EnterContextualReflection())
+            {
+                var hostedInstanceInitializerAssembly = scenarioAssemblyLoadContext.LoadFromAssemblyPath(hostedInstanceData.HostedInstanceInitializerAssemblyFullName);
+                var hostedInstanceInitializerType = hostedInstanceInitializerAssembly.GetTypes().First(type => type.IsAssignableTo(typeof(IHostedInstanceInitializer)));
+                hostedInstanceInitializer = (IHostedInstanceInitializer)Activator.CreateInstance(hostedInstanceInitializerType)!;
+            }
+
+            await hostedInstanceInitializer.InitalizeAsync(scenarioAssemblyLoadContext, hostedInstanceData);
             return await hostedInstanceInitializer.WaitToFinishAsync();
         }
     }

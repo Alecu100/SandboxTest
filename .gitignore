@@ -80,3 +80,5 @@ SandboxTest/SandboxTest.Container/bin/
 SandboxTest/SandboxTest.Container/obj/
 SandboxTest/SandboxTest.Sample.Application6/bin/
 SandboxTest/SandboxTest.Sample.Application6/obj/
+SandboxTest/SandboxTest.Loader/obj/
+SandboxTest/SandboxTest.Loader/bin/

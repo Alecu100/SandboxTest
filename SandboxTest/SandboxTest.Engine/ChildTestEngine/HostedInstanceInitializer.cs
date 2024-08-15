@@ -2,6 +2,7 @@
 using SandboxTest.Engine.Operations;
 using SandboxTest.Engine.Utils;
 using SandboxTest.Instance.Hosted;
+using SandboxTest.Loader;
 using System.Runtime.Loader;
 
 namespace SandboxTest.Engine.ChildTestEngine
@@ -25,7 +26,7 @@ namespace SandboxTest.Engine.ChildTestEngine
         }
 
         ///<inheritdoc/>
-        public async Task InitalizeAsync(HostedInstanceData hostedInstanceData)
+        public async Task InitalizeAsync(ScenariosAssemblyLoadContext scenariosAssemblyLoadContext, HostedInstanceData hostedInstanceData)
         {
             try
             {
@@ -34,7 +35,7 @@ namespace SandboxTest.Engine.ChildTestEngine
                 _instanceId = hostedInstanceData.InstanceId;
                 _assemblySourceName = hostedInstanceData.AssemblySourceName;
                 _scenarioSuiteTypeFullName = hostedInstanceData.ScenarioSuiteTypeFullName;
-                _scenariosAssemblyLoadContext = new ScenariosAssemblyLoadContext($"{_mainPath}{Path.DirectorySeparatorChar}{_assemblySourceName}");
+                _scenariosAssemblyLoadContext = scenariosAssemblyLoadContext;
                 using (var contextualReflectionScope = _scenariosAssemblyLoadContext.EnterContextualReflection())
                 {
                     _childTestEngine = new ChildTestEngine(_scenariosAssemblyLoadContext);

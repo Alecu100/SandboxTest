@@ -1,4 +1,4 @@
-﻿namespace SandboxTest.Utils
+﻿namespace SandboxTest.Loader
 {
     public static class PathUtils
     {
@@ -31,7 +31,7 @@
             }
 
             var pathSeparatorPosition = fullPathToSearchIn.LastIndexOf(Path.DirectorySeparatorChar);
-            if (pathSeparatorPosition < 0) 
+            if (pathSeparatorPosition < 0)
             {
                 return null;
             }
@@ -48,7 +48,7 @@
         {
             var searchedSpan = path.AsSpan();
             var lastIndexOfSeparator = searchedSpan.LastIndexOf(Path.DirectorySeparatorChar);
-            if (lastIndexOfSeparator < 0) 
+            if (lastIndexOfSeparator < 0)
             {
                 return new string(searchedSpan);
             }
@@ -57,7 +57,7 @@
                 searchedSpan = searchedSpan.Slice(0, searchedSpan.Length - 1);
             }
             lastIndexOfSeparator = searchedSpan.LastIndexOf(Path.DirectorySeparatorChar);
-            if (lastIndexOfSeparator < 0) 
+            if (lastIndexOfSeparator < 0)
             {
                 return new string(searchedSpan);
             }

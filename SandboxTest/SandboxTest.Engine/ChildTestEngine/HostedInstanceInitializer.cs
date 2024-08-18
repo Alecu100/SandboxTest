@@ -1,121 +1,52 @@
-﻿using Newtonsoft.Json;
-using SandboxTest.Engine.Operations;
-using SandboxTest.Engine.Utils;
-using SandboxTest.Instance.Hosted;
-using System.Runtime.Loader;
+﻿using SandboxTest.Instance.Hosted;
+using System.Reflection;
 
 namespace SandboxTest.Engine.ChildTestEngine
 {
     public class HostedInstanceInitializer : IHostedInstanceInitializer
     {
-        private readonly TaskCompletionSource<int> _runFinishedTaskCompletionSource;
-        private IChildTestEngine? _childTestEngine;
-        private IHostedInstance? _hostedInstance;
-        private Guid _runId;
+        private ScenariosAssemblyLoadContext? _scenariosAssemblyLoadContext;
+        private object? _hostedInstanceLoop;
         private string? _mainPath;
         private string? _assemblySourceName;
-        private string? _scenarioSuiteTypeFullName;
-        private string? _instanceId;
-        private Task? _handleMessagesTask;
-        private ScenariosAssemblyLoadContext? _scenariosAssemblyLoadContext;
 
         public HostedInstanceInitializer()
         {
-            _runFinishedTaskCompletionSource = new TaskCompletionSource<int>();
         }
 
         ///<inheritdoc/>
         public async Task InitalizeAsync(HostedInstanceData hostedInstanceData)
         {
-            try
-            {
-                _runId = hostedInstanceData.RunId;
-                _mainPath = hostedInstanceData.MainPath;
-                _instanceId = hostedInstanceData.InstanceId;
-                _assemblySourceName = hostedInstanceData.AssemblySourceName;
-                _scenarioSuiteTypeFullName = hostedInstanceData.ScenarioSuiteTypeFullName;
-                _scenariosAssemblyLoadContext = new ScenariosAssemblyLoadContext($"{_mainPath}{Path.DirectorySeparatorChar}{_assemblySourceName}");
-                using (var contextualReflectionScope = _scenariosAssemblyLoadContext.EnterContextualReflection())
-                {
-                    _childTestEngine = new ChildTestEngine(_scenariosAssemblyLoadContext);
-                    if (_runId == default || _mainPath == default || _instanceId == default || _assemblySourceName == default || _scenarioSuiteTypeFullName == default)
-                    {
-                        throw new ArgumentException("All required arguments for application instance runner have not been provided");
-                    }
-                    var result = await _childTestEngine.LoadInstanceAsync($"{_mainPath}{Path.DirectorySeparatorChar}{_assemblySourceName}", _scenarioSuiteTypeFullName!, _instanceId);
-                    if (result.IsSuccesful == false)
-                    {
-                        throw new InvalidOperationException($"Failed to load instance from scenario suite {_scenarioSuiteTypeFullName} with id {_instanceId}");
-                    }
-                    _hostedInstance = _childTestEngine.RunningInstance as IHostedInstance;
-                }
+            _mainPath = hostedInstanceData.MainPath;
+            _assemblySourceName = hostedInstanceData.AssemblySourceName;
+            _scenariosAssemblyLoadContext = new ScenariosAssemblyLoadContext($"{_mainPath}{Path.DirectorySeparatorChar}{_assemblySourceName}");
+            _scenariosAssemblyLoadContext.ForceLoadingSandboxTestAssembliesInCurrentContext = true;
 
-                _handleMessagesTask = Task.Run(HandleMessages);
-            }
-            catch (Exception ex)
+            using (var contextualReflectionScope = _scenariosAssemblyLoadContext.EnterContextualReflection())
             {
-                Console.WriteLine(ex.ToString());
-                _runFinishedTaskCompletionSource.SetResult(-1);
-                return;
+                _scenariosAssemblyLoadContext.LoadFromAssemblyName(typeof(Scenario).Assembly.GetName());
+                var hostedInstanceLoopAssembly = _scenariosAssemblyLoadContext.LoadFromAssemblyName(typeof(HostedInstanceInitializer).Assembly.GetName());
+                var hostedInstanceLoopType = hostedInstanceLoopAssembly.GetType(nameof(HostedInstanceLoop))!;
+                _hostedInstanceLoop = Activator.CreateInstance(hostedInstanceLoopType)!;
+                var hostedInstanceLoopInitializeMethod = _hostedInstanceLoop.GetType().GetMethod(nameof(HostedInstanceLoop.StartAsync), BindingFlags.Public | BindingFlags.Instance);
+                var startLoopTask = (Task)hostedInstanceLoopInitializeMethod!.Invoke(_hostedInstanceLoop, new object[] {_scenariosAssemblyLoadContext,  hostedInstanceData.ToDictionary() })!;
+                await startLoopTask;
             }
-
-            return;
         }
 
         ///<inheritdoc/>
         public async Task<int> WaitToFinishAsync()
         {
-            return await _runFinishedTaskCompletionSource.Task;
-        }
-
-        private async Task HandleMessages()
-        {
-            if (_childTestEngine == null || _instanceId == null || _hostedInstance == null || _hostedInstance.MessageChannel == null || _scenariosAssemblyLoadContext == null)
+            if (_hostedInstanceLoop == null || _scenariosAssemblyLoadContext == null)
             {
-                _runFinishedTaskCompletionSource.SetResult(-1);
-                return;
+                throw new InvalidOperationException("Host initializer not initialized");
             }
 
-            try
+            using (var contextualReflectionScope = _scenariosAssemblyLoadContext!.EnterContextualReflection())
             {
-                using (var contextualReflectionScope = _scenariosAssemblyLoadContext.EnterContextualReflection())
-                {
-                    var messageSink = _hostedInstance.MessageChannel;
-                    await messageSink.OpenAsync(_instanceId, _runId, true);
-                    while (!_runFinishedTaskCompletionSource.Task.IsCompleted)
-                    {
-                        var messageJson = await messageSink.ReceiveMessageAsync();
-                        var message = JsonConvert.DeserializeObject<Operation>(messageJson, JsonUtils.JsonSerializerSettings);
-                        switch (message)
-                        {
-                            case RunInstanceOperation runInstanceOperation:
-                                var result = await _childTestEngine.RunInstanceAsync(runInstanceOperation.ScenarioSuiteData);
-                                await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
-                                break;
-                            case StopInstanceOperation stopInstanceOperation:
-                                result = await _childTestEngine.StopInstanceAsync(stopInstanceOperation.ScenarioSuiteData);
-                                await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
-                                _runFinishedTaskCompletionSource.SetResult(1);
-                                break;
-                            case RunScenarioStepOperation runStepOperation:
-                                result = await _childTestEngine.RunStepAsync(runStepOperation.StepId, runStepOperation.ScenarioSuiteData, runStepOperation.ScenarioData);
-                                await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
-                                break;
-                            case ResetInstanceOperation resetInstanceOperation:
-                                result = await _childTestEngine.ResetInstanceAsync(resetInstanceOperation.ScenarioSuiteData);
-                                await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
-                                break;
-                            case LoadScenarioOperation loadScenarioOperation:
-                                result = await _childTestEngine.LoadScenarioAsync(loadScenarioOperation.ScenarioMethodName);
-                                await messageSink.SendMessageAsync(JsonConvert.SerializeObject(result, JsonUtils.JsonSerializerSettings));
-                                break;
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                _runFinishedTaskCompletionSource.SetResult(-1);
+                var hostedInstanceLoopInitializeMethod = _hostedInstanceLoop.GetType().GetMethod(nameof(HostedInstanceLoop.WaitToStopAsync), BindingFlags.Public | BindingFlags.Instance);
+                var stopLoopTask = (Task<int>)hostedInstanceLoopInitializeMethod!.Invoke(_hostedInstanceLoop, null)!;
+                return await stopLoopTask;
             }
         }
     }

@@ -119,6 +119,20 @@ namespace SandboxTest.Instance.Hosted
             return hostedInstanceData;
         }
 
+        public static HostedInstanceData FromDictionary(Dictionary<string, string> dictionary)
+        {
+            return new HostedInstanceData
+            {
+                RunId = Guid.Parse(dictionary[RunIdArg]),
+                InstanceId = dictionary[InstanceIdArg],
+                MainPath = dictionary[MainPathArg],
+                AssemblySourceName = dictionary[AssemblySourceNameArg],
+                ScenarioSuiteTypeFullName = dictionary[ScenarioSuiteTypeFullNameArg],
+                HostedInstanceInitializerTypeFullName = dictionary[HostedInstanceInitializerTypeFullNameArg],
+                HostedInstanceInitializerAssemblyFullName = dictionary[HostedInstanceInitializerAssemblyFullNameArg],
+            };
+        }
+
         /// <summary>
         /// Converts the hosted instance data to a list of command line arguments to be passed when starting from the command line a hosted instance.
         /// </summary>
@@ -137,6 +151,20 @@ namespace SandboxTest.Instance.Hosted
             };
 
             return args;
+        }
+
+        public Dictionary<string, string> ToDictionary()
+        {
+            return new Dictionary<string, string>
+            {
+                { RunIdArg, RunId.ToString() },
+                { InstanceIdArg, InstanceId },
+                { MainPathArg, MainPath },
+                { AssemblySourceNameArg, AssemblySourceName},
+                { ScenarioSuiteTypeFullNameArg, ScenarioSuiteTypeFullName },
+                { HostedInstanceInitializerTypeFullNameArg, HostedInstanceInitializerTypeFullName},
+                { HostedInstanceInitializerAssemblyFullNameArg, HostedInstanceInitializerAssemblyFullName}
+            };
         }
 
 

@@ -26,7 +26,7 @@ namespace SandboxTest.Engine.ChildTestEngine
             {
                 _scenariosAssemblyLoadContext.LoadFromAssemblyName(typeof(Scenario).Assembly.GetName());
                 var hostedInstanceLoopAssembly = _scenariosAssemblyLoadContext.LoadFromAssemblyName(typeof(HostedInstanceInitializer).Assembly.GetName());
-                var hostedInstanceLoopType = hostedInstanceLoopAssembly.GetType(nameof(HostedInstanceLoop))!;
+                var hostedInstanceLoopType = hostedInstanceLoopAssembly.GetType(typeof(HostedInstanceLoop).FullName!)!;
                 _hostedInstanceLoop = Activator.CreateInstance(hostedInstanceLoopType)!;
                 var hostedInstanceLoopInitializeMethod = _hostedInstanceLoop.GetType().GetMethod(nameof(HostedInstanceLoop.StartAsync), BindingFlags.Public | BindingFlags.Instance);
                 var startLoopTask = (Task)hostedInstanceLoopInitializeMethod!.Invoke(_hostedInstanceLoop, new object[] {_scenariosAssemblyLoadContext,  hostedInstanceData.ToDictionary() })!;

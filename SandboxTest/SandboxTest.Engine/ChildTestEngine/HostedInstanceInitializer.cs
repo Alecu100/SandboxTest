@@ -25,7 +25,7 @@ namespace SandboxTest.Engine.ChildTestEngine
 
             using (var contextualReflectionScope = _scenariosAssemblyLoadContext.EnterContextualReflection())
             {
-                _scenariosAssemblyLoadContext.LoadFromAssemblyName(typeof(Scenario).Assembly.GetName());
+                _scenariosAssemblyLoadContext.LoadFromAssemblyName(typeof(IHostedInstanceInitializer).Assembly.GetName());
                 var hostedInstanceLoopAssembly = _scenariosAssemblyLoadContext.LoadFromAssemblyName(typeof(HostedInstanceInitializer).Assembly.GetName());
                 _scenariosAssemblyLoadContext.ClearForceLoadedAssemblies();
                 var hostedInstanceLoopType = hostedInstanceLoopAssembly.GetType(typeof(HostedInstanceLoop).FullName!)!;

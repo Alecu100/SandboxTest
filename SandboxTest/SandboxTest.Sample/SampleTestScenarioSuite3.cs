@@ -13,9 +13,9 @@ namespace SandboxTest.Sample
     public class SampleTestScenarioSuite3
     {
         public readonly IInstance _applicationInstance21 = ApplicationInstance.CreateEmptyInstance("Instance31")
-            .UseHostRunner(args =>
+            .UseHostRunner(() =>
             {
-                var hostBuilder = Host.CreateDefaultBuilder(args);
+                var hostBuilder = Host.CreateDefaultBuilder();
                 hostBuilder.ConfigureHost();
                 return Task.FromResult(hostBuilder);
             })

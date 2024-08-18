@@ -11,17 +11,17 @@ namespace SandboxTest.Sample
     public class SampleTestScenarioSuite
     {
         private readonly IInstance _applicationInstance1 = ApplicationInstance.CreateEmptyInstance("Instance1")
-            .UseHostRunner(args =>
+            .UseHostRunner(() =>
             {
-                var hostBuilder = Host.CreateDefaultBuilder(args);
+                var hostBuilder = Host.CreateDefaultBuilder();
                 hostBuilder.ConfigureHost();
                 return Task.FromResult(hostBuilder);
             });
 
         private readonly IInstance _applicationInstance2 = ApplicationInstance.CreateEmptyInstance("Instance2")
-            .UseHostRunner(args =>
+            .UseHostRunner(() =>
             {
-                var hostBuilder = Host.CreateDefaultBuilder(args);
+                var hostBuilder = Host.CreateDefaultBuilder();
                 hostBuilder.ConfigureHost();
                 return Task.FromResult(hostBuilder);
             });

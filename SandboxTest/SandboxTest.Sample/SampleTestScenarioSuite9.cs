@@ -1,13 +1,10 @@
 ﻿using SandboxTest.Container;
 using SandboxTest.Instance;
 using SandboxTest.Scenario;
-using SandboxTest.Playwright;
 using SandboxTest.AspNetCore;
-using SandboxTest.Utils;
 using Microsoft.AspNetCore.Builder;
 using SandboxTest.Sample.Application6;
 using Microsoft.Extensions.DependencyInjection;
-using static Microsoft.Playwright.Assertions;
 using SandboxTest.Net.Http;
 using FluentAssertions;
 
@@ -18,9 +15,9 @@ namespace SandboxTest.Sample
     {
         public readonly IInstance _applicationInstance91 = ContainerHostedInstance.CreateEmptyInstance("Instance91")
             .UseContainerHostedInstanceMessageChannel(7008)
-            .UseWebApplicationRunner(args =>
+            .UseWebApplicationRunner(() =>
             {
-                var builder = WebApplication.CreateBuilder(args);
+                var builder = WebApplication.CreateBuilder();
                 builder.ConfigureWebApplicationBuilder();
                 return Task.FromResult(builder);
             })
@@ -32,7 +29,7 @@ namespace SandboxTest.Sample
                         name: "test",
                         policy =>
                         {
-                            policy.WithOrigins("http://localhost:6633//*", "http://localhost:6633")
+                            policy.AllowAnyOrigin()
                                   .AllowAnyHeader()
                                   .AllowAnyMethod()
                                   .AllowCredentials()
@@ -46,7 +43,7 @@ namespace SandboxTest.Sample
                 webApp.UseCors("test");
                 return Task.CompletedTask;
             })
-            .ConfigureWebApplicationRunnerUrl("http://localhost:6633")
+            .ConfigureWebApplicationRunnerUrl("http://0.0.0.0:6633")
             .AddHttpClientController();
 
         [Scenario]

@@ -14,7 +14,7 @@ namespace SandboxTest.Hosting
         /// <param name="applicationInstance"></param>
         /// <param name="hostBuilderFunc"></param>
         /// <returns></returns>
-        public static IInstance UseHostRunner(this IInstance applicationInstance, Func<string[], Task<IHostBuilder>> hostBuilderFunc)
+        public static IInstance UseHostRunner(this IInstance applicationInstance, Func<Task<IHostBuilder>> hostBuilderFunc)
         {
             applicationInstance.UseRunner(new HostRunner(hostBuilderFunc));
             return applicationInstance;
@@ -65,25 +65,6 @@ namespace SandboxTest.Hosting
             hostBuilderApplicationRunner.OnConfigureBuild(configureBuildFunc);
             hostBuilderApplicationRunner.OnConfigureRun(configureRunFunc);
             return applicationInstance;
-        }
-
-        /// <summary>
-        /// Configures the arguments to use when creating the <see cref="HostBuilder"/> for a <see cref="HostRunner"/>
-        /// </summary>
-        /// <param name="instance"></param>
-        /// <param name="arguments"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public static IInstance ConfigureHostRunnerArguments(this IInstance instance, params string[] arguments)
-        {
-            var hostBuilderApplicationRunner = instance.Runner as HostRunner;
-            if (hostBuilderApplicationRunner == null)
-            {
-                throw new InvalidOperationException("Invalid runner configured on instance, expected HostRunner");
-            }
-
-            hostBuilderApplicationRunner.OnConfigureArguments(arguments);
-            return instance;
         }
 
         /// <summary>

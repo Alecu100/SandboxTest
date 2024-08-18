@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using SandboxTest.Instance;
+using SandboxTest.Loader;
+using System.Reflection;
+using System.Runtime.Loader;
 
 namespace SandboxTest.AspNetCore
 {
@@ -11,9 +14,18 @@ namespace SandboxTest.AspNetCore
         /// <param name="instance"></param>
         /// <param name="webApplicationBuilderFunc"></param>
         /// <returns></returns>
-        public static IInstance UseWebApplicationRunner(this IInstance instance, Func<string[], Task<WebApplicationBuilder>> webApplicationBuilderFunc)
+        public static IInstance UseWebApplicationRunner(this IInstance instance, Func<Task<WebApplicationBuilder>> webApplicationBuilderFunc)
         {
-            instance.UseRunner(new WebApplicationRunner(webApplicationBuilderFunc));
+            var scenarioLoadContext = AssemblyLoadContext.All.FirstOrDefault(ctx => ctx.GetType().Name.Contains(nameof(ScenariosAssemblyLoadContext)));
+            var webApplicationRunner = new WebApplicationRunner(webApplicationBuilderFunc);
+            var instanceAssembly = instance.GetType().GetInterfaces().First().Assembly;
+            var isSameAssemblyInstanceDefaultContext = AssemblyLoadContext.Default.Assemblies.Any(defaultAssembly => ReferenceEquals(defaultAssembly, instanceAssembly));
+            var isSameWebApplicationRunnerAssemblyDefaultContext = AssemblyLoadContext.Default.Assemblies.Any(defaultAssembly => ReferenceEquals(defaultAssembly, webApplicationRunner.GetType().Assembly));
+
+            var isSameAssemblyInstanceScenarioContext = scenarioLoadContext?.Assemblies.Any(defaultAssembly => ReferenceEquals(defaultAssembly, instanceAssembly));
+            var isSameWebApplicationRunnerAssemblyScenarioContext = scenarioLoadContext?.Assemblies.Any(defaultAssembly => ReferenceEquals(defaultAssembly, webApplicationRunner.GetType().Assembly));
+            var areEqual = ReferenceEquals(webApplicationRunner.GetType().GetInterfaces().First().Assembly, instance.GetType().GetInterfaces().First().Assembly);
+            instance.UseRunner(webApplicationRunner);
             return instance;
         }
 
@@ -59,26 +71,6 @@ namespace SandboxTest.AspNetCore
             instance.AddController(hostApplicationController);
             return instance;
         }
-
-        /// <summary>
-        /// Configures the arguments to use when creating the <see cref="WebApplicationBuilder"/> for a <see cref="WebApplicationRunner"/>.
-        /// </summary>
-        /// <param name="applicationInstance"></param>
-        /// <param name="arguments"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public static IInstance ConfigureWebApplicationRunnerArguments(this IInstance applicationInstance, params string[] arguments)
-        {
-            var hostBuilderApplicationRunner = applicationInstance.Runner as WebApplicationRunner;
-            if (hostBuilderApplicationRunner == null)
-            {
-                throw new InvalidOperationException("Invalid runner configured on instance, expected web application runner");
-            }
-
-            hostBuilderApplicationRunner.OnConfigureArguments(arguments);
-            return applicationInstance;
-        }
-
 
         /// <summary>
         /// Configures the url to use when starting a <see cref="WebApplication"/> for a <see cref="WebApplicationRunner"/>.

@@ -12,18 +12,18 @@ namespace SandboxTest.Sample
     {
         private readonly IInstance _applicationHostedInstance1 = ApplicationHostedInstance.CreateEmptyInstance("Instance1")
             .UseApplicationHostedInstanceMessageChannel()
-            .UseHostRunner(args =>
+            .UseHostRunner(() =>
             {
-                var hostBuilder = Host.CreateDefaultBuilder(args);
+                var hostBuilder = Host.CreateDefaultBuilder();
                 hostBuilder.ConfigureHost();
                 return Task.FromResult(hostBuilder);
             });
 
         private readonly IInstance _applicationHostedInstance2 = ApplicationHostedInstance.CreateEmptyInstance("Instance2")
             .UseApplicationHostedInstanceMessageChannel()
-            .UseHostRunner(args =>
+            .UseHostRunner(() =>
             {
-                var hostBuilder = Host.CreateDefaultBuilder(args);
+                var hostBuilder = Host.CreateDefaultBuilder();
                 hostBuilder.ConfigureHost();
                 return Task.FromResult(hostBuilder);
             });

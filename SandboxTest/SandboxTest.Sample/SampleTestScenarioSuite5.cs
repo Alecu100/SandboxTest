@@ -21,9 +21,9 @@ namespace SandboxTest.Sample
     {
         public readonly IInstance _applicationInstance41 = ApplicationHostedInstance.CreateEmptyInstance("Instance51")
             .UseApplicationHostedInstanceMessageChannel()
-            .UseWebApplicationRunner(args =>
+            .UseWebApplicationRunner(() =>
             {
-                var builder = WebApplication.CreateBuilder(args);
+                var builder = WebApplication.CreateBuilder();
                 builder.ConfigureWebApplicationBuilder();
                 return Task.FromResult(builder);
             })

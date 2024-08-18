@@ -5,6 +5,7 @@ using SandboxTest.Internal;
 using SandboxTest.Loader;
 using SandboxTest.Scenario;
 using System.Reflection;
+using System.Runtime.Loader;
 
 namespace SandboxTest.Engine.ChildTestEngine
 {
@@ -117,7 +118,18 @@ namespace SandboxTest.Engine.ChildTestEngine
                 {
                     throw new InvalidOperationException($"Scenario suite type {scenarioSuiteTypeFullName} does not contain a constructor without parameters");
                 }
-                _scenarioSuiteInstance = Activator.CreateInstance(_scenarioSuiteType);
+
+                var scenarioLoadContext = AssemblyLoadContext.All.FirstOrDefault(ctx => ctx.GetType().Name.Contains(nameof(ScenariosAssemblyLoadContext)));
+                var isSameAssemblyInstanceDefaultContext = AssemblyLoadContext.Default.Assemblies.Any(defaultAssembly => ReferenceEquals(defaultAssembly, _scenarioSuiteType));
+                var isSameWebApplicationRunnerAssemblyDefaultContext = AssemblyLoadContext.Default.Assemblies.Any(defaultAssembly => ReferenceEquals(defaultAssembly, _scenarioSuiteType.Assembly));
+
+                var isSameAssemblyInstanceScenarioContext = scenarioLoadContext?.Assemblies.Any(defaultAssembly => ReferenceEquals(defaultAssembly, _scenarioSuiteType.Assembly));
+                var isSameWebApplicationRunnerAssemblyScenarioContext = scenarioLoadContext?.Assemblies.Any(defaultAssembly => ReferenceEquals(defaultAssembly, _scenarioSuiteType.Assembly));
+
+
+                isSameAssemblyInstanceScenarioContext = scenarioLoadContext?.Assemblies.Any(defaultAssembly => ReferenceEquals(defaultAssembly, _scenarioSuiteType.GetFields().First().FieldType.Assembly));
+                isSameWebApplicationRunnerAssemblyScenarioContext = scenarioLoadContext?.Assemblies.Any(defaultAssembly => ReferenceEquals(defaultAssembly, _scenarioSuiteType.GetFields().First().FieldType.Assembly));
+                _scenarioSuiteInstance = _scenarioSuiteType.Assembly.CreateInstance(_scenarioSuiteType.FullName!);
 
                 var allFields = new List<FieldInfo>();
                 allFields.AddRange(_scenarioSuiteType.GetFields(BindingFlags.Instance | BindingFlags.Public));

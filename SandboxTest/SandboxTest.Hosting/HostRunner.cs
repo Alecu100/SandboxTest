@@ -11,7 +11,7 @@ namespace SandboxTest.Hosting
     {
         protected IHost? _host;
         protected IHostBuilder? _hostBuilder;
-        protected Func<string[], Task<IHostBuilder>> _hostBuilderFunc;
+        protected Func<Task<IHostBuilder>> _hostBuilderFunc;
         protected Func<IHostBuilder, Task>? _configureBuildFunc;
         protected Func<IHost, Task>? _configureRunFunc;
         protected Func<IHost, Task>? _resetFunc;
@@ -27,7 +27,7 @@ namespace SandboxTest.Hosting
         /// Creates a new instance of <see cref="HostRunner"/> having as parameter a function that return the original host builder.
         /// </summary>
         /// <param name="hostBuilderSourceFunc"></param>
-        public HostRunner(Func<string[], Task<IHostBuilder>> hostBuilderSourceFunc)
+        public HostRunner(Func<Task<IHostBuilder>> hostBuilderSourceFunc)
         {
             _hostBuilderFunc = hostBuilderSourceFunc;
         }
@@ -63,22 +63,13 @@ namespace SandboxTest.Hosting
         }
 
         /// <summary>
-        /// Configures the arguments to use when creating the <see cref="Microsoft.Extensions.Hosting.HostBuilder"/>
-        /// </summary>
-        /// <param name="arguments"></param>
-        public void OnConfigureArguments(params string[] arguments)
-        {
-            _arguments = arguments;
-        }
-
-        /// <summary>
         /// Use the configure sandbox function to allow the host to run in a sandbox.
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         public virtual async Task ConfigureBuildAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
-            _hostBuilder = await _hostBuilderFunc(_arguments ?? Array.Empty<string>());
+            _hostBuilder = await _hostBuilderFunc();
             if (_hostBuilder == null)
             {
                 throw new InvalidOperationException("Host builder not found.");

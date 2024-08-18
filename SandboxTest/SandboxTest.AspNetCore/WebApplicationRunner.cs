@@ -12,11 +12,10 @@ namespace SandboxTest.AspNetCore
     {
         protected WebApplicationBuilder? _webApplicationBuilder;
         protected WebApplication? _webApplication;
-        protected Func<string[], Task<WebApplicationBuilder>> _webApplicationBuilderFunc;
+        protected Func<Task<WebApplicationBuilder>> _webApplicationBuilderFunc;
         protected Func<WebApplicationBuilder, Task>? _configureBuildFunc;
         protected Func<WebApplication, Task>? _configureRunFunc;
         protected Func<WebApplication, Task>? _resetFunc;
-        protected string[]? _arguments;
         protected Task? _runTask;
         protected string? _url;
 
@@ -39,7 +38,7 @@ namespace SandboxTest.AspNetCore
         /// Creates a new instance of <see cref="WebApplicationRunner"/> having as parameter a function that return the original web application builder.
         /// </summary>
         /// <param name="webApplicationBuilderFunc"></param>
-        public WebApplicationRunner(Func<string[], Task<WebApplicationBuilder>> webApplicationBuilderFunc)
+        public WebApplicationRunner(Func<Task<WebApplicationBuilder>> webApplicationBuilderFunc)
         {
             _webApplicationBuilderFunc = webApplicationBuilderFunc;
         }
@@ -57,15 +56,6 @@ namespace SandboxTest.AspNetCore
                 throw new InvalidOperationException("ConfigureBuildFunc already set.");
             }
             _configureBuildFunc = configureBuildSandboxFunc;
-        }
-
-        /// <summary>
-        /// Configures the arguments to use when creating the <see cref="WebApplicationBuilder"/>
-        /// </summary>
-        /// <param name="arguments"></param>
-        public void OnConfigureArguments(params string[] arguments)
-        {
-            _arguments = arguments;
         }
 
         /// <summary>
@@ -103,7 +93,7 @@ namespace SandboxTest.AspNetCore
         /// <exception cref="InvalidOperationException"></exception>
         public virtual async Task ConfigureBuildAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
-            _webApplicationBuilder = await _webApplicationBuilderFunc(_arguments ?? Array.Empty<string>());
+            _webApplicationBuilder = await _webApplicationBuilderFunc();
             if (_webApplicationBuilder == null)
             {
                 throw new InvalidOperationException("Web application builder not found.");

@@ -57,6 +57,10 @@ namespace SandboxTest.Engine.Utils
             }
             if (typeAssembly == null)
             {
+                typeAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => assembly.GetName().Name == assemblyName);
+            }
+            if (typeAssembly == null)
+            {
                 throw new InvalidOperationException($"Could not find assembly for assembly name {assemblyName}");
             }
 

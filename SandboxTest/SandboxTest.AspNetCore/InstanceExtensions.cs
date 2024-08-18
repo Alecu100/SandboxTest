@@ -16,16 +16,7 @@ namespace SandboxTest.AspNetCore
         /// <returns></returns>
         public static IInstance UseWebApplicationRunner(this IInstance instance, Func<Task<WebApplicationBuilder>> webApplicationBuilderFunc)
         {
-            var scenarioLoadContext = AssemblyLoadContext.All.FirstOrDefault(ctx => ctx.GetType().Name.Contains(nameof(ScenariosAssemblyLoadContext)));
-            var webApplicationRunner = new WebApplicationRunner(webApplicationBuilderFunc);
-            var instanceAssembly = instance.GetType().GetInterfaces().First().Assembly;
-            var isSameAssemblyInstanceDefaultContext = AssemblyLoadContext.Default.Assemblies.Any(defaultAssembly => ReferenceEquals(defaultAssembly, instanceAssembly));
-            var isSameWebApplicationRunnerAssemblyDefaultContext = AssemblyLoadContext.Default.Assemblies.Any(defaultAssembly => ReferenceEquals(defaultAssembly, webApplicationRunner.GetType().Assembly));
-
-            var isSameAssemblyInstanceScenarioContext = scenarioLoadContext?.Assemblies.Any(defaultAssembly => ReferenceEquals(defaultAssembly, instanceAssembly));
-            var isSameWebApplicationRunnerAssemblyScenarioContext = scenarioLoadContext?.Assemblies.Any(defaultAssembly => ReferenceEquals(defaultAssembly, webApplicationRunner.GetType().Assembly));
-            var areEqual = ReferenceEquals(webApplicationRunner.GetType().GetInterfaces().First().Assembly, instance.GetType().GetInterfaces().First().Assembly);
-            instance.UseRunner(webApplicationRunner);
+            instance.UseRunner(new WebApplicationRunner(webApplicationBuilderFunc));
             return instance;
         }
 

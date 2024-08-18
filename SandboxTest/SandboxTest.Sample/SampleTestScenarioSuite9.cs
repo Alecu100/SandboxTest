@@ -32,7 +32,6 @@ namespace SandboxTest.Sample
                             policy.AllowAnyOrigin()
                                   .AllowAnyHeader()
                                   .AllowAnyMethod()
-                                  .AllowCredentials()
                                   .SetIsOriginAllowed((x) => true);
                         });
                 });

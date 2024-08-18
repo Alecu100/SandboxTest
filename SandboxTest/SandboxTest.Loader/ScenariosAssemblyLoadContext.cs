@@ -1,20 +1,23 @@
-﻿using SandboxTest.Utils;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using SandboxTest.Loader.Utils;
 
-namespace SandboxTest.Engine
+namespace SandboxTest.Loader
 {
+    /// <summary>
+    /// Represents the standard assembly loader used in SandBoxTest in a completely separate assembly from the rest of the assemblies
+    /// in order to avoid assembly loading issues such as asssembly duplication.
+    /// </summary>
     public class ScenariosAssemblyLoadContext : AssemblyLoadContext
     {
-        private const string SandboxTestAssemblyName = nameof(SandboxTest);
-        private const string SandboxTestEngineAssemblyName = $"{nameof(SandboxTest)}.{nameof(Engine)}";
-
-        private AssemblyDependencyResolver _resolver;
-        private List<AssemblyDependencyResolver> _frameworkResolvers;
+        private readonly AssemblyDependencyResolver _resolver;
+        private readonly List<AssemblyDependencyResolver> _frameworkResolvers;
+        private readonly List<string> _forceLoadAssemblieNames;
 
         public ScenariosAssemblyLoadContext(string mainAssemblyToLoadPath) : base(isCollectible: true)
         {
+            _forceLoadAssemblieNames = new List<string>();
             _frameworkResolvers = new List<AssemblyDependencyResolver>();
             var runtimeDirectory = PathUtils.LocateFolderPath(RuntimeEnvironment.GetRuntimeDirectory(), "dotnet")!;
             var sharedDirectory = PathUtils.AppendToPath(runtimeDirectory, "shared");
@@ -49,13 +52,27 @@ namespace SandboxTest.Engine
         }
 
         /// <summary>
-        /// Gets or sets whether to force loading of all assemblies in the current scenario assembly load context.
+        /// Forces the loading of the assemblies with the specified names in the current assembly load context;
         /// </summary>
-        public bool ForceLoadingSandboxTestAssembliesInCurrentContext { get; set; }
+        /// <param name="assemblieNames">The assembly names to force load.</param>
+        public void ForceLoadAssemblies(params string[] assemblieNames)
+        {
+            _forceLoadAssemblieNames.AddRange(assemblieNames);
+        }
 
+        public void ClearForceLoadedAssemblies()
+        {
+            _forceLoadAssemblieNames.Clear();
+        }
 
         protected override Assembly? Load(AssemblyName name)
         {
+            var scenarioAssemblyLoadContextAssembly = GetType().Assembly;
+            if (AssemblyName.ReferenceMatchesDefinition(scenarioAssemblyLoadContextAssembly.GetName(), name))
+            {
+                return scenarioAssemblyLoadContextAssembly;
+            }
+
             var foundExistingAssembly = Assemblies.FirstOrDefault(assembly => AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), name));
             if (foundExistingAssembly != null)
             {
@@ -63,12 +80,12 @@ namespace SandboxTest.Engine
             }
 
             foundExistingAssembly = Default.Assemblies.FirstOrDefault(assembly => AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), name));
-            if (foundExistingAssembly != null && (!ForceLoadingSandboxTestAssembliesInCurrentContext || !IsSandboxTestAssembly(name)))
+            if (foundExistingAssembly != null && (!IsForceLoadedAssembly(name)))
             {
                 return foundExistingAssembly;
             }
             foundExistingAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), name));
-            if (foundExistingAssembly != null && (!ForceLoadingSandboxTestAssembliesInCurrentContext || !IsSandboxTestAssembly(name)))
+            if (foundExistingAssembly != null && (!IsForceLoadedAssembly(name)))
             {
                 return foundExistingAssembly;
             }
@@ -107,9 +124,9 @@ namespace SandboxTest.Engine
             }
         }
 
-        private bool IsSandboxTestAssembly(AssemblyName assemblyName)
+        private bool IsForceLoadedAssembly(AssemblyName assemblyName)
         {
-            return assemblyName.Name!.Equals(SandboxTestAssemblyName) || assemblyName.Name.Equals(SandboxTestEngineAssemblyName);
+            return _forceLoadAssemblieNames.Any(forceLoadedAssemblyName => assemblyName.Name!.Equals(forceLoadedAssemblyName));
         }
     }
 }

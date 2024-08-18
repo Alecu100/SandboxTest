@@ -1,4 +1,5 @@
 ﻿using SandboxTest.Instance.Hosted;
+using SandboxTest.Loader;
 using System.Reflection;
 
 namespace SandboxTest.Engine.ChildTestEngine
@@ -20,12 +21,13 @@ namespace SandboxTest.Engine.ChildTestEngine
             _mainPath = hostedInstanceData.MainPath;
             _assemblySourceName = hostedInstanceData.AssemblySourceName;
             _scenariosAssemblyLoadContext = new ScenariosAssemblyLoadContext($"{_mainPath}{Path.DirectorySeparatorChar}{_assemblySourceName}");
-            _scenariosAssemblyLoadContext.ForceLoadingSandboxTestAssembliesInCurrentContext = true;
+            _scenariosAssemblyLoadContext.ForceLoadAssemblies(typeof(IHostedInstanceInitializer).Assembly.GetName().Name!, typeof(HostedInstanceInitializer).Assembly.GetName().Name!);
 
             using (var contextualReflectionScope = _scenariosAssemblyLoadContext.EnterContextualReflection())
             {
                 _scenariosAssemblyLoadContext.LoadFromAssemblyName(typeof(Scenario).Assembly.GetName());
                 var hostedInstanceLoopAssembly = _scenariosAssemblyLoadContext.LoadFromAssemblyName(typeof(HostedInstanceInitializer).Assembly.GetName());
+                _scenariosAssemblyLoadContext.ClearForceLoadedAssemblies();
                 var hostedInstanceLoopType = hostedInstanceLoopAssembly.GetType(typeof(HostedInstanceLoop).FullName!)!;
                 _hostedInstanceLoop = Activator.CreateInstance(hostedInstanceLoopType)!;
                 var hostedInstanceLoopInitializeMethod = _hostedInstanceLoop.GetType().GetMethod(nameof(HostedInstanceLoop.StartAsync), BindingFlags.Public | BindingFlags.Instance);

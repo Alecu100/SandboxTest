@@ -2,6 +2,7 @@
 using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Internal;
+using SandboxTest.Loader;
 using SandboxTest.Scenario;
 using System.Reflection;
 

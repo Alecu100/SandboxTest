@@ -2,6 +2,7 @@
 using SandboxTest.Engine.Operations;
 using SandboxTest.Engine.Utils;
 using SandboxTest.Instance.Hosted;
+using SandboxTest.Loader;
 
 namespace SandboxTest.Engine.ChildTestEngine
 {

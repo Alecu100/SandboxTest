@@ -72,13 +72,10 @@ namespace SandboxTest.Container
                     try
                     {
                         using var incomingSocket = await _hostSocket.AcceptAsync();
-                        if (await CheckHostSidePing(incomingSocket, _socketReceiveBuffer))
+                        var totalReceived = await Receive(incomingSocket, _socketReceiveBuffer);
+                        if (totalReceived > 0)
                         {
-                            var totalReceived = await Receive(incomingSocket, _socketReceiveBuffer);
-                            if (totalReceived > 0)
-                            {
-                                return Encoding.UTF8.GetString(_socketReceiveBuffer, 0, totalReceived);
-                            }
+                            return Encoding.UTF8.GetString(_socketReceiveBuffer, 0, totalReceived);
                         }
                         incomingSocket.Dispose();
                     }
@@ -99,11 +96,6 @@ namespace SandboxTest.Container
                 {
                     using var socket = new Socket(_hostIpEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                     await socket.ConnectAsync(_hostIpEndpoint);
-                    if (!await CheckTestSidePing(socket, _socketReceiveBuffer))
-                    {
-                        await Task.Delay(BackOffMiliseconds);
-                        continue;
-                    }
                     var totalReceived = await Receive(socket, _socketReceiveBuffer);
                     if (totalReceived > 0)
                     {
@@ -140,10 +132,6 @@ namespace SandboxTest.Container
                     try
                     {
                         incomingSocket = await _hostSocket.AcceptAsync();
-                        if (!await CheckHostSidePing(incomingSocket, _socketReceiveBuffer))
-                        {
-                            incomingSocket.Dispose();
-                        }
                         await Send(incomingSocket, messageBytes, messageBytes.Length);
                         break;
                     }
@@ -166,10 +154,6 @@ namespace SandboxTest.Container
                 {
                     using var socket = new Socket(_hostIpEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                     await socket.ConnectAsync(_hostIpEndpoint);
-                    if (! await CheckTestSidePing(socket, _socketReceiveBuffer))
-                    {
-                        continue;
-                    }
                     await Send(socket, messageBytes, messageBytes.Length);
                     break;
                 }

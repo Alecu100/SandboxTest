@@ -31,9 +31,7 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
         protected IDictionary<string, AuthConfig> _authConfigs = new Dictionary<string, AuthConfig>();
         protected Credentials? _credentials;
         protected string? _registryAddress;
-        protected string? _dockerImageSuffix;
         protected string? _dockerFileName;
-        protected string? _imageName;
         protected string? _containerId;
 
         /// <summary>
@@ -131,22 +129,20 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
             }
 
             using var imageContents = await GenerateImageContents();
-            _imageName = $"sandbox-test.{_id.ToLowerInvariant()}.{_dockerImageSuffix}";
             await _dockerClient.Images.BuildImageFromDockerfileAsync(
-                new ImageBuildParameters { AuthConfigs = _authConfigs, Dockerfile = _dockerFileName, Tags = new string[] { _imageName! } }, 
+                new ImageBuildParameters { AuthConfigs = _authConfigs, Dockerfile = _dockerFileName, Tags = new string[] { _id! } }, 
                 imageContents, _authConfigs.Values, null,  new ContainerBuildProgress(json => Task.CompletedTask));
         }
 
         public virtual async Task StartAsync(IHostedInstanceContext instanceContext, HostedInstanceData instanceData, CancellationToken token)
         {
-            if (_dockerClient == null || _imageName == null)
+            if (_dockerClient == null || _dockerFileName == null)
             {
                 throw new InvalidOperationException("Image not built");
             }
 
-            var containerName = $"sandboxtest.container.{Id.ToLower()}.{_dockerImageSuffix}";
-            var existingContainers = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true });
-            var existingContainer = existingContainers.FirstOrDefault(container => container.Names.Any(name => name.Trim('/', '\\', ' ').Equals(containerName, StringComparison.InvariantCultureIgnoreCase)));
+            var existingContainers = await _dockerClient!.Containers.ListContainersAsync(new ContainersListParameters { All = true });
+            var existingContainer = existingContainers.FirstOrDefault(container => container.Names.Any(name => name.Trim('/', '\\', ' ').Equals(_id, StringComparison.InvariantCultureIgnoreCase)));
             if (existingContainer != null)
             {
                 await _dockerClient.Containers.RemoveContainerAsync(existingContainer.ID, new ContainerRemoveParameters { Force = true, RemoveVolumes = true });
@@ -162,7 +158,7 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
                 hostConfig.PortBindings[exposedPort.Key.ToString()] = exposedPort.Select(port => new PortBinding { HostPort = port.Key.ToString(), HostIP = "0.0.0.0" }).ToList();
                 exposedPorts[exposedPort.First().Value.ToString()] = new EmptyStruct();
             }
-            var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters { Image = _imageName, Name = containerName, HostConfig = hostConfig, ExposedPorts = exposedPorts });
+            var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters { Image = _id, Name = _id, HostConfig = hostConfig, ExposedPorts = exposedPorts });
             _containerId = createContainerResponse.ID;
             await _dockerClient.Containers.StartContainerAsync(_containerId, new ContainerStartParameters());
             var containerInspectResponse = await _dockerClient.Containers.InspectContainerAsync(_containerId);
@@ -194,7 +190,7 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
             }
             await _dockerClient.Containers.StopContainerAsync(_containerId, new ContainerStopParameters { WaitBeforeKillSeconds = 5 });
             await _dockerClient.Containers.RemoveContainerAsync(_containerId, new ContainerRemoveParameters { Force = true, RemoveVolumes = true });
-            await _dockerClient.Images.DeleteImageAsync(_imageName, new ImageDeleteParameters { Force = true });
+            await _dockerClient.Images.DeleteImageAsync(_id, new ImageDeleteParameters { Force = true });
             _dockerClient.Dispose();
         }
 
@@ -214,20 +210,7 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
 
         protected virtual async Task GenerateDockerFile(HostedInstanceData instanceData)
         {
-            var hashcodeSum = (ushort)1;
-            var hashcodeXor = ushort.MaxValue;
-            unchecked
-            {
-                foreach (var ch in Environment.CurrentDirectory)
-                {
-                    hashcodeSum += ch;
-                    hashcodeXor ^= ch;
-                }
-
-                _dockerImageSuffix = ((uint)hashcodeSum + hashcodeXor << 16).ToString();
-            }
-
-            _dockerFileName = $"SandboxTest.{_id}.{_dockerImageSuffix}.DockerFile";
+            _dockerFileName = $"{_id}.DockerFile";
             var dockerFileEnvironmentVariablesSection = string.Join(Environment.NewLine, _environmentVariables.Select(environmentVariable => $"ENV {environmentVariable.Key}={environmentVariable.Value}")
                 .Union(instanceData.ToEnvironmentVariables()).Select(envVar => $"ENV {envVar}"));
             var dockerFileDotNetArgument = typeof(Program).Assembly.GetName().Name;

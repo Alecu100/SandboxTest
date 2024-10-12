@@ -19,7 +19,7 @@ namespace SandboxTest.Sample
     [ScenarioSuite]
     public class SampleTestScenarioSuite5
     {
-        public readonly IInstance _applicationInstance41 = ApplicationHostedInstance.CreateEmptyInstance()
+        public readonly IInstance ApplicationInstance41 = ApplicationHostedInstance.CreateEmptyInstance()
             .UseApplicationHostedInstanceMessageChannel()
             .UseWebApplicationRunner(() =>
             {
@@ -44,7 +44,7 @@ namespace SandboxTest.Sample
         [Scenario]
         public void TestScenario6()
         {
-            var firstStep = _applicationInstance41.AddStep().UseController<HostController>((controller, ctx) =>
+            var firstStep = ApplicationInstance41.AddStep().UseController<HostController>((controller, ctx) =>
             {
                 var actionDescriptors = controller.Host.Services.GetRequiredService<IActionDescriptorCollectionProvider>();
                 var controllersDescriptors = actionDescriptors.ActionDescriptors
@@ -54,7 +54,7 @@ namespace SandboxTest.Sample
                 return Task.CompletedTask;
             });
 
-            var secondStep = _applicationInstance41.AddStep().UseController<HttpClientController>(async (controller, ctx) =>
+            var secondStep = ApplicationInstance41.AddStep().UseController<HttpClientController>(async (controller, ctx) =>
             {
                 var httpRequest = new HttpRequestMessage(HttpMethod.Get, "/WeatherForecast");
                 httpRequest.Headers.Add(HeaderNames.Accept, "text/plain");
@@ -65,7 +65,7 @@ namespace SandboxTest.Sample
                 weatherForecasts.Should().NotBeNull();
                 ctx.ScenarioData["weatherforecasts"] = weatherForecasts;
             });
-            var thirdStep = _applicationInstance41.AddStep().AddPreviousStep(firstStep).UseController<HttpClientController>(async (controller, ctx) =>
+            var thirdStep = ApplicationInstance41.AddStep().AddPreviousStep(firstStep).UseController<HttpClientController>(async (controller, ctx) =>
             {
                 var httpRequest = new HttpRequestMessage(HttpMethod.Get, "/WeatherForecast");
                 httpRequest.Headers.Add(HeaderNames.Accept, "text/plain");
@@ -78,7 +78,7 @@ namespace SandboxTest.Sample
                 previousWeatherForecasts.Should().NotBeNull();
                 previousWeatherForecasts?.Should().NotIntersectWith(weatherForecasts);
             });
-            var fourthStep = _applicationInstance41.AddStep().AddPreviousStep(thirdStep).UseController<WebApplicationController>((controller, ctx) =>
+            var fourthStep = ApplicationInstance41.AddStep().AddPreviousStep(thirdStep).UseController<WebApplicationController>((controller, ctx) =>
             {
                 controller.WebApplication.Urls.Should().NotBeNull();
                 controller.WebApplication.Urls.Should().Contain("https://localhost:5600");

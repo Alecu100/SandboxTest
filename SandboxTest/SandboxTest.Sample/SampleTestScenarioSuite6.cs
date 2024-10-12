@@ -12,7 +12,7 @@ namespace SandboxTest.Sample
     [ScenarioSuite]
     public class SampleTestScenarioSuite6
     {
-        public readonly IInstance _applicationInstance51 = ApplicationInstance.CreateEmptyInstance()
+        public readonly IInstance ApplicationInstance51 = ApplicationInstance.CreateEmptyInstance()
             .UseHostRunner(() =>
             {
                 var hostBuilder = Host.CreateDefaultBuilder();
@@ -26,21 +26,21 @@ namespace SandboxTest.Sample
         [Scenario]
         public void TestScenario7()
         {
-            var firstStep = _applicationInstance51.AddStep().UseController<HostController>(async (controller, ctx) =>
+            var firstStep = ApplicationInstance51.AddStep().UseController<HostController>(async (controller, ctx) =>
             {
                 await Task.Delay(1000);
             });
-            var secondStep = _applicationInstance51.AddStep().AddPreviousStep(firstStep).UseController<HostController>(async (controller, ctx) =>
+            var secondStep = ApplicationInstance51.AddStep().AddPreviousStep(firstStep).UseController<HostController>(async (controller, ctx) =>
             {
                 ctx.ScenarioData["guid"] = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>().GetNewGuid();
                 await Task.Delay(1000);
             });
-            var thirdStep = _applicationInstance51.AddStep().AddPreviousStep(secondStep).UseController<ServiceInterceptorController>((controller, ctx) =>
+            var thirdStep = ApplicationInstance51.AddStep().AddPreviousStep(secondStep).UseController<ServiceInterceptorController>((controller, ctx) =>
             {
                 controller.UseInterceptor<IRandomGuidGenerator>().Intercept<Guid>(x => x.GetNewGuid).RecordsAllCalls().ReturnsValue(Guid.Empty);
                 return Task.CompletedTask;
             });
-            var forthStep = _applicationInstance51.AddStep().AddPreviousStep(thirdStep).UseController<HostController>(async (controller, ctx) =>
+            var forthStep = ApplicationInstance51.AddStep().AddPreviousStep(thirdStep).UseController<HostController>(async (controller, ctx) =>
             {
                 var guidGenerator = controller.Host.Services.GetRequiredService<IRandomGuidGenerator>();
                 var guid = guidGenerator.GetNewGuid();

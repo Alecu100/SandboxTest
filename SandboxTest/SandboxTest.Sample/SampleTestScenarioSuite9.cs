@@ -19,7 +19,7 @@ namespace SandboxTest.Sample
     [ScenarioSuite]
     public class SampleTestScenarioSuite9
     {
-        public readonly IInstance _applicationInstance91 = ContainerHostedInstance.CreateEmptyInstance()
+        public readonly IInstance ApplicationInstance91 = ContainerHostedInstance.CreateEmptyInstance()
             .UseContainerHostedInstanceMessageChannel(7008)
             .ConfigureContainerHostedInstance((instance, ctx) =>
             {
@@ -48,7 +48,7 @@ namespace SandboxTest.Sample
             })
             .ConfigureWebApplicationRunnerUrl("http://0.0.0.0:6633");
 
-        public readonly IInstance _applicationInstance92 = ApplicationInstance.CreateEmptyInstance()
+        public readonly IInstance ApplicationInstance92 = ApplicationInstance.CreateEmptyInstance()
             .UseRemoteWebServerRunner()
             .ConfigureRemoteWebServerRunnerUrl("http://localhost:6633")
             .AddHttpClientController();
@@ -56,11 +56,11 @@ namespace SandboxTest.Sample
         [Scenario]
         public void TestScenario9()
         {
-            var firstStep = _applicationInstance92.AddStep().UseController<HttpClientController>(async (controller, ctx) =>
+            var firstStep = ApplicationInstance92.AddStep().UseController<HttpClientController>(async (controller, ctx) =>
             {
                 await Task.Delay(600000);
             });
-            var secondStep = _applicationInstance92.AddStep(firstStep).UseController<HttpClientController>(async (controller, ctx) =>
+            var secondStep = ApplicationInstance92.AddStep(firstStep).UseController<HttpClientController>(async (controller, ctx) =>
             {
                 var response = await controller.HttpClient.GetAsync("");
                 response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);

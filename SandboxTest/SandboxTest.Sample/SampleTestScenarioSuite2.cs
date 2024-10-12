@@ -10,7 +10,7 @@ namespace SandboxTest.Sample
     [ScenarioSuite]
     public class SampleTestScenarioSuite2
     {
-        private readonly IInstance _applicationHostedInstance1 = ApplicationHostedInstance.CreateEmptyInstance()
+        public readonly IInstance ApplicationHostedInstance1 = ApplicationHostedInstance.CreateEmptyInstance()
             .UseApplicationHostedInstanceMessageChannel()
             .UseHostRunner(() =>
             {
@@ -19,7 +19,7 @@ namespace SandboxTest.Sample
                 return Task.FromResult(hostBuilder);
             });
 
-        private readonly IInstance _applicationHostedInstance2 = ApplicationHostedInstance.CreateEmptyInstance()
+        public readonly IInstance ApplicationHostedInstance2 = ApplicationHostedInstance.CreateEmptyInstance()
             .UseApplicationHostedInstanceMessageChannel()
             .UseHostRunner(() =>
             {

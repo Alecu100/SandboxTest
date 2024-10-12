@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using SandboxTest.Instance;
-using SandboxTest.Loader;
-using System.Reflection;
-using System.Runtime.Loader;
 
 namespace SandboxTest.AspNetCore
 {

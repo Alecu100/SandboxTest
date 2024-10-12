@@ -1,4 +1,4 @@
-﻿namespace SandboxTest.Loader.Utils
+﻿namespace SandboxTest.Utils
 {
     public static class PathUtils
     {

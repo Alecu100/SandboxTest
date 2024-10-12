@@ -10,7 +10,6 @@ using SandboxTest.Node;
 using SandboxTest.Utils;
 using SandboxTest.Playwright;
 using static Microsoft.Playwright.Assertions;
-using SandboxTest.Loader.Utils;
 
 namespace SandboxTest.Sample
 {

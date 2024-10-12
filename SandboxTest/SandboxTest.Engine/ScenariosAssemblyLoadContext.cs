@@ -1,9 +1,9 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
-using SandboxTest.Loader.Utils;
+using SandboxTest.Utils;
 
-namespace SandboxTest.Loader
+namespace SandboxTest.Engine
 {
     /// <summary>
     /// Represents the standard assembly loader used in SandBoxTest in a completely separate assembly from the rest of the assemblies
@@ -80,12 +80,12 @@ namespace SandboxTest.Loader
             }
 
             foundExistingAssembly = Default.Assemblies.FirstOrDefault(assembly => AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), name));
-            if (foundExistingAssembly != null && (!IsForceLoadedAssembly(name)))
+            if (foundExistingAssembly != null && !IsForceLoadedAssembly(name))
             {
                 return foundExistingAssembly;
             }
             foundExistingAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), name));
-            if (foundExistingAssembly != null && (!IsForceLoadedAssembly(name)))
+            if (foundExistingAssembly != null && !IsForceLoadedAssembly(name))
             {
                 return foundExistingAssembly;
             }

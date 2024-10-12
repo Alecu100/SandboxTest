@@ -1,5 +1,4 @@
 ﻿using SandboxTest.Instance.Hosted;
-using SandboxTest.Loader;
 using System.Reflection;
 
 namespace SandboxTest.Engine.ChildTestEngine

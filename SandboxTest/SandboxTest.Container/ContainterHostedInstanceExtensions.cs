@@ -20,7 +20,7 @@ namespace SandboxTest.Container
         /// <param name="configureBuildFunc">The function to call to configure the hosted instance</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static IHostedInstance ConfigureWebApplicationRunnerArguments(this IHostedInstance hostedInstance, Func<ContainerHostedInstance, IHostedInstanceContext, Task>? configureBuildFunc)
+        public static IHostedInstance ConfigureContainerHostedInstance(this IHostedInstance hostedInstance, Func<ContainerHostedInstance, IHostedInstanceContext, Task>? configureBuildFunc)
         {
             var containterHostedInstance = hostedInstance as ContainerHostedInstance;
             if (containterHostedInstance == null)

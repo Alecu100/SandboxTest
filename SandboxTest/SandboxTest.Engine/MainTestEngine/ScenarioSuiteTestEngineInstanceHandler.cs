@@ -5,7 +5,6 @@ using SandboxTest.Engine.Utils;
 using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Instance.Hosted;
-using SandboxTest.Loader;
 using SandboxTest.Scenario;
 
 namespace SandboxTest.Engine.MainTestEngine

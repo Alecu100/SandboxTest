@@ -16,7 +16,7 @@ namespace SandboxTest.Sample
     [ScenarioSuite]
     public class SampleTestScenarioSuite7
     {
-        public readonly IInstance _applicationInstance71 = ApplicationHostedInstance.CreateEmptyInstance("Instance71")
+        public readonly IInstance _applicationInstance71 = ApplicationHostedInstance.CreateEmptyInstance()
             .UseApplicationHostedInstanceMessageChannel()
             .UseWebApplicationRunner(() =>
             {
@@ -50,7 +50,7 @@ namespace SandboxTest.Sample
             .ConfigureWebApplicationRunnerUrl("https://localhost:5566")
             .AddRunnerController();
 
-        public readonly IInstance _applicationInstance72 = ApplicationInstance.CreateEmptyInstance("Instance72")
+        public readonly IInstance _applicationInstance72 = ApplicationInstance.CreateEmptyInstance()
             .UseNodeRunner("localhost", 8088)
             .ConfigureNodeRunnerWithVite(PathUtils.AppendToPath(PathUtils.LocateFolderPath("SandboxTest")!, "sandboxtest.sample.application4.client"))
             .AddPlaywrightController(PlaywrightControllerBrowserType.Chromium, headless: false, slowMod: 50);

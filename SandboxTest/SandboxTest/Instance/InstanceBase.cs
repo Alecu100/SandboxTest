@@ -5,15 +5,14 @@ namespace SandboxTest.Instance
     public abstract class InstanceBase : IInstance
     {
         protected readonly List<IController> _controllers = new List<IController>();
-        protected readonly string _id;
+        protected string? _id;
         protected IRunner? _runner;
         protected List<ScenarioStep> _steps = new List<ScenarioStep>();
         protected int _currentStepIndex;
         protected int? _order;
 
-        protected InstanceBase(string id)
+        protected InstanceBase()
         {
-            _id = id;
             _controllers = new List<IController>();
             _steps = new List<ScenarioStep>();
             _currentStepIndex = 0;
@@ -38,7 +37,7 @@ namespace SandboxTest.Instance
         /// <summary>
         /// Gets the id of the instance
         /// </summary>
-        public virtual string Id { get => _id; }
+        public string Id { get => _id ?? throw new InvalidOperationException("Instance not initialized"); }
 
         /// <summary>
         /// Returns the current step index used that will be assigned to the next step.
@@ -49,6 +48,20 @@ namespace SandboxTest.Instance
         /// Gets or sets the order in which to start the instance.
         /// </summary>
         public int? Order { get => _order; set => _order = value; }
+
+        /// <summary>
+        /// Used to initialize the hosted instance.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public void Initialize(string id)
+        {
+            if (_id != null)
+            {
+                throw new InvalidOperationException("Instance already initialized with an id");
+            }
+            _id = id;
+        }
 
         /// <summary>
         /// Assigns a specific runner to the instance.

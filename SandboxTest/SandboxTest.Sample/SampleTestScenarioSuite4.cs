@@ -13,12 +13,12 @@ namespace SandboxTest.Sample
     [ScenarioSuite]
     public class SampleTestScenarioSuite4
     {
-        public readonly IInstance _applicationInstance41 = ApplicationInstance.CreateEmptyInstance("Instance41")
+        public readonly IInstance _applicationInstance41 = ApplicationInstance.CreateEmptyInstance()
             .UseWireMockRunner(6677, false, false)
             .AddWireMockController()
             .AddHttpClientController();
 
-        public readonly IInstance _applicationInstance42 = ApplicationHostedInstance.CreateEmptyInstance("Instance42")
+        public readonly IInstance _applicationInstance42 = ApplicationHostedInstance.CreateEmptyInstance()
             .UseApplicationHostedInstanceMessageChannel()
             .UseWireMockRunner(6688, false, false)
             .AddWireMockController()

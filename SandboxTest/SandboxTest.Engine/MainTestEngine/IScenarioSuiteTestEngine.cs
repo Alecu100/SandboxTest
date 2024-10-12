@@ -25,6 +25,6 @@ namespace SandboxTest.Engine.MainTestEngine
         /// Closes all the opened application instances.
         /// </summary>
         /// <returns></returns>
-        Task CloseApplicationInstancesAsync();
+        Task CloseInstancesAsync();
     }
 }

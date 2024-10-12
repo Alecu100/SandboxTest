@@ -91,7 +91,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 return;
             }
             await scenarioSuiteTestEngine.RunScenariosAsync(scenarioMethods, _cancellationTokenSource.Token);
-            await scenarioSuiteTestEngine.CloseApplicationInstancesAsync();
+            await scenarioSuiteTestEngine.CloseInstancesAsync();
         }
 
         public virtual async Task ScanForScenariosAsync(IEnumerable<string> assemblyPaths, IMainTestEngineScanContext scanContext)
@@ -146,7 +146,7 @@ namespace SandboxTest.Engine.MainTestEngine
 
             foreach (var runningScenarioSuiteTestEngine in _runningScenarioSuiteTestEngines)
             {
-                await runningScenarioSuiteTestEngine.CloseApplicationInstancesAsync();
+                await runningScenarioSuiteTestEngine.CloseInstancesAsync();
             }
         }
     }

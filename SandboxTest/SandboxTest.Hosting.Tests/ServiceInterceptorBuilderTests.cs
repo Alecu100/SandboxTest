@@ -11,7 +11,7 @@ namespace SandboxTest.Hosting.Tests
     [ScenarioSuite]
     public class ServiceInterceptorBuilderTests
     {
-        public readonly IInstance _dummyApplicationInstance = ApplicationInstance.CreateEmptyInstance("DummyApplication")
+        public readonly IInstance _dummyApplicationInstance = ApplicationInstance.CreateEmptyInstance()
             .UseDummyRunner()
             .AddDummyController();
 

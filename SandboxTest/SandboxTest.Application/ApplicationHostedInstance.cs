@@ -19,14 +19,9 @@ namespace SandboxTest.Application
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public new static ApplicationHostedInstance CreateEmptyInstance(string id)
+        public new static ApplicationHostedInstance CreateEmptyInstance()
         {
-            return new ApplicationHostedInstance(id);
-        }
-
-        public ApplicationHostedInstance(string id) : base(id)
-        {
-
+            return new ApplicationHostedInstance();
         }
 
         /// <inheritdoc/>
@@ -46,6 +41,11 @@ namespace SandboxTest.Application
         /// For application hosted instances, they run on the same machine so their address always resolves to 127.0.0.1.
         /// </summary>
         public IReadOnlyList<string> Addresses { get => _addresses ?? throw new InvalidOperationException("Appliction hosted instance not started"); }
+
+        /// <summary>
+        /// Gets and sets whether the instance should be packaged in a separate dedicated folder.
+        /// </summary>
+        public bool IsPackaged { get; set; }
 
         /// <summary>
         /// Starts the host for the application instance from the command line.

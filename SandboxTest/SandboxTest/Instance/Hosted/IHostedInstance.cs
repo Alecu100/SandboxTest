@@ -35,6 +35,11 @@
         Task StopAsync(IHostedInstanceContext instanceContext, HostedInstanceData instanceData);
 
         /// <summary>
+        /// Gets whether it should package the hosted instance in a separate dedicated folder.
+        /// </summary>
+        bool IsPackaged { get; }    
+
+        /// <summary>
         /// Gets the address of the host which can be an ip or dns address.
         /// </summary>
         IReadOnlyList<string> Addresses { get; }

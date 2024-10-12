@@ -19,7 +19,7 @@ namespace SandboxTest.Sample
     [ScenarioSuite]
     public class SampleTestScenarioSuite9
     {
-        public readonly IInstance _applicationInstance91 = ContainerHostedInstance.CreateEmptyInstance("Instance91")
+        public readonly IInstance _applicationInstance91 = ContainerHostedInstance.CreateEmptyInstance()
             .UseContainerHostedInstanceMessageChannel(7008)
             .ConfigureContainerHostedInstance((instance, ctx) =>
             {
@@ -48,7 +48,7 @@ namespace SandboxTest.Sample
             })
             .ConfigureWebApplicationRunnerUrl("http://0.0.0.0:6633");
 
-        public readonly IInstance _applicationInstance92 = ApplicationInstance.CreateEmptyInstance("Instance92")
+        public readonly IInstance _applicationInstance92 = ApplicationInstance.CreateEmptyInstance()
             .UseRemoteWebServerRunner()
             .ConfigureRemoteWebServerRunnerUrl("http://localhost:6633")
             .AddHttpClientController();

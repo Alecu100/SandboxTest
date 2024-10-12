@@ -12,7 +12,7 @@ namespace SandboxTest.Sample
     [ScenarioSuite]
     public class SampleTestScenarioSuite6
     {
-        public readonly IInstance _applicationInstance51 = ApplicationInstance.CreateEmptyInstance("Instance61")
+        public readonly IInstance _applicationInstance51 = ApplicationInstance.CreateEmptyInstance()
             .UseHostRunner(() =>
             {
                 var hostBuilder = Host.CreateDefaultBuilder();

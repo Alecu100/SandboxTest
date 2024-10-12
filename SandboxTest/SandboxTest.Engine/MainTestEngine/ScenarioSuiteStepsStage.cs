@@ -16,7 +16,7 @@ namespace SandboxTest.Engine.MainTestEngine
             _allInstanceSteps = new List<ScenarioStep>();
         }
 
-        public void AddApplicationInstanceStep(ScenarioSuiteTestEngineInstanceHandler instanceHandler, ScenarioStep scenarioStep)
+        public void AddInstanceStep(ScenarioSuiteTestEngineInstanceHandler instanceHandler, ScenarioStep scenarioStep)
         {
             if (!_instanceHandlersSteps.ContainsKey(instanceHandler))
             {

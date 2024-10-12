@@ -12,17 +12,9 @@ namespace SandboxTest.Application
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static ApplicationInstance CreateEmptyInstance(string id)
+        public static ApplicationInstance CreateEmptyInstance()
         {
-            return new ApplicationInstance(id);
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ApplicationInstance"/>
-        /// </summary>
-        /// <param name="id"></param>
-        public ApplicationInstance(string id) : base(id)
-        {
+            return new ApplicationInstance();
         }
     }
 }

@@ -10,16 +10,18 @@ namespace SandboxTest.Engine.ChildTestEngine
 {
     public class ChildTestEngine : IChildTestEngine
     {
-        private Type? _scenarioSuiteType;
-        private ScenariosAssemblyLoadContext _scenariosAssemblyLoadContext;
-        private Assembly? _scenarioSuiteAssembly;
-        private IInstance? _instance;
-        private object? _scenarioSuiteInstance;
-        private IAttachedMethodsExecutor _attachedMethodsExecutor;
-        private ScenarioSuiteContext? _scenarioSuiteContext;
+        protected Type? _scenarioSuiteType;
+        protected ScenariosAssemblyLoadContext _scenariosAssemblyLoadContext;
+        protected Assembly? _scenarioSuiteAssembly;
+        protected IInstance? _instance;
+        protected object? _scenarioSuiteInstance;
+        protected IAttachedMethodsExecutor _attachedMethodsExecutor;
+        protected IScenarioSuiteInitializer _scenarioSuiteInitializer;
+        protected ScenarioSuiteContext? _scenarioSuiteContext;
 
         public ChildTestEngine(ScenariosAssemblyLoadContext scenariosAssemblyLoadContext)
         {
+            _scenarioSuiteInitializer = new ScenarioSuiteInitializer();
             _scenariosAssemblyLoadContext = scenariosAssemblyLoadContext;
             _attachedMethodsExecutor = new AttachedMethodsExecutor();
         }
@@ -118,6 +120,11 @@ namespace SandboxTest.Engine.ChildTestEngine
                     throw new InvalidOperationException($"Scenario suite type {scenarioSuiteTypeFullName} does not contain a constructor without parameters");
                 }
                 _scenarioSuiteInstance = _scenarioSuiteType.Assembly.CreateInstance(_scenarioSuiteType.FullName!);
+                if (_scenarioSuiteInstance == null)
+                {
+                    throw new InvalidOperationException($"Failed to create scenario suite instance with name {scenarioSuiteTypeFullName}");
+                }
+                _scenarioSuiteInitializer.Initialize(_scenarioSuiteInstance);
 
                 var allFields = new List<FieldInfo>();
                 allFields.AddRange(_scenarioSuiteType.GetFields(BindingFlags.Instance | BindingFlags.Public));

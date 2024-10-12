@@ -41,12 +41,12 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static ContainerHostedInstance CreateEmptyInstance(string id)
+        public static ContainerHostedInstance CreateEmptyInstance()
         {
-            return new ContainerHostedInstance(id);
+            return new ContainerHostedInstance();
         }
 
-        public ContainerHostedInstance(string id) : base(id)
+        public ContainerHostedInstance()
         {
 #if NET6_0
             _baseImage = "mcr.microsoft.com/dotnet/aspnet:6.0";
@@ -97,6 +97,10 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
         /// </summary>
         public IDictionary<string, AuthConfig> AuthConfig { get => _authConfigs; }
 
+        /// <summary>
+        /// Gets and sets whether the instance should be packaged in a separate dedicated folder.
+        /// </summary>
+        public bool IsPackaged { get; set; }
 
         [AttachedMethod(AttachedMethodType.HostedInstanceToHostedInstance, nameof(StartAsync), -300)]
         public async Task ConfigureBuildAsync(IHostedInstanceContext instanceContext, HostedInstanceData instanceData, CancellationToken token)

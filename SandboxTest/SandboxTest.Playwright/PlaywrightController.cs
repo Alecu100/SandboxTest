@@ -22,6 +22,7 @@ namespace SandboxTest.Playwright
         protected float? _sloMo;
         protected string? _startPageName;
         protected IWebServerRunner? _webServerRunner;
+        protected bool _ignoreHttpsErrors;
 
         /// <inheritdoc/>
         public PlaywrightControllerBrowserType BrowserType { get => _browserType; }
@@ -31,6 +32,9 @@ namespace SandboxTest.Playwright
 
         /// <inheritdoc/>
         public IPage Page { get => _page ?? throw new InvalidOperationException("Playwright controller not built"); }
+
+        /// <inheritdoc/>
+        public IBrowser Browser { get => _browser ?? throw new InvalidOperationException("Playwright controller not built"); }
 
         static PlaywrightController()
         {
@@ -47,12 +51,13 @@ namespace SandboxTest.Playwright
             }
         }
 
-        public PlaywrightController(string? name, PlaywrightControllerBrowserType browserType, string? startPageName = null, float? slowMod = null, bool headless = true) : base(name)
+        public PlaywrightController(string? name, PlaywrightControllerBrowserType browserType, string? startPageName = null, float? slowMod = null, bool headless = true, bool ignoreHttpsErrors = false) : base(name)
         {
             _browserType = browserType;
             _headless = headless;
             _sloMo = slowMod;
             _startPageName = startPageName;
+            _ignoreHttpsErrors = ignoreHttpsErrors;
         }
 
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWebServerRunner.RunAsync), -200)]
@@ -79,7 +84,6 @@ namespace SandboxTest.Playwright
             {
                 Headless = _headless,
                 SlowMo = _sloMo
-
             };
             if (_browserType == PlaywrightControllerBrowserType.Chromium)
             {
@@ -93,9 +97,13 @@ namespace SandboxTest.Playwright
             {
                 _browser = await _playwright.Webkit.LaunchAsync(browserTypeLaunchOptions);
             }
-            _page = await _browser!.NewPageAsync();
-            var startPageUri = $"{_webServerRunner.Url.TrimEnd('/').TrimEnd('\\')}{(_startPageName != null ? '\\' + _startPageName : string.Empty)}";
-            await _page.GotoAsync(startPageUri);
+
+            _page = await _browser!.NewPageAsync(new BrowserNewPageOptions
+            {
+                IgnoreHTTPSErrors = _ignoreHttpsErrors,
+                BaseURL = _webServerRunner.Url.TrimEnd('/').TrimEnd('\\')
+            });
+            await _page.GotoAsync(_startPageName ?? "\\");
         }
 
         [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IWebServerRunner.StopAsync), -200)]

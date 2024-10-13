@@ -254,22 +254,6 @@ namespace SandboxTest.Node
             _isRunning = false;
         }
 
-        private static async Task<string> RunNodeCommandAsync(string commandToRun)
-        {
-            var process = RunNodeProcess(commandToRun, Environment.CurrentDirectory);
-
-            var output = new StringBuilder();
-            process.OutputDataReceived += delegate (object sender, DataReceivedEventArgs args) {
-                output.AppendLine(args.Data);
-            };
-            process.BeginOutputReadLine();
-            process.BeginOutputReadLine();
-
-            await process.WaitForExitAsync();
-
-            return output.ToString();
-        }
-
         private static async Task<string> RunNodeCommandAsync(string commandToRun, string workingDirectory)
         {
             var output = new StringBuilder();

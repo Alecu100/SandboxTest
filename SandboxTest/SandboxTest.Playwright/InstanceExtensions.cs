@@ -20,7 +20,7 @@ namespace SandboxTest.Playwright
         /// <param name="headless">True if the browser is hidden, false to show the browser.</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static IInstance AddPlaywrightController(this IInstance instance, PlaywrightControllerBrowserType browserType, string? name = default, string? startPageName = null, float? slowMod = null, bool headless = true)
+        public static IInstance AddPlaywrightController(this IInstance instance, PlaywrightControllerBrowserType browserType, string? name = default, string? startPageName = null, float? slowMod = null, bool headless = true, bool ignoreHttpsErrors = false)
         {
             if (instance.Runner == null)
             {
@@ -32,7 +32,7 @@ namespace SandboxTest.Playwright
                 throw new InvalidOperationException("Instance has no web server runner assigned");
             }
 
-            var playwrightController = new PlaywrightController(name, browserType, startPageName, slowMod, headless);
+            var playwrightController = new PlaywrightController(name, browserType, startPageName, slowMod, headless, ignoreHttpsErrors);
             instance.AddController(playwrightController);
             return instance;
         }

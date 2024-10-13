@@ -18,5 +18,10 @@ namespace SandboxTest.Playwright
         /// Gets the current page.
         /// </summary>
         public IPage Page { get; }
+
+        /// <summary>
+        /// Gets the browser instance.
+        /// </summary>
+        public IBrowser Browser { get; }
     }
 }

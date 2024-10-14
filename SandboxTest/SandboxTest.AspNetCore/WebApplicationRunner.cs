@@ -60,21 +60,15 @@ namespace SandboxTest.AspNetCore
 
             return Task.CompletedTask;
         }
-
+        
         /// <summary>
-        /// Use the configure function to allow the host to run in a scenario.
+        /// Used to initialize the web application builder used to build the actual web application.
         /// </summary>
-        /// <returns></returns>
         /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public virtual async Task ConfigureBuildAsync(IScenarioSuiteContext scenarioSuiteContext)
+        public virtual async Task InitializeBuilderAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             _webApplicationBuilder = await _webApplicationBuilderFunc();
-            if (_webApplicationBuilder == null)
-            {
-                throw new InvalidOperationException("Web application builder not found.");
-            }
         }
 
         ///<inheritdoc/>

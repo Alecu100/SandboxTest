@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using SandboxTest.Instance;
+using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Scenario;
 
 namespace SandboxTest.Hosting
@@ -31,6 +32,15 @@ namespace SandboxTest.Hosting
         }
 
         /// <summary>
+        /// Used to initialize the builder for the host.
+        /// </summary>
+        /// <returns></returns>
+        public virtual async Task InitializeBuilderAsync(IScenarioSuiteContext scenarioSuiteContext)
+        {
+            _hostBuilder = await _hostBuilderFunc();
+        }
+
+        /// <summary>
         /// Builds the host by calling the IHostBuilder.Build method.
         /// </summary>
         /// <returns></returns>
@@ -43,16 +53,6 @@ namespace SandboxTest.Hosting
             }
             _host = _hostBuilder.Build();
             return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Use the configure sandbox function to allow the host to run in a sandbox.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public virtual async Task ConfigureBuildAsync(IScenarioSuiteContext scenarioSuiteContext)
-        {
-            _hostBuilder = await _hostBuilderFunc();
         }
 
         ///<inheritdoc/>

@@ -8,11 +8,11 @@ namespace SandboxTest.Instance
     /// </summary>
     public abstract class RunnerBase : IRunner
     {
-        protected readonly List<AttachedDynamicMethod> _attachedDynamicMethods = new List<AttachedDynamicMethod>();
+        protected readonly List<AttachedDynamicMethod> _attachedMethods = new List<AttachedDynamicMethod>();
         protected bool _isRunning;
 
         /// <inheritdoc/>
-        public IReadOnlyList<AttachedDynamicMethod> AttachedMethods => _attachedDynamicMethods;
+        public IReadOnlyList<AttachedDynamicMethod> AttachedMethods => _attachedMethods;
 
         /// <inheritdoc/>
         public bool IsRunning { get => _isRunning; }
@@ -20,7 +20,11 @@ namespace SandboxTest.Instance
         /// <inheritdoc/>
         public virtual void AddAttachedMethod(AttachedMethodType methodType, Delegate method, string name, string targetMethodName, int order)
         {
-            _attachedDynamicMethods.Add(new AttachedDynamicMethod(methodType, method, name, targetMethodName, order));
+            if (_attachedMethods.Any(attachedMethod => attachedMethod.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                throw new InvalidOperationException($"Runner already has an attached method with the name {name}");
+            }
+            _attachedMethods.Add(new AttachedDynamicMethod(methodType, method, name, targetMethodName, order));
         }
 
         /// <inheritdoc/>

@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using SandboxTest.Instance;
+using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Scenario;
 
 namespace SandboxTest.Hosting
 {
@@ -17,5 +19,13 @@ namespace SandboxTest.Hosting
         /// Returns the host builder.
         /// </summary>
         IHostBuilder HostBuilder { get; }
+
+        /// <summary>
+        /// Use the configure sandbox function to allow the host to run in a sandbox.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        [AttachedMethod(AttachedMethodType.RunnerToRunner, nameof(BuildAsync), -300)]
+        Task InitializeBuilderAsync(IScenarioSuiteContext scenarioSuiteContext);
     }
 }

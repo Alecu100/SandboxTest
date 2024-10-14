@@ -43,7 +43,7 @@ namespace SandboxTest.AspNetCore
                 {
                     await configureBuildFunc(webApplicationRunner.WebApplicationBuilder);
                 };
-                webApplicationRunner.AddAttachedMethod(AttachedMethodType.RunnerToRunner, onConfigureBuild, nameof(configureBuildFunc), nameof(WebApplicationRunner.ConfigureBuildAsync), 100);
+                webApplicationRunner.AddAttachedMethod(AttachedMethodType.RunnerToRunner, onConfigureBuild, nameof(configureBuildFunc), nameof(WebApplicationRunner.InitializeBuilderAsync), 100);
             }
             if (configureRunFunc != null)
             {

@@ -53,7 +53,7 @@ namespace SandboxTest.Hosting
         /// <param name="scenarioSuiteContext"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IHostRunner.ConfigureBuildAsync), 300)]
+        [AttachedMethod(AttachedMethodType.ControllerToRunner, nameof(IHostRunner.BuildAsync), -10)]
         public Task ConfigureBuildAsync(IRunner runner, IScenarioSuiteContext scenarioSuiteContext)
         {
             var hostApplicationRunner = runner as IHostRunner;

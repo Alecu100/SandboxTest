@@ -70,7 +70,7 @@ namespace SandboxTest.Hosting
                 {
                     await configureBuildFunc(hostBuilderApplicationRunner.HostBuilder);
                 };
-                hostBuilderApplicationRunner.AddAttachedMethod(AttachedMethodType.RunnerToRunner, onConfigureBuild, nameof(configureBuildFunc), nameof(HostRunner.ConfigureBuildAsync), 100);
+                hostBuilderApplicationRunner.AddAttachedMethod(AttachedMethodType.RunnerToRunner, onConfigureBuild, nameof(configureBuildFunc), nameof(HostRunner.InitializeBuilderAsync), 100);
             }
             if (configureRunFunc != null)
             {

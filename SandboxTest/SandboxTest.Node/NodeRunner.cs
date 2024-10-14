@@ -87,22 +87,16 @@ namespace SandboxTest.Node
         public bool UseSssl { get =>_useSsl; }
 
         /// <inheritdoc/>
-        public string SourcePath { get => _sourcePath ?? throw new InvalidOperationException("Source path not configured"); set => _sourcePath = _sourcePath == null ? value : throw new InvalidOperationException("Node runner already configured"); }
+        public string SourcePath { get => _sourcePath ?? throw new InvalidOperationException("Node runner not configured"); set => _sourcePath = _sourcePath == null ? value : throw new InvalidOperationException("Node runner already configured"); }
 
         /// <inheritdoc/>
-        public Func<string, bool>? ParseReadyFunc { get => _parseReadyFunc ?? throw new InvalidOperationException("Source path not configured"); set => _parseReadyFunc = _parseReadyFunc == null ? _parseReadyFunc : throw new InvalidOperationException("Node runner already configured"); }
+        public Func<string, bool> ParseReadyFunc { get => _parseReadyFunc ?? throw new InvalidOperationException("Node runner not configured"); set => _parseReadyFunc = _parseReadyFunc == null ? value : throw new InvalidOperationException("Node runner already configured"); }
 
         /// <inheritdoc/>
-        public Func<string, bool>? ParseErrorFunc { get => _parseErrorFunc ?? throw new InvalidOperationException("Source path not configured"); set => _parseErrorFunc = _parseErrorFunc == null ? value : throw new InvalidOperationException("Node runner already configured"); }
+        public Func<string, bool> ParseErrorFunc { get => _parseErrorFunc ?? throw new InvalidOperationException("Node runner not configured"); set => _parseErrorFunc = _parseErrorFunc == null ? value : throw new InvalidOperationException("Node runner already configured"); }
 
         /// <inheritdoc/>
-        public string NpmRunCommand { get => _npmRunCommand ?? throw new InvalidOperationException("Source path not configured"); set => _npmRunCommand = _npmRunCommand == null ? value : throw new InvalidOperationException("Node runner already configured"); }
-
-        /// <inheritdoc/>
-        public Task ConfigureBuildAsync(IScenarioSuiteContext scenarioSuiteContext)
-        {
-            return Task.CompletedTask;
-        }
+        public string NpmRunCommand { get => _npmRunCommand ?? throw new InvalidOperationException("Node runner not configured"); set => _npmRunCommand = _npmRunCommand == null ? value : throw new InvalidOperationException("Node runner already configured"); }
 
         /// <inheritdoc/>
         public async Task BuildAsync(IScenarioSuiteContext scenarioSuiteContext)
@@ -113,14 +107,6 @@ namespace SandboxTest.Node
             }
 
             await RunNodeCommandAsync($"install -f" , _sourcePath);
-        }
-
-        public void OnConfigureNode(Func<string, bool> parseReadyFunc, Func<string, bool>? parseErrorFunc, string sourcePath, string npmRunCommand)
-        {
-            _sourcePath = sourcePath;
-            _parseReadyFunc = parseReadyFunc;
-            _parseErrorFunc = parseErrorFunc;
-            _npmRunCommand = npmRunCommand;
         }
 
         /// <summary>

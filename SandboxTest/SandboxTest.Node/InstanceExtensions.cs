@@ -45,7 +45,7 @@ namespace SandboxTest.Node
                 nodeRuner.NpmRunCommand = NodeRunnerParameters.ViteNpmRunCommand;
                 return Task.CompletedTask;
             };
-            nodeRuner.AddAttachedMethod(AttachedMethodType.RunnerToRunner, onConfigureBuild, nameof(onConfigureBuild), nameof(nodeRuner.ConfigureBuildAsync), -100);
+            nodeRuner.AddAttachedMethod(AttachedMethodType.RunnerToRunner, onConfigureBuild, nameof(onConfigureBuild), nameof(nodeRuner.BuildAsync), -100);
 
             return instance;
         }

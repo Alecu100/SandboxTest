@@ -14,6 +14,11 @@ namespace SandboxTest.Instance.Hosted
         bool IsBeingDebugged { get; }
 
         /// <summary>
+        /// Gets the package folder when the hosted instance has <see cref="IHostedInstance.IsPackaged"/> set to true.
+        /// </summary>
+        string? PackageFolder { get; }
+
+        /// <summary>
         /// Launches a new process.
         /// </summary>
         /// <param name="filePath"></param>

@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using SandboxTest.Instance;
+using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Scenario;
 
 namespace SandboxTest.Hosting
 {
@@ -53,7 +55,7 @@ namespace SandboxTest.Hosting
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         public static IInstance ConfigureHostRunner(this IInstance applicationInstance,
-            Func<IHostBuilder, Task> configureBuildFunc,
+            Func<IHostBuilder, Task>? configureBuildFunc,
             Func<IHost, Task>? configureRunFunc = default)
         {
             var hostBuilderApplicationRunner = applicationInstance.Runner as HostRunner;
@@ -62,8 +64,23 @@ namespace SandboxTest.Hosting
                 throw new InvalidOperationException("Invalid runner configured on instance, expected HostRunner");
             }
 
-            hostBuilderApplicationRunner.OnConfigureBuild(configureBuildFunc);
-            hostBuilderApplicationRunner.OnConfigureRun(configureRunFunc);
+            if (configureBuildFunc != null)
+            {
+                Func<IScenarioSuiteContext, Task> onConfigureBuild = async (ctx) =>
+                {
+                    await configureBuildFunc(hostBuilderApplicationRunner.HostBuilder);
+                };
+                hostBuilderApplicationRunner.AddAttachedMethod(AttachedMethodType.RunnerToRunner, onConfigureBuild, nameof(configureBuildFunc), nameof(HostRunner.ConfigureBuildAsync), 100);
+            }
+            if (configureRunFunc != null)
+            {
+                Func<IScenarioSuiteContext, Task> onConfigureRun = async (ctx) =>
+                {
+                    await configureRunFunc(hostBuilderApplicationRunner.Host);
+                };
+                hostBuilderApplicationRunner.AddAttachedMethod(AttachedMethodType.RunnerToRunner, onConfigureRun, nameof(configureRunFunc), nameof(HostRunner.RunAsync), -100);
+            }
+
             return applicationInstance;
         }
 

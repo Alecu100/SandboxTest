@@ -25,14 +25,5 @@ namespace SandboxTest.Instance
         /// <returns></returns>
         [AttachedMethod(AttachedMethodType.RunnerToRunner, nameof(RunAsync), -200)]
         Task BuildAsync(IScenarioSuiteContext scenarioSuiteContext);
-
-        /// <summary>
-        /// Configures any remaining functionality to run that can only the done after the application is built and before
-        /// running it.
-        /// </summary>
-        /// <param name="scenarioSuiteContext">The scenario suite context.</param>
-        /// <returns></returns>
-        [AttachedMethod(AttachedMethodType.RunnerToRunner, nameof(RunAsync), -100)]
-        Task ConfigureRunAsync(IScenarioSuiteContext scenarioSuiteContext);
     }
 }

@@ -32,7 +32,7 @@ namespace SandboxTest.Sample
                 builder.ConfigureWebApplicationBuilder();
                 builder.Logging.AddConsole();
                 return Task.FromResult(builder);
-            })
+            }, "http://0.0.0.0:6633")
             .ConfigureWebApplicationRunner(builder =>
             {
                 builder.Services.AddHttpLogging(o => { });
@@ -45,8 +45,7 @@ namespace SandboxTest.Sample
                 webApp.MapGet("/debug/routes", (IEnumerable<EndpointDataSource> endpointSources) =>
                     string.Join("\n", endpointSources.SelectMany(source => source.Endpoints)));
                 return Task.CompletedTask;
-            })
-            .ConfigureWebApplicationRunnerUrl("http://0.0.0.0:6633");
+            });
 
         public readonly IInstance ApplicationInstance92 = ApplicationInstance.CreateEmptyInstance()
             .UseRemoteWebServerRunner()

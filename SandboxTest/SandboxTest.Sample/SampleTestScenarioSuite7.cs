@@ -23,7 +23,7 @@ namespace SandboxTest.Sample
                 var builder = WebApplication.CreateBuilder();
                 builder.ConfigureWebApplicationBuilder();
                 return Task.FromResult(builder);
-            })
+            }, "https://localhost:5566")
             .ConfigureWebApplicationRunner(builder =>
             {
                 builder.Services.AddControllers().ConfigureApplicationPartManager(parts => parts.ApplicationParts.Add(new AssemblyPart(typeof(WebApplicationExtensions).Assembly)));
@@ -47,7 +47,6 @@ namespace SandboxTest.Sample
                 webApp.UseCors("test");
                 return Task.CompletedTask;
             })
-            .ConfigureWebApplicationRunnerUrl("https://localhost:5566")
             .AddRunnerController();
 
         public readonly IInstance ApplicationInstance72 = ApplicationInstance.CreateEmptyInstance()

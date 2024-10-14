@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using SandboxTest.Instance;
+using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Scenario;
 
 namespace SandboxTest.AspNetCore
 {
@@ -11,9 +13,9 @@ namespace SandboxTest.AspNetCore
         /// <param name="instance"></param>
         /// <param name="webApplicationBuilderFunc"></param>
         /// <returns></returns>
-        public static IInstance UseWebApplicationRunner(this IInstance instance, Func<Task<WebApplicationBuilder>> webApplicationBuilderFunc)
+        public static IInstance UseWebApplicationRunner(this IInstance instance, Func<Task<WebApplicationBuilder>> webApplicationBuilderFunc, string url)
         {
-            instance.UseRunner(new WebApplicationRunner(webApplicationBuilderFunc));
+            instance.UseRunner(new WebApplicationRunner(webApplicationBuilderFunc, url));
             return instance;
         }
 
@@ -26,17 +28,32 @@ namespace SandboxTest.AspNetCore
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         public static IInstance ConfigureWebApplicationRunner(this IInstance instance,
-            Func<WebApplicationBuilder, Task> configureBuildFunc,
+            Func<WebApplicationBuilder, Task>? configureBuildFunc,
             Func<WebApplication, Task>? configureRunFunc = default)
         {
-            var hostBuilderApplicationRunner = instance.Runner as WebApplicationRunner;
-            if (hostBuilderApplicationRunner == null)
+            var webApplicationRunner = instance.Runner as WebApplicationRunner;
+            if (webApplicationRunner == null)
             {
                 throw new InvalidOperationException("Invalid runner configured on instance, expected web application runner");
             }
 
-            hostBuilderApplicationRunner.OnConfigureBuild(configureBuildFunc);
-            hostBuilderApplicationRunner.OnConfigureRun(configureRunFunc);
+            if (configureBuildFunc != null)
+            {
+                Func<IScenarioSuiteContext, Task> onConfigureBuild = async (ctx) =>
+                {
+                    await configureBuildFunc(webApplicationRunner.WebApplicationBuilder);
+                };
+                webApplicationRunner.AddAttachedMethod(AttachedMethodType.RunnerToRunner, onConfigureBuild, nameof(configureBuildFunc), nameof(WebApplicationRunner.ConfigureBuildAsync), 100);
+            }
+            if (configureRunFunc != null)
+            {
+                Func<IScenarioSuiteContext, Task> onConfigureRun = async (ctx) =>
+                {
+                    await configureRunFunc(webApplicationRunner.WebApplication);
+                };
+                webApplicationRunner.AddAttachedMethod(AttachedMethodType.RunnerToRunner, onConfigureRun, nameof(configureRunFunc), nameof(WebApplicationRunner.RunAsync), -100);
+            }
+
             return instance;
         }
 
@@ -58,25 +75,6 @@ namespace SandboxTest.AspNetCore
             var hostApplicationController = new WebApplicationController(name);
             instance.AddController(hostApplicationController);
             return instance;
-        }
-
-        /// <summary>
-        /// Configures the url to use when starting a <see cref="WebApplication"/> for a <see cref="WebApplicationRunner"/>.
-        /// </summary>
-        /// <param name="applicationInstance"></param>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public static IInstance ConfigureWebApplicationRunnerUrl(this IInstance applicationInstance, string url)
-        {
-            var hostBuilderApplicationRunner = applicationInstance.Runner as WebApplicationRunner;
-            if (hostBuilderApplicationRunner == null)
-            {
-                throw new InvalidOperationException("Invalid runner configured on instance, expected web application runner");
-            }
-
-            hostBuilderApplicationRunner.OnConfigureUrl(url);
-            return applicationInstance;
         }
 
         public static IInstance ConfigureWebApplicationRunnerReset(this IInstance applicationInstance,

@@ -9,7 +9,7 @@ namespace SandboxTest.Engine.ChildTestEngine
         public void Initialize(object scenarioSuite)
         {
             var scenarioSuiteType = scenarioSuite.GetType();
-            var scenarioSuiteNamePrefix = scenarioSuiteType.Name;
+            var scenarioSuiteNamePrefix = ScenarioSuiteTypeNamePrefix.SanitizeClassName(scenarioSuiteType.Name);
             var allScenarioSuitesFromAssembly = scenarioSuite.GetType().Assembly.GetTypes().Where(type => type.GetCustomAttribute<ScenarioSuiteAttribute>() != null);
             var allScenarioSuitesWithSameName = allScenarioSuitesFromAssembly.Where(otherScenarioSuiteType => otherScenarioSuiteType.Name.Equals(scenarioSuiteType.Name, StringComparison.InvariantCultureIgnoreCase) && otherScenarioSuiteType != scenarioSuiteType);
 
@@ -23,7 +23,10 @@ namespace SandboxTest.Engine.ChildTestEngine
                 {
                     foreach (var suiteNamePrefix in scenarioSuiteNamePrefixes)
                     {
-                        suiteNamePrefix.AppendToPrefix();
+                        if (suiteNamePrefix.CanAppendToPrefix())
+                        {
+                            suiteNamePrefix.AppendToPrefix();
+                        }
                     }
                 }
 
@@ -65,14 +68,16 @@ namespace SandboxTest.Engine.ChildTestEngine
 
         private class ScenarioSuiteTypeNamePrefix
         {
+            public static string SanitizeClassName(string className)
+            {
+                return className.Replace('<', '_').Replace(">", "_");
+            }
+
             public ScenarioSuiteTypeNamePrefix(Type type) 
             {
-                ScenarioSuiteType = type;
                 Prefix = type.Name;
                 NamespacePrefixes = new Stack<string>(type.Namespace!.Split('.'));
             }
-
-            public Type ScenarioSuiteType { get; set; }
 
             public string Prefix { get; set; }
 
@@ -86,6 +91,11 @@ namespace SandboxTest.Engine.ChildTestEngine
             public void AppendToPrefix()
             {
                 Prefix = $"{NamespacePrefixes.Pop()}.{Prefix}";
+            }
+
+            public bool CanAppendToPrefix()
+            {
+                return NamespacePrefixes.Count > 0;
             }
         }
     }

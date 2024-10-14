@@ -1,4 +1,6 @@
 ﻿using SandboxTest.Instance;
+using SandboxTest.Instance.AttachedMethod;
+using SandboxTest.Scenario;
 
 namespace SandboxTest.Node
 {
@@ -34,7 +36,16 @@ namespace SandboxTest.Node
             {
                 throw new InvalidOperationException("Invalid runner configured on instance, expected node runner");
             }
-            nodeRuner.OnConfigureNode(NodeRunnerParameters.ViteParseReadyFunc, NodeRunnerParameters.ViteParseErrorFunc, sourcePath, NodeRunnerParameters.ViteNpmRunCommand);
+
+            Func<IScenarioSuiteContext, Task> onConfigureBuild = (ctx) =>
+            {
+                nodeRuner.SourcePath = sourcePath;
+                nodeRuner.ParseReadyFunc = NodeRunnerParameters.ViteParseReadyFunc;
+                nodeRuner.ParseErrorFunc = NodeRunnerParameters.ViteParseErrorFunc;
+                nodeRuner.NpmRunCommand = NodeRunnerParameters.ViteNpmRunCommand;
+                return Task.CompletedTask;
+            };
+            nodeRuner.AddAttachedMethod(AttachedMethodType.RunnerToRunner, onConfigureBuild, nameof(onConfigureBuild), nameof(nodeRuner.ConfigureBuildAsync), -100);
 
             return instance;
         }

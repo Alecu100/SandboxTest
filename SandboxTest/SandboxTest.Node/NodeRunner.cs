@@ -9,37 +9,24 @@ namespace SandboxTest.Node
 {
     public class NodeRunner : RunnerBase, INodeRunner
     {
-        private static bool NodeFound;
-        private static readonly string? NodeExecutableName;
-        private static readonly string? NodePath;
-        private const string NodeCliPath = "node_modules\\npm\\bin\\npm-cli.js";
-        private const string Listening = "LISTENING";
-        private const string Listen = "LISTEN";
-        private const string Node = "node";
+        protected static bool NodeFound;
+        protected static readonly string? NodeExecutableName;
+        protected static readonly string? NodePath;
+        protected const string NodeCliPath = "node_modules\\npm\\bin\\npm-cli.js";
+        protected const string Listening = "LISTENING";
+        protected const string Listen = "LISTEN";
+        protected const string Node = "node";
 
-        private Process? _nodeProcess;
-
-        private Func<string, bool>? _parseReadyFunc;
-
-        private Func<string, bool>? _parseErrorFunc;
-
-        private string _host;
-
-        private int _port;
-
-        private bool _useSsl;
-
-        private string _url;
-
-        private Func<Task>? _configureBuildFunc;
-
-        private Func<Task>? _configureRunFunc;
-
-        private string? _sourcePath;
-
+        protected Process? _nodeProcess;
+        protected Func<string, bool>? _parseReadyFunc;
+        protected Func<string, bool>? _parseErrorFunc;
+        protected string _host;
+        protected int _port;
+        protected bool _useSsl;
+        protected string _url;
+        protected string? _sourcePath;
         private string? _npmRunCommand;
-
-        private TaskCompletionSource<bool>? _runCompletionSource;
+        protected TaskCompletionSource<bool>? _runCompletionSource;
 
         static NodeRunner()
         {
@@ -88,15 +75,34 @@ namespace SandboxTest.Node
         }
 
         /// <inheritdoc/>
-        public string Host => _host;
+        public string Host { get => _host; }
 
         /// <inheritdoc/>
-        public int Port => _port;
+        public int Port { get => _port; }
 
         /// <inheritdoc/>
-        public string Url => _url;
+        public string Url { get => _url; }
 
-        public bool UseSssl => _useSsl;
+        /// <inheritdoc/>
+        public bool UseSssl { get =>_useSsl; }
+
+        /// <inheritdoc/>
+        public string SourcePath { get => _sourcePath ?? throw new InvalidOperationException("Source path not configured"); set => _sourcePath = _sourcePath == null ? value : throw new InvalidOperationException("Node runner already configured"); }
+
+        /// <inheritdoc/>
+        public Func<string, bool>? ParseReadyFunc { get => _parseReadyFunc ?? throw new InvalidOperationException("Source path not configured"); set => _parseReadyFunc = _parseReadyFunc == null ? _parseReadyFunc : throw new InvalidOperationException("Node runner already configured"); }
+
+        /// <inheritdoc/>
+        public Func<string, bool>? ParseErrorFunc { get => _parseErrorFunc ?? throw new InvalidOperationException("Source path not configured"); set => _parseErrorFunc = _parseErrorFunc == null ? value : throw new InvalidOperationException("Node runner already configured"); }
+
+        /// <inheritdoc/>
+        public string NpmRunCommand { get => _npmRunCommand ?? throw new InvalidOperationException("Source path not configured"); set => _npmRunCommand = _npmRunCommand == null ? value : throw new InvalidOperationException("Node runner already configured"); }
+
+        /// <inheritdoc/>
+        public Task ConfigureBuildAsync(IScenarioSuiteContext scenarioSuiteContext)
+        {
+            return Task.CompletedTask;
+        }
 
         /// <inheritdoc/>
         public async Task BuildAsync(IScenarioSuiteContext scenarioSuiteContext)
@@ -115,34 +121,6 @@ namespace SandboxTest.Node
             _parseReadyFunc = parseReadyFunc;
             _parseErrorFunc = parseErrorFunc;
             _npmRunCommand = npmRunCommand;
-        }
-
-        /// <inheritdoc/>
-        public async Task ConfigureBuildAsync(IScenarioSuiteContext scenarioSuiteContext)
-        {
-            if (_configureBuildFunc != null)
-            {
-                await _configureBuildFunc();
-            }
-        }
-
-        public void OnConfigureBuild(Func<Task> configureBuildFunc)
-        {
-            _configureBuildFunc = configureBuildFunc;
-        }
-
-        public void OnConfigureRun(Func<Task> configureRunFunc)
-        {
-            _configureRunFunc = configureRunFunc;
-        }
-
-        /// <inheritdoc/>
-        public async Task ConfigureRunAsync(IScenarioSuiteContext scenarioSuiteContext)
-        {
-            if (_configureRunFunc != null)
-            {
-                await _configureRunFunc();
-            }
         }
 
         /// <summary>

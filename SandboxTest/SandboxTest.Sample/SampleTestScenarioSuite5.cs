@@ -26,7 +26,7 @@ namespace SandboxTest.Sample
                 var builder = WebApplication.CreateBuilder();
                 builder.ConfigureWebApplicationBuilder();
                 return Task.FromResult(builder);
-            })
+            }, "https://localhost:5600")
             .ConfigureWebApplicationRunner(builder =>
             {
                 builder.Services.AddControllers().ConfigureApplicationPartManager(parts => parts.ApplicationParts.Add(new AssemblyPart(typeof(WebApplicationExtensions).Assembly)));
@@ -36,7 +36,6 @@ namespace SandboxTest.Sample
                 webApp.ConfigureWebApplication();
                 return Task.CompletedTask;
             })
-            .ConfigureWebApplicationRunnerUrl("https://localhost:5600")
             .AddHttpClientController()
             .AddHostController()
             .AddWebApplicationController();

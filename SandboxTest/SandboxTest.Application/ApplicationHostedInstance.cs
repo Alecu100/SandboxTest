@@ -43,7 +43,7 @@ namespace SandboxTest.Application
         public IReadOnlyList<string> Addresses { get => _addresses ?? throw new InvalidOperationException("Appliction hosted instance not started"); }
 
         /// <summary>
-        /// Gets and sets whether the instance should be packaged in a separate dedicated folder.
+        /// Gets and sets whether the instance should be packaged in a separate dedicated folder from the main test folder.
         /// </summary>
         public bool IsPackaged { get; set; }
 

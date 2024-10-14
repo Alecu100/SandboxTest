@@ -21,6 +21,26 @@ namespace SandboxTest.Node
         /// <summary>
         /// Returns true if the server uses ssl, false otherwise.
         /// </summary>
-        bool UseSssl { get; }
+        bool UseSssl { get;}
+
+        /// <summary>
+        /// Gets the source path containing the javascript/typescript code to run in node.
+        /// </summary>
+        string SourcePath { get; set; }
+
+        /// <summary>
+        /// Gets or sets the functions used to parse the output from the node process to determine when it has finished starting and is ready to process requests.
+        /// </summary>
+        Func<string, bool> ParseReadyFunc { get; set; }
+
+        /// <summary>
+        /// Gets or sets the functions used to parse the output from the node process to determine when it has ran into an error.
+        /// </summary>
+        Func<string, bool> ParseErrorFunc { get; set; }
+
+        /// <summary>
+        /// Gets or sets the command used to run the node web server of choice.
+        /// </summary>
+        string NpmRunCommand { get; set; }
     }
 }

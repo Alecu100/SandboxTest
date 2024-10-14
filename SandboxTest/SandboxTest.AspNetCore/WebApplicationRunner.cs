@@ -17,7 +17,7 @@ namespace SandboxTest.AspNetCore
         protected Func<WebApplication, Task>? _configureRunFunc;
         protected Func<WebApplication, Task>? _resetFunc;
         protected Task? _runTask;
-        protected string? _url;
+        protected string _url;
 
         ///<inheritdoc/>
         public IHost Host => _webApplication ?? throw new InvalidOperationException("Web application runner not built");
@@ -38,33 +38,10 @@ namespace SandboxTest.AspNetCore
         /// Creates a new instance of <see cref="WebApplicationRunner"/> having as parameter a function that return the original web application builder.
         /// </summary>
         /// <param name="webApplicationBuilderFunc"></param>
-        public WebApplicationRunner(Func<Task<WebApplicationBuilder>> webApplicationBuilderFunc)
-        {
-            _webApplicationBuilderFunc = webApplicationBuilderFunc;
-        }
-
-        /// <summary>
-        /// Provides a way to set the web aplication builder configuration so that the web application can be ran in a sandbox,
-        /// Such as replacing sql server database context with sqlLite in memory database context.
-        /// </summary>
-        /// <param name="configureBuildSandboxFunc"></param>
-        /// <exception cref="InvalidOperationException"></exception>
-        public void OnConfigureBuild(Func<WebApplicationBuilder, Task> configureBuildSandboxFunc)
-        {
-            if (_configureBuildFunc != null)
-            {
-                throw new InvalidOperationException("ConfigureBuildFunc already set.");
-            }
-            _configureBuildFunc = configureBuildSandboxFunc;
-        }
-
-        /// <summary>
-        /// Configures the url to start the web application on.
-        /// </summary>
-        /// <param name="url"></param>
-        public void OnConfigureUrl(string url)
+        public WebApplicationRunner(Func<Task<WebApplicationBuilder>> webApplicationBuilderFunc, string url)
         {
             _url = url;
+            _webApplicationBuilderFunc = webApplicationBuilderFunc;
         }
 
         /// <summary>
@@ -98,43 +75,6 @@ namespace SandboxTest.AspNetCore
             {
                 throw new InvalidOperationException("Web application builder not found.");
             }
-            if (_configureBuildFunc != null)
-            {
-                await _configureBuildFunc(_webApplicationBuilder);
-            }
-        }
-
-        /// <summary>
-        /// Uses the configure run function to perform any additional operations after building the web application but before running it.
-        /// </summary>
-        /// <param name="scenarioSuiteContext"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public virtual async Task ConfigureRunAsync(IScenarioSuiteContext scenarioSuiteContext)
-        {
-            if (_webApplication == null)
-            {
-                throw new InvalidOperationException("Web application not built.");
-            }
-            if (_configureRunFunc != null)
-            {
-                await _configureRunFunc(_webApplication);
-            }
-        }
-
-        /// <summary>
-        /// Provides a way to set any remaining configurations that can only be done after the web application is built in order to run
-        /// it in a sandbox.
-        /// </summary>
-        /// <param name="configureRunFunc"></param>
-        /// <exception cref="InvalidOperationException"></exception>
-        public void OnConfigureRun(Func<WebApplication, Task>? configureRunFunc)
-        {
-            if (_configureRunFunc != null)
-            {
-                throw new InvalidOperationException("Configure run function already set.");
-            }
-            _configureRunFunc = configureRunFunc;
         }
 
         ///<inheritdoc/>

@@ -12,8 +12,6 @@ namespace SandboxTest.Hosting
         protected IHost? _host;
         protected IHostBuilder? _hostBuilder;
         protected Func<Task<IHostBuilder>> _hostBuilderFunc;
-        protected Func<IHostBuilder, Task>? _configureBuildFunc;
-        protected Func<IHost, Task>? _configureRunFunc;
         protected Func<IHost, Task>? _resetFunc;
         protected string[]? _arguments;
 
@@ -48,21 +46,6 @@ namespace SandboxTest.Hosting
         }
 
         /// <summary>
-        /// Provides a way to set the host builder configuration so that the application can be ran in a sandbox,
-        /// Such as replacing sql server database context with sqlLite in memory database context
-        /// </summary>
-        /// <param name="configureBuildFunc"></param>
-        /// <exception cref="InvalidOperationException"></exception>
-        public void OnConfigureBuild(Func<IHostBuilder, Task> configureBuildFunc)
-        {
-            if (_configureBuildFunc != null)
-            {
-                throw new InvalidOperationException("ConfigureBuildFunc already set.");
-            }
-            _configureBuildFunc = configureBuildFunc;
-        }
-
-        /// <summary>
         /// Use the configure sandbox function to allow the host to run in a sandbox.
         /// </summary>
         /// <returns></returns>
@@ -70,46 +53,6 @@ namespace SandboxTest.Hosting
         public virtual async Task ConfigureBuildAsync(IScenarioSuiteContext scenarioSuiteContext)
         {
             _hostBuilder = await _hostBuilderFunc();
-            if (_hostBuilder == null)
-            {
-                throw new InvalidOperationException("Host builder not found.");
-            }
-            if (_configureBuildFunc != null)
-            {
-                await _configureBuildFunc(_hostBuilder);
-            }
-        }
-
-        /// <summary>
-        /// Uses the configure run function to perform any additional operations after building the application but before running it.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public virtual async Task ConfigureRunAsync(IScenarioSuiteContext scenarioSuiteContext)
-        {
-            if (_host == null)
-            {
-                throw new InvalidOperationException("Host not built.");
-            }
-            if (_configureRunFunc != null)
-            {
-                await _configureRunFunc(_host);
-            }
-        }
-
-        /// <summary>
-        /// Provides a way to set any remaining configurations that can only be done after the application is built in order to run
-        /// it in a sandbox.
-        /// </summary>
-        /// <param name="configureRunFunc"></param>
-        /// <exception cref="InvalidOperationException"></exception>
-        public void OnConfigureRun(Func<IHost, Task>? configureRunFunc)
-        {
-            if (_configureRunFunc != null)
-            {
-                throw new InvalidOperationException("Configure run function already set.");
-            }
-            _configureRunFunc = configureRunFunc;
         }
 
         ///<inheritdoc/>

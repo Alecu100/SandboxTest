@@ -48,6 +48,17 @@ namespace SandboxTest.Engine.ChildTestEngine
                 }
             }
 
+            if (targetMethod.Target is IAttachedMethodContainer)
+            {
+                var attachedMethodsContainer = (IAttachedMethodContainer)targetMethod.Target;
+
+                foreach (var attachedMethod in attachedMethodsContainer.AttachedMethods)
+                {
+                    possibleMethodsToRun.Add((new AttachedMethodAttribute(attachedMethod.MethodType, attachedMethod.TargetMethodName, attachedMethod.Order), 
+                        new MethodToExecute { Method = attachedMethod.MethodDelegate.Method, Target = attachedMethod.MethodDelegate.Target }));
+                }
+            }
+
             await ExecuteMethodIncludingAttachedMethods(possibleMethodsToRun, new MethodToExecute { Target = targetMethod.Target!, Method = targetMethod.Method } , arguments);
         }
 

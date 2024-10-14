@@ -18,7 +18,7 @@ namespace SandboxTest.Instance
         public bool IsRunning { get => _isRunning; }
 
         /// <inheritdoc/>
-        public virtual void AddAttachedDynamicMethod(AttachedMethodType methodType, Delegate method, string name, string targetMethodName, int order)
+        public virtual void AddAttachedMethod(AttachedMethodType methodType, Delegate method, string name, string targetMethodName, int order)
         {
             _attachedDynamicMethods.Add(new AttachedDynamicMethod(methodType, method, name, targetMethodName, order));
         }

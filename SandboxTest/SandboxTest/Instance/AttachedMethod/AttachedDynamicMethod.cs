@@ -35,7 +35,7 @@
         /// <summary>
         /// Represents the actual attached method that will get executed.
         /// </summary>
-        public Delegate Method { get => _method; }
+        public Delegate MethodDelegate { get => _method; }
 
         /// <summary>
         /// Represents the type of the attached method.

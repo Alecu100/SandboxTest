@@ -23,7 +23,7 @@ namespace SandboxTest.Sample
                 var builder = WebApplication.CreateBuilder();
                 builder.ConfigureWebApplicationBuilder();
                 return Task.FromResult(builder);
-            })
+            }, "https://localhost:5533")
             .ConfigureWebApplicationRunner(builder =>
             {
                 builder.Services.AddControllers().ConfigureApplicationPartManager(parts => parts.ApplicationParts.Add(new AssemblyPart(typeof(WebApplicationExtensions).Assembly)));
@@ -48,7 +48,6 @@ namespace SandboxTest.Sample
                 return Task.CompletedTask;
             })
             .DisableAutoRun()
-            .ConfigureWebApplicationRunnerUrl("https://localhost:5533")
             .AddRunnerController();
 
         public readonly IInstance ApplicationInstance82 = ApplicationInstance.CreateEmptyInstance()

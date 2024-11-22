@@ -175,10 +175,10 @@ namespace SandboxTest.Engine.ChildTestEngine
                     throw new InvalidOperationException($"Instance has no runner assigned");
                 }
                 RefreshScenarioSuiteContext(scenarioSuiteData);
-                var allInstancesToRun = new List<object>();
-                allInstancesToRun.AddRange(_instance.Controllers);
-                allInstancesToRun.Add(_instance.Runner);
-                await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.Runner.RunAsync, new object[] { _instance.Runner, new ScenarioSuiteContext(scenarioSuiteData) });
+                var allTargetsToRun = new List<object>();
+                allTargetsToRun.AddRange(_instance.Controllers);
+                allTargetsToRun.Add(_instance.Runner);
+                await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allTargetsToRun, new[] { AttachedMethodType.RunnerToRunner, AttachedMethodType.ControllerToRunner }, _instance.Runner.RunAsync, new object[] { _instance.Runner, new ScenarioSuiteContext(scenarioSuiteData) });
                 return new ScenarioSuiteOperationResult(true, scenarioSuiteData);
             }
             catch (Exception ex)

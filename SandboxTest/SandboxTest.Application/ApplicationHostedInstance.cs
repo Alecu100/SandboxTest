@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Instance.Hosted;
 
 namespace SandboxTest.Application
@@ -6,13 +7,13 @@ namespace SandboxTest.Application
     /// <summary>
     /// Represents a hosted application instance that starts a new process locally dedicated to the instance.
     /// </summary>
-    public class ApplicationHostedInstance : ApplicationInstance, IHostedInstance
+    public class ApplicationHostedInstance : ApplicationInstance, IHostedInstance, IAttachedMethodContainer
     {
-        private List<string>? _addresses;
-
-        private Process? _applicationInstanceProcess;
-
-        private IHostedInstanceMessageChannel? _messageChannel;
+        protected readonly List<AttachedDynamicMethod> _attachedMethods = new List<AttachedDynamicMethod>();
+        protected List<string>? _addresses;
+        protected Process? _applicationInstanceProcess;
+        protected IHostedInstanceMessageChannel? _messageChannel;
+        protected bool _isPackaged = false;
 
         /// <summary>
         /// Creates an empty default application instance.
@@ -45,7 +46,10 @@ namespace SandboxTest.Application
         /// <summary>
         /// Gets and sets whether the instance should be packaged in a separate dedicated folder from the main test folder.
         /// </summary>
-        public bool IsPackaged { get; set; }
+        public bool IsPackaged { get => _isPackaged; set => _isPackaged = value; }
+
+        /// <inheritdoc/>
+        public IReadOnlyList<AttachedDynamicMethod> AttachedMethods { get => _attachedMethods; }
 
         /// <summary>
         /// Starts the host for the application instance from the command line.
@@ -76,6 +80,16 @@ namespace SandboxTest.Application
             }
             _applicationInstanceProcess.Kill(true);
             return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public void AddAttachedMethod(AttachedMethodType methodType, Delegate method, string name, string targetMethodName, int order)
+        {
+            if (_attachedMethods.Any(attachedMethod => attachedMethod.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                throw new InvalidOperationException($"Attached method with {name} already added");
+            }
+            _attachedMethods.Add(new AttachedDynamicMethod(AttachedMethodType.HostedInstanceToHostedInstance, method, name, targetMethodName, order));
         }
     }
 }

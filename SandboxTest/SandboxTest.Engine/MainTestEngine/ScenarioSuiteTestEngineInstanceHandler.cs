@@ -6,6 +6,7 @@ using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Instance.Hosted;
 using SandboxTest.Scenario;
+using SandboxTest.Utils;
 
 namespace SandboxTest.Engine.MainTestEngine
 {
@@ -20,9 +21,6 @@ namespace SandboxTest.Engine.MainTestEngine
         private HostedInstanceData? _hostedInstanceData;
         private IChildTestEngine? _childTestEngine;
         private IAttachedMethodsExecutor _attachedMethodsExecutor;
-        private string? _mainAssemblyPath;
-        private string? _assemblySourceName;
-        private string? _mainPath;
         private JsonSerializerSettings _jsonSerializerSettings;
 
         /// <summary>
@@ -51,37 +49,51 @@ namespace SandboxTest.Engine.MainTestEngine
         /// <returns></returns>
         public async Task<ScenarioSuiteData?> LoadInstanceAsync(ScenarioSuiteData scenarioSuiteData, CancellationToken token)
         {
-            _mainAssemblyPath = _scenarioSuiteType.Assembly.Location;
-            _assemblySourceName = Path.GetFileName(_mainAssemblyPath);
-            _mainPath = Path.GetDirectoryName(_mainAssemblyPath)!;
+            var mainAssemblyPath = _scenarioSuiteType.Assembly.Location;
+            var assemblySourceName = Path.GetFileName(mainAssemblyPath);
+            var mainPath = Path.GetDirectoryName(mainAssemblyPath)!;
+            var hostedInstanceInitializerAssemblyFullName = typeof(HostedInstanceInitializer).Assembly.Location;
 
             if (_assignedInstance is IHostedInstance)
             {
+                _assignedHostedInstance = (IHostedInstance)_assignedInstance;
+                string? packageFolder = null;
+                if (_assignedHostedInstance.IsPackaged)
+                {
+                    var packagePath = Path.Combine(_assignedHostedInstance.Id, mainPath);
+                    if (Directory.Exists(packagePath)) 
+                    {
+                        Directory.Delete(packagePath, true);
+                    }
+                    await PathUtils.CopyDirectoryAsync(mainPath, packagePath, true, token);
+                    mainPath = packagePath;
+                    hostedInstanceInitializerAssemblyFullName = Path.Combine(Path.GetFileName(hostedInstanceInitializerAssemblyFullName), mainPath);
+                }
+
                 _hostedInstanceData = new HostedInstanceData
                 {
                     RunId = _runId,
                     InstanceId = _assignedInstance.Id,
-                    AssemblySourceName = _assemblySourceName,
-                    MainPath = _mainPath!,
-                    HostedInstanceInitializerAssemblyFullName = typeof(HostedInstanceInitializer).Assembly.Location,
+                    AssemblySourceName = assemblySourceName,
+                    MainPath = mainPath!,
+                    HostedInstanceInitializerAssemblyFullName = hostedInstanceInitializerAssemblyFullName,
                     HostedInstanceInitializerTypeFullName = typeof(HostedInstanceInitializer).FullName!,
                     ScenarioSuiteTypeFullName = _scenarioSuiteType.FullName!
                 };
 
-                _assignedHostedInstance = (IHostedInstance)_assignedInstance;
                 var scenarioSuiteDataClone = CloneBySerializingToJson(scenarioSuiteData);
-                var allInstancesToRun = new List<object>();
-                allInstancesToRun.Add(_assignedHostedInstance.MessageChannel!);
-                allInstancesToRun.Add(_assignedHostedInstance);
-                await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allInstancesToRun, new[] { AttachedMethodType.HostedInstanceToHostedInstance, AttachedMethodType.MessageChannelToHostedInstance },
-                    _assignedHostedInstance.StartAsync, new object[] { _assignedHostedInstance, new HostedInstanceContext(_mainTestEngineRunContext, scenarioSuiteDataClone), _hostedInstanceData, token });
+                var allTargetsToRun = new List<object>();
+                allTargetsToRun.Add(_assignedHostedInstance.MessageChannel!);
+                allTargetsToRun.Add(_assignedHostedInstance);
+                await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allTargetsToRun, new[] { AttachedMethodType.HostedInstanceToHostedInstance, AttachedMethodType.MessageChannelToHostedInstance },
+                    _assignedHostedInstance.StartAsync, new object[] { _assignedHostedInstance, new HostedInstanceContext(_mainTestEngineRunContext, scenarioSuiteDataClone, packageFolder), _hostedInstanceData, token });
                 await _assignedHostedInstance.MessageChannel!.OpenAsync(_assignedInstance.Id, _runId, false);
                 return scenarioSuiteDataClone;
             }
             else
             {
                 _childTestEngine = new ChildTestEngine.ChildTestEngine(_scenariosAssemblyLoadContext);
-                await _childTestEngine.LoadInstanceAsync($"{_mainPath}\\{_assemblySourceName}", _scenarioSuiteType.FullName!, _assignedInstance.Id);
+                await _childTestEngine.LoadInstanceAsync($"{mainPath}\\{assemblySourceName}", _scenarioSuiteType.FullName!, _assignedInstance.Id);
                 return null;
             }
         }
@@ -98,6 +110,10 @@ namespace SandboxTest.Engine.MainTestEngine
                 var operationResult = await ExecuteHostedInstanceOperationAsync(operation, default);
                 var scenarioOperationResult = operationResult as ScenarioSuiteOperationResult;
                 await _assignedHostedInstance.StopAsync(new HostedInstanceContext(_mainTestEngineRunContext, scenarioOperationResult?.ScenarioSuiteData ?? new ScenarioSuiteData()), _hostedInstanceData);
+                if (_assignedHostedInstance.IsPackaged)
+                {
+                    Directory.Delete(_hostedInstanceData.MainPath, true);
+                }
                 return operationResult;
             }
 

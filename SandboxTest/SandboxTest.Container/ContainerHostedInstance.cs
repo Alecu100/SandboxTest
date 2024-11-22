@@ -8,7 +8,7 @@ using System.Text;
 
 namespace SandboxTest.Container
 {
-    public class ContainerHostedInstance : InstanceBase, IHostedInstance
+    public class ContainerHostedInstance : InstanceBase, IHostedInstance, IAttachedMethodContainer
     {
         protected const string DockerFileFormat = @"
 FROM {0} AS base
@@ -20,7 +20,7 @@ WORKDIR /app
 COPY . .
 ENTRYPOINT [""dotnet"", ""{2}.dll""]
 ";
-
+        protected readonly List<AttachedDynamicMethod> _attachedMethods = new List<AttachedDynamicMethod>();
         protected DockerClient? _dockerClient;
         protected IHostedInstanceMessageChannel? _messageChannel;
         protected List<string>? _addresses;
@@ -99,6 +99,9 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
         /// Gets and sets whether the instance should be packaged in a separate dedicated folder.
         /// </summary>
         public bool IsPackaged { get; set; }
+
+        /// <inheritdoc/>
+        public IReadOnlyList<AttachedDynamicMethod> AttachedMethods { get => _attachedMethods; }
 
         [AttachedMethod(AttachedMethodType.HostedInstanceToHostedInstance, nameof(StartAsync), -300)]
         public async Task ConfigureBuildAsync(IHostedInstanceContext instanceContext, HostedInstanceData instanceData, CancellationToken token)
@@ -206,6 +209,16 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
         public void OnConfigureBuild(Func<ContainerHostedInstance, IHostedInstanceContext, Task>? configureBuildFunc)
         {
             _configureBuildFunc = configureBuildFunc;
+        }
+
+        /// <inheritdoc/>
+        public void AddAttachedMethod(AttachedMethodType methodType, Delegate method, string name, string targetMethodName, int order)
+        {
+            if (_attachedMethods.Any(attachedMethod => attachedMethod.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                throw new InvalidOperationException($"Attached method with {name} already added");
+            }
+            _attachedMethods.Add(new AttachedDynamicMethod(AttachedMethodType.HostedInstanceToHostedInstance, method, name, targetMethodName, order));
         }
 
         protected virtual async Task GenerateDockerFile(HostedInstanceData instanceData)

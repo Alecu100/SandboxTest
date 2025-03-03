@@ -19,7 +19,7 @@ namespace SandboxTest.Engine
         {
             _forceLoadAssemblieNames = new List<string>();
             _frameworkResolvers = new List<AssemblyDependencyResolver>();
-            var runtimeDirectory = PathUtils.LocateFolderPath(RuntimeEnvironment.GetRuntimeDirectory(), "dotnet")!;
+            var runtimeDirectory = PathUtils.LocateParentFolderPath(RuntimeEnvironment.GetRuntimeDirectory(), "dotnet")!;
             var sharedDirectory = PathUtils.AppendToPath(runtimeDirectory, "shared");
             var frameworkDirectories = Directory.GetDirectories(sharedDirectory) ?? Enumerable.Empty<string>();
             var runtimeVersion = Environment.Version;

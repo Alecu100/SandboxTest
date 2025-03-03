@@ -1,15 +1,30 @@
 ﻿using Docker.DotNet;
 using Docker.DotNet.Models;
+using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Tar;
+using Microsoft.IO;
 using SandboxTest.Instance;
 using SandboxTest.Instance.AttachedMethod;
 using SandboxTest.Instance.Hosted;
+using SandboxTest.Utils;
+using System.Runtime.InteropServices;
 using System.Text;
+using PathUtils = SandboxTest.Utils.PathUtils;
 
 namespace SandboxTest.Container
 {
     public class ContainerHostedInstance : InstanceBase, IHostedInstance, IAttachedMethodContainer
     {
+        protected static RecyclableMemoryStreamManager _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager(new RecyclableMemoryStreamManager.Options
+        {
+            BlockSize = 1024,
+            LargeBufferMultiple = 1024 * 1024,
+            MaximumBufferSize = 512 * 1024 * 1024,
+            GenerateCallStacks = false,
+            AggressiveBufferReturn = true,
+            MaximumLargePoolFreeBytes = 16 * 1024 * 1024,
+            MaximumSmallPoolFreeBytes = 100 * 1024
+        });
         protected const string DockerFileFormat = @"
 FROM {0} AS base
 USER root
@@ -33,6 +48,7 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
         protected string? _registryAddress;
         protected string? _dockerFileName;
         protected string? _containerId;
+        protected string? _imageName;
 
         /// <summary>
         /// Creates an empty container hosted instance.
@@ -106,6 +122,7 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
         [AttachedMethod(AttachedMethodType.HostedInstanceToHostedInstance, nameof(StartAsync), -300)]
         public async Task ConfigureBuildAsync(IHostedInstanceContext instanceContext, HostedInstanceData instanceData, CancellationToken token)
         {
+            _imageName = _id!.ToLower().Replace('<', '_').Replace('>', '_');
             if (_configureBuildFunc != null)
             {
                 await _configureBuildFunc(this, instanceContext);
@@ -119,7 +136,7 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
             _dockerClient = new DockerClientConfiguration()
                 .CreateClient();
 
-            await GenerateDockerFile(instanceData);
+            await GenerateDockerFile(instanceContext,instanceData);
         }
 
 
@@ -131,10 +148,20 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
                 throw new InvalidOperationException("Configure build not ran");
             }
 
-            using var imageContents = await GenerateImageContents();
-            await _dockerClient.Images.BuildImageFromDockerfileAsync(
-                new ImageBuildParameters { AuthConfigs = _authConfigs, Dockerfile = _dockerFileName, Tags = new string[] { _id! } }, 
-                imageContents, _authConfigs.Values, null,  new ContainerBuildProgress(json => Task.CompletedTask));
+            if (IsPackaged)
+            {
+                var imageContents = await GenerateImageContents(instanceContext.PackageFolder!);
+                await _dockerClient.Images.BuildImageFromDockerfileAsync(
+                    new ImageBuildParameters { AuthConfigs = _authConfigs, Dockerfile = _dockerFileName, Tags = new string[] { _imageName! } },
+                    imageContents, _authConfigs.Values, null, new ContainerBuildProgress(json => Task.CompletedTask));
+            }
+            else
+            {
+                var imageContents = await GenerateImageContents(Environment.CurrentDirectory);
+                await _dockerClient.Images.BuildImageFromDockerfileAsync(
+                    new ImageBuildParameters { AuthConfigs = _authConfigs, Dockerfile = _dockerFileName, Tags = new string[] { _imageName! } },
+                    imageContents, _authConfigs.Values, null, new ContainerBuildProgress(json => Task.CompletedTask));
+            }
         }
 
         public virtual async Task StartAsync(IHostedInstanceContext instanceContext, HostedInstanceData instanceData, CancellationToken token)
@@ -145,7 +172,7 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
             }
 
             var existingContainers = await _dockerClient!.Containers.ListContainersAsync(new ContainersListParameters { All = true });
-            var existingContainer = existingContainers.FirstOrDefault(container => container.Names.Any(name => name.Trim('/', '\\', ' ').Equals(_id, StringComparison.InvariantCultureIgnoreCase)));
+            var existingContainer = existingContainers.FirstOrDefault(container => container.Names.Any(name => name.Trim('/', '\\', ' ').Equals(_imageName, StringComparison.InvariantCultureIgnoreCase)));
             if (existingContainer != null)
             {
                 await _dockerClient.Containers.RemoveContainerAsync(existingContainer.ID, new ContainerRemoveParameters { Force = true, RemoveVolumes = true });
@@ -161,7 +188,7 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
                 hostConfig.PortBindings[exposedPort.Key.ToString()] = exposedPort.Select(port => new PortBinding { HostPort = port.Key.ToString(), HostIP = "0.0.0.0" }).ToList();
                 exposedPorts[exposedPort.First().Value.ToString()] = new EmptyStruct();
             }
-            var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters { Image = _id, Name = _id, HostConfig = hostConfig, ExposedPorts = exposedPorts });
+            var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters { Image = _imageName, Name = _imageName, HostConfig = hostConfig, ExposedPorts = exposedPorts });
             _containerId = createContainerResponse.ID;
             await _dockerClient.Containers.StartContainerAsync(_containerId, new ContainerStartParameters());
             var containerInspectResponse = await _dockerClient.Containers.InspectContainerAsync(_containerId);
@@ -193,7 +220,7 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
             }
             await _dockerClient.Containers.StopContainerAsync(_containerId, new ContainerStopParameters { WaitBeforeKillSeconds = 5 });
             await _dockerClient.Containers.RemoveContainerAsync(_containerId, new ContainerRemoveParameters { Force = true, RemoveVolumes = true });
-            await _dockerClient.Images.DeleteImageAsync(_id, new ImageDeleteParameters { Force = true });
+            await _dockerClient.Images.DeleteImageAsync(_imageName, new ImageDeleteParameters { Force = true });
             _dockerClient.Dispose();
         }
 
@@ -221,20 +248,37 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
             _attachedMethods.Add(new AttachedDynamicMethod(AttachedMethodType.HostedInstanceToHostedInstance, method, name, targetMethodName, order));
         }
 
-        protected virtual async Task GenerateDockerFile(HostedInstanceData instanceData)
+        protected virtual async Task GenerateDockerFile(IHostedInstanceContext instanceContext, HostedInstanceData instanceData)
         {
-            _dockerFileName = $"{_id}.DockerFile";
+            _dockerFileName = $"{_imageName}.DockerFile";
             var dockerFileEnvironmentVariablesSection = string.Join(Environment.NewLine, _environmentVariables.Select(environmentVariable => $"ENV {environmentVariable.Key}={environmentVariable.Value}")
                 .Union(instanceData.ToEnvironmentVariables()).Select(envVar => $"ENV {envVar}"));
             var dockerFileDotNetArgument = typeof(Program).Assembly.GetName().Name;
             var dockerFileContent = string.Format(DockerFileFormat, _baseImage, dockerFileEnvironmentVariablesSection, dockerFileDotNetArgument);
-            await File.WriteAllTextAsync(_dockerFileName, dockerFileContent);
+            if (IsPackaged)
+            {
+                await FileUtils.WriteTextToFileAsync(PathUtils.AppendToPath(instanceContext.PackageFolder!, $"{_imageName}.DockerFile"), dockerFileContent);
+            }
+            else
+            {
+                await FileUtils.WriteTextToFileAsync(PathUtils.AppendToPath(Environment.CurrentDirectory, $"{_imageName}.DockerFile"), dockerFileContent);
+            }
         }
 
-        protected virtual async Task<Stream> GenerateImageContents()
+        protected virtual async Task<RecyclableMemoryStream> GenerateImageContents(string path)
         {
-            var tarStream = new MemoryStream();
-            var files = Directory.GetFiles(Environment.CurrentDirectory, "*.*", SearchOption.AllDirectories);
+            if (_dockerClient == null)
+            {
+                throw new InvalidOperationException("Docker client not running");
+            }
+            var systemInformation = await _dockerClient.System.GetSystemInfoAsync();
+            var dockerIsUnix = !systemInformation.OSType.Equals("windows");
+            var newPathSeparator = dockerIsUnix && Environment.OSVersion.Platform == PlatformID.Win32NT ? '/' : '\\';
+            var oldPathSeparator = Environment.OSVersion.Platform == PlatformID.Win32NT ? '\\' : '/';
+
+
+            var tarStream = _recyclableMemoryStreamManager.GetStream();
+            var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
 
             using var tarArchiveOutputStream = new TarOutputStream(tarStream, Encoding.UTF8)
             {
@@ -243,11 +287,18 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
 
             foreach (var file in files)
             {
-                var tarFileFullName = file.Substring(Environment.CurrentDirectory.Length).Replace('\\', '/').TrimStart('/');
-
+                var tarFileFullName = file.Substring(path.Length).Replace(oldPathSeparator, newPathSeparator).TrimStart(newPathSeparator);
+                if (tarFileFullName.Contains(_dockerFileName, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    tarFileFullName = tarFileFullName.Replace(_dockerFileName, _dockerFileName, StringComparison.InvariantCultureIgnoreCase);
+                }
                 var fileTarEntry = TarEntry.CreateTarEntry(tarFileFullName);
                 using var fileStream = File.OpenRead(file);
                 fileTarEntry.Size = fileStream.Length;
+                if (dockerIsUnix)
+                {
+                    fileTarEntry.TarHeader.Mode = Convert.ToInt32("100755", 8); //chmod 755
+                }
                 await tarArchiveOutputStream.PutNextEntryAsync(fileTarEntry, default);
 
                 var fileDataBuffer = new byte[32 * 1024];
@@ -265,7 +316,6 @@ ENTRYPOINT [""dotnet"", ""{2}.dll""]
             await tarArchiveOutputStream.FlushAsync();
             tarArchiveOutputStream.Close();
             tarStream.Position = 0;
-
             return tarStream;
         }
     }

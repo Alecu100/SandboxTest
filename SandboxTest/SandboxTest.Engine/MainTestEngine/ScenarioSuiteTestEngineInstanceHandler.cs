@@ -60,7 +60,7 @@ namespace SandboxTest.Engine.MainTestEngine
                 string? packageFolder = null;
                 if (_assignedHostedInstance.IsPackaged)
                 {
-                    var packagePath = Path.Combine(_assignedHostedInstance.Id, mainPath);
+                    var packagePath = PathUtils.AppendToPath(mainPath, _assignedHostedInstance.Id);
                     if (Directory.Exists(packagePath)) 
                     {
                         Directory.Delete(packagePath, true);
@@ -68,6 +68,7 @@ namespace SandboxTest.Engine.MainTestEngine
                     await PathUtils.CopyDirectoryAsync(mainPath, packagePath, true, token);
                     mainPath = packagePath;
                     hostedInstanceInitializerAssemblyFullName = Path.Combine(Path.GetFileName(hostedInstanceInitializerAssemblyFullName), mainPath);
+                    packageFolder = mainPath;
                 }
 
                 _hostedInstanceData = new HostedInstanceData

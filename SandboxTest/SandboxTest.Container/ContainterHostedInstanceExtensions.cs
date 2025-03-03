@@ -22,7 +22,7 @@ namespace SandboxTest.Container
         /// <param name="configureBuildFunc">The function to call to configure the hosted instance</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static IHostedInstance ConfigureContainerHostedInstance(this IHostedInstance hostedInstance, Func<ContainerHostedInstance, IHostedInstanceContext, Task>? configureBuildFunc)
+        public static ContainerHostedInstance ConfigureContainerHostedInstance(this IHostedInstance hostedInstance, Func<ContainerHostedInstance, IHostedInstanceContext, Task>? configureBuildFunc)
         {
             var containterHostedInstance = hostedInstance as ContainerHostedInstance;
             if (containterHostedInstance == null)
@@ -69,9 +69,28 @@ namespace SandboxTest.Container
                     continue;
                 }
             }
+            var onPackageFilesFromDirectory = async (IHostedInstanceContext instanceContext, HostedInstanceData instanceData, CancellationToken token) =>
+            {
+                await PathUtils.CopyDirectoryAsync(fullDirectoryName, instanceContext.PackageFolder!, true, default, filters?.ToArray());
+            };
+            var attachedMethodName = $"{nameof(onPackageFilesFromDirectory)}_{fullDirectoryName.Replace(Path.DirectorySeparatorChar, '_').Replace(Path.VolumeSeparatorChar, '_')}";
+            containerHostedInstance.AddAttachedMethod(AttachedMethodType.HostedInstanceToHostedInstance, onPackageFilesFromDirectory, attachedMethodName, nameof(containerHostedInstance.BuildAsync), -100);
+            return containerHostedInstance;
+        }
+
+        /// <summary>
+        /// Packages additional files from another directory such as appsettings.json files or razor pages files.
+        /// </summary>
+        /// <param name="containerHostedInstance">The container hosted instance to generate a separate package directory copying the specified directory in the package directory.</param>
+        /// <param name="fullDirectoryName">The full name and path of the directory from which to copy the files and sub directories.</param>
+        /// <param name="filter">Filter for files and directories to include.</param>
+        /// <returns></returns>
+        public static ContainerHostedInstance PackageFilesFromDirectory(this ContainerHostedInstance containerHostedInstance, string fullDirectoryName, Func<string, bool> filter)
+        {
+            containerHostedInstance.IsPackaged = true;
             Func<IHostedInstanceContext, Task> onPackageFilesFromDirectory = async (ctx) =>
             {
-                await PathUtils.CopyDirectoryAsync(fullDirectoryName, ctx.PackageFolder!, true, default, filters?.ToArray());
+                await PathUtils.CopyDirectoryAsync(fullDirectoryName, ctx.PackageFolder!, true, default, new[] { filter });
             };
             var attachedMethodName = $"{nameof(onPackageFilesFromDirectory)}_{fullDirectoryName.Replace(Path.DirectorySeparatorChar, '_').Replace(Path.VolumeSeparatorChar, '_')}";
             containerHostedInstance.AddAttachedMethod(AttachedMethodType.HostedInstanceToHostedInstance, onPackageFilesFromDirectory, attachedMethodName, nameof(containerHostedInstance.StartAsync), -100);

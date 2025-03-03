@@ -7,18 +7,18 @@
         /// </summary>
         /// <param name="folderPathToFind"></param>
         /// <returns></returns>
-        public static string? LocateFolderPath(string folderPathToFind)
+        public static string? LocateParentFolderPath(string folderPathToFind)
         {
-            return LocateFolderPath(Environment.CurrentDirectory, folderPathToFind);
+            return LocateParentFolderPath(Environment.CurrentDirectory, folderPathToFind);
         }
 
         /// <summary>
-        /// Locates a folder inside a path and returns the path to that folder.
+        /// Locates a parent folder inside a path and returns the path to that folder.
         /// </summary>
         /// <param name="folderPathToFind">The path to search for the folder in and return the path to the found folder.</param>
         /// <param name="fullPathToSearchIn">The folder for which to search the path.</param>
         /// <returns></returns>
-        public static string? LocateFolderPath(string fullPathToSearchIn, string folderPathToFind)
+        public static string? LocateParentFolderPath(string fullPathToSearchIn, string folderPathToFind)
         {
             if (fullPathToSearchIn.EndsWith(folderPathToFind, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -36,7 +36,7 @@
                 return null;
             }
 
-            return LocateFolderPath(fullPathToSearchIn.Substring(0, pathSeparatorPosition), folderPathToFind);
+            return LocateParentFolderPath(fullPathToSearchIn.Substring(0, pathSeparatorPosition), folderPathToFind);
         }
 
         /// <summary>
@@ -98,14 +98,13 @@
             var fileOptions = FileOptions.Asynchronous | FileOptions.SequentialScan;
             var bufferSize = 4096;
 
-            using (var sourceStream =
-                  new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, fileOptions))
-
-            using (var destinationStream =
-                  new FileStream(destinationFile, FileMode.CreateNew, FileAccess.Write, FileShare.None, bufferSize, fileOptions))
-
-                await sourceStream.CopyToAsync(destinationStream, bufferSize, cancellationToken)
-                                  .ConfigureAwait(false);
+            using var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, fileOptions);
+            if (File.Exists(destinationFile))
+            {
+                File.Delete(destinationFile);
+            }
+            using var destinationStream = new FileStream(destinationFile, FileMode.CreateNew, FileAccess.Write, FileShare.None, bufferSize, fileOptions);
+            await sourceStream.CopyToAsync(destinationStream, bufferSize, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

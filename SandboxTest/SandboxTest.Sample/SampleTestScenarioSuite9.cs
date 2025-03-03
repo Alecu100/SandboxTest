@@ -26,6 +26,7 @@ namespace SandboxTest.Sample
                 instance.ExposedPorts.Add(new KeyValuePair<short, short>(6633, 6633));
                 return Task.CompletedTask;
             })
+            .PackageFilesFromDirectory(PathUtils.AppendToPath(PathUtils.LocateParentFolderPath("SandboxTest")!, "SandboxTest.Sample.Application6")!)
             .UseWebApplicationRunner(() =>
             {
                 var builder = WebApplication.CreateBuilder();

@@ -52,7 +52,7 @@ namespace SandboxTest.Sample
 
         public readonly IInstance ApplicationInstance82 = ApplicationInstance.CreateEmptyInstance()
             .UseNodeRunner("localhost", 8050)
-            .ConfigureNodeRunnerWithVite(PathUtils.AppendToPath(PathUtils.LocateFolderPath("SandboxTest")!, "SandboxTest.Sample.Application5\\sandboxtest.sample.application5.client"))
+            .ConfigureNodeRunnerWithVite(PathUtils.AppendToPath(PathUtils.LocateParentFolderPath("SandboxTest")!, "SandboxTest.Sample.Application5\\sandboxtest.sample.application5.client"))
             .AddPlaywrightController(PlaywrightControllerBrowserType.Chromium, headless: false, slowMod: 50, ignoreHttpsErrors: true);
 
         [Scenario]

@@ -36,6 +36,7 @@
 
         /// <summary>
         /// Gets whether it should package the hosted instance in a separate dedicated folder.
+        /// This must be set before starting the hosted instance.
         /// </summary>
         bool IsPackaged { get; }    
 

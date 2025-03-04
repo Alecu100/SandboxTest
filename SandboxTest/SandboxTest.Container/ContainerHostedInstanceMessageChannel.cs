@@ -406,7 +406,7 @@ namespace SandboxTest.Container
                     }
                 }
             }
-            while (totalReceived < buffer.Length && receivedMessageSeparatorStart == false);
+            while (totalReceived < buffer.Length && receivedMessageSeparatorStart == false && received > 0);
             totalReceived = totalReceived - MessageSeparatorEndBytes.Length - MessageSeparatorStartBytes.Length;
             for (int i = 0; totalReceived > 0 && i < totalReceived + MessageSeparatorStartBytes.Length; i++)
             {

@@ -31,20 +31,11 @@ namespace SandboxTest.Sample
             {
                 var builder = WebApplication.CreateBuilder();
                 builder.ConfigureWebApplicationBuilder();
-                builder.Logging.AddConsole();
                 return Task.FromResult(builder);
             }, "http://0.0.0.0:6633")
-            .ConfigureWebApplicationRunner(builder =>
+            .ConfigureWebApplicationRunner(configureRunFunc: webApp =>
             {
-                builder.Services.AddHttpLogging(o => { });
-                return Task.CompletedTask;
-            }, webApp =>
-            {
-                webApp.Use(Middleware404);
-                webApp.UseHttpLogging();
                 webApp.ConfigureWebApplication();
-                webApp.MapGet("/debug/routes", (IEnumerable<EndpointDataSource> endpointSources) =>
-                    string.Join("\n", endpointSources.SelectMany(source => source.Endpoints)));
                 return Task.CompletedTask;
             });
 
@@ -65,17 +56,6 @@ namespace SandboxTest.Sample
                 var response = await controller.HttpClient.GetAsync("");
                 response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
             });
-        }
-
-        private static async Task Middleware404(HttpContext ctx, Func<Task> next)
-        {
-            ctx.Request.Host = new HostString("127.0.0.1:6633");
-            await next();
-            if (ctx.Response.StatusCode == 404)
-            {
-                int a = 0;
-                a++;
-            }
         }
     }
 }

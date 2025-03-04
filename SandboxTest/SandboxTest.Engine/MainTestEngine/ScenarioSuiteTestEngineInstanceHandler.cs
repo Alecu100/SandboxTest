@@ -224,7 +224,8 @@ namespace SandboxTest.Engine.MainTestEngine
                 var json = JsonConvert.SerializeObject(operation, _jsonSerializerSettings);
                 await _assignedHostedInstance.MessageChannel.SendMessageAsync(json);
 
-                var operationResult = JsonConvert.DeserializeObject<OperationResult>(await _assignedHostedInstance.MessageChannel.ReceiveMessageAsync(), _jsonSerializerSettings);
+                var operationResultBytes = await _assignedHostedInstance.MessageChannel.ReceiveMessageAsync();
+                var operationResult = JsonConvert.DeserializeObject<OperationResult>(operationResultBytes, _jsonSerializerSettings);
                 return operationResult!;
             }
             catch (Exception ex)

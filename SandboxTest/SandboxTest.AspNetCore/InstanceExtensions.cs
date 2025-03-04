@@ -28,7 +28,7 @@ namespace SandboxTest.AspNetCore
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         public static IInstance ConfigureWebApplicationRunner(this IInstance instance,
-            Func<WebApplicationBuilder, Task>? configureBuildFunc,
+            Func<WebApplicationBuilder, Task>? configureBuildFunc = default,
             Func<WebApplication, Task>? configureRunFunc = default)
         {
             var webApplicationRunner = instance.Runner as WebApplicationRunner;

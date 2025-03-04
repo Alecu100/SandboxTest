@@ -6,11 +6,11 @@ namespace SandboxTest.Container
     {
         static async Task<int> Main()
         {
+            await Task.Delay(45000);
             var hostedInstanceData = HostedInstanceData.ParseFromEnvironmentVariables(Environment.GetEnvironmentVariables());
             hostedInstanceData.HostedInstanceInitializerAssemblyFullName = 
                 $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}{hostedInstanceData.HostedInstanceInitializerAssemblyFullName.Substring(hostedInstanceData.MainPath!.Length).Trim('\\', '/')}";
             hostedInstanceData.MainPath = $"{Environment.CurrentDirectory}";
-            await Task.Delay(45000);
             var assemblyLoadContext = new ContainerHostedInstanceLoadContext(Path.GetFullPath(hostedInstanceData.HostedInstanceInitializerAssemblyFullName));
             var hostedInstanceInitializerAssembly = assemblyLoadContext.LoadFromAssemblyPath(hostedInstanceData.HostedInstanceInitializerAssemblyFullName);
             var hostedInstanceInitializerType = hostedInstanceInitializerAssembly.GetTypes().First(type => type.IsAssignableTo(typeof(IHostedInstanceInitializer)));

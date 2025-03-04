@@ -67,7 +67,7 @@ namespace SandboxTest.Engine.MainTestEngine
                     }
                     await PathUtils.CopyDirectoryAsync(mainPath, packagePath, true, token);
                     mainPath = packagePath;
-                    hostedInstanceInitializerAssemblyFullName = Path.Combine(Path.GetFileName(hostedInstanceInitializerAssemblyFullName), mainPath);
+                    hostedInstanceInitializerAssemblyFullName = PathUtils.AppendToPath(mainPath, Path.GetFileName(hostedInstanceInitializerAssemblyFullName));
                     packageFolder = mainPath;
                 }
 
@@ -83,9 +83,11 @@ namespace SandboxTest.Engine.MainTestEngine
                 };
 
                 var scenarioSuiteDataClone = CloneBySerializingToJson(scenarioSuiteData);
-                var allTargetsToRun = new List<object>();
-                allTargetsToRun.Add(_assignedHostedInstance.MessageChannel!);
-                allTargetsToRun.Add(_assignedHostedInstance);
+                var allTargetsToRun = new List<object>
+                {
+                    _assignedHostedInstance.MessageChannel!,
+                    _assignedHostedInstance
+                };
                 await _attachedMethodsExecutor.ExecuteAttachedMethodsChain(allTargetsToRun, new[] { AttachedMethodType.HostedInstanceToHostedInstance, AttachedMethodType.MessageChannelToHostedInstance },
                     _assignedHostedInstance.StartAsync, new object[] { _assignedHostedInstance, new HostedInstanceContext(_mainTestEngineRunContext, scenarioSuiteDataClone, packageFolder), _hostedInstanceData, token });
                 await _assignedHostedInstance.MessageChannel!.OpenAsync(_assignedInstance.Id, _runId, false);

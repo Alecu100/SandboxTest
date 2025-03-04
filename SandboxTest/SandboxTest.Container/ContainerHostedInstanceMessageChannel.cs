@@ -4,6 +4,7 @@ using System.Net.NetworkInformation;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Docker.DotNet.Models;
 
 namespace SandboxTest.Container
 {
@@ -31,7 +32,8 @@ namespace SandboxTest.Container
 
         private byte[] _socketReceiveBuffer = new byte[10000];
         private short _port;
-        private Socket? _hostSocket;
+        private Socket? _hostSocketListening;
+        private Socket? _socket;
         private List<string>? _containerAddresses;
         private bool _isInHost;
         private IPEndPoint? _hostIpEndpoint;
@@ -63,30 +65,15 @@ namespace SandboxTest.Container
         {
             if (_isInHost)
             {
-                if (_hostSocket == null)
-                {
-                    throw new InvalidOperationException("Container message channel not started");
-                }
-                while (true)
-                {
-                    try
-                    {
-                        using var incomingSocket = await _hostSocket.AcceptAsync();
-                        var totalReceived = await Receive(incomingSocket, _socketReceiveBuffer);
-                        if (totalReceived > 0)
-                        {
-                            return Encoding.UTF8.GetString(_socketReceiveBuffer, 0, totalReceived);
-                        }
-                        incomingSocket.Dispose();
-                    }
-                    catch (Exception)
-                    {
-                    }
-                    await Task.Delay(BackOffMiliseconds);
-                }
+                return await ReceiveMessageInHost();
             }
 
-            if (_hostIpEndpoint == null)
+            return await ReceiveMessageOutsideHost();
+        }
+
+        private async Task<string> ReceiveMessageOutsideHost()
+        {
+            if (_hostIpEndpoint == null || _socket == null)
             {
                 throw new InvalidOperationException("Host ip endpoint not found");
             }
@@ -94,9 +81,7 @@ namespace SandboxTest.Container
             {
                 try
                 {
-                    using var socket = new Socket(_hostIpEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    await socket.ConnectAsync(_hostIpEndpoint);
-                    var totalReceived = await Receive(socket, _socketReceiveBuffer);
+                    var totalReceived = await Receive(_socket, _socketReceiveBuffer);
                     if (totalReceived > 0)
                     {
                         return Encoding.UTF8.GetString(_socketReceiveBuffer, 0, totalReceived);
@@ -104,8 +89,35 @@ namespace SandboxTest.Container
                 }
                 catch (Exception)
                 {
+                    _socket.Dispose();
+                    _socket = new Socket(_hostIpEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    await _socket.ConnectAsync(_hostIpEndpoint);
                 }
                 await Task.Delay(BackOffMiliseconds);
+            }
+        }
+
+        private async Task<string> ReceiveMessageInHost()
+        {
+            if (_socket == null || _hostSocketListening == null)
+            {
+                throw new InvalidOperationException("Container message channel not started");
+            }
+            while (true)
+            {
+                try
+                {
+                    var totalReceived = await Receive(_socket, _socketReceiveBuffer);
+                    if (totalReceived > 0)
+                    {
+                        return Encoding.UTF8.GetString(_socketReceiveBuffer, 0, totalReceived);
+                    }
+                }
+                catch (Exception)
+                {
+                    _socket.Dispose();
+                    _socket = await _hostSocketListening.AcceptAsync();
+                }
             }
         }
 
@@ -121,30 +133,16 @@ namespace SandboxTest.Container
 
             if (_isInHost)
             {
-                if (_hostSocket == null)
-                {
-                    throw new InvalidOperationException("Container message channel not started");
-                }
-
-                while (true)
-                {
-                    Socket? incomingSocket = null;
-                    try
-                    {
-                        incomingSocket = await _hostSocket.AcceptAsync();
-                        await Send(incomingSocket, messageBytes, messageBytes.Length);
-                        break;
-                    }
-                    catch(Exception)
-                    {
-                        incomingSocket?.Dispose();
-                    }
-                    await Task.Delay(BackOffMiliseconds);
-                }
+                await SendMessageInHost(messageBytes);
                 return;
             }
 
-            if (_hostIpEndpoint == null)
+            await SendMessageOutsideHost(messageBytes);
+        }
+
+        private async Task SendMessageOutsideHost(byte[] messageBytes)
+        {
+            if (_hostIpEndpoint == null || _socket == null)
             {
                 throw new InvalidOperationException("Host ip endpoint not found");
             }
@@ -152,16 +150,41 @@ namespace SandboxTest.Container
             {
                 try
                 {
-                    using var socket = new Socket(_hostIpEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    await socket.ConnectAsync(_hostIpEndpoint);
-                    await Send(socket, messageBytes, messageBytes.Length);
+                    await Send(_socket, messageBytes, messageBytes.Length);
                     break;
                 }
                 catch (Exception)
                 {
+                    _socket.Dispose();
+                    _socket = new Socket(_hostIpEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    await _socket.ConnectAsync(_hostIpEndpoint);
                 }
                 await Task.Delay(BackOffMiliseconds);
             }
+        }
+
+        private async Task SendMessageInHost(byte[] messageBytes)
+        {
+            if (_hostSocketListening == null || _socket == null)
+            {
+                throw new InvalidOperationException("Container message channel not started");
+            }
+
+            while (true)
+            {
+                try
+                {
+                    await Send(_socket, messageBytes, messageBytes.Length);
+                    break;
+                }
+                catch (Exception)
+                {
+                    _socket?.Dispose();
+                    _socket = await _hostSocketListening.AcceptAsync();
+                }
+                await Task.Delay(BackOffMiliseconds);
+            }
+            return;
         }
 
         /// <summary>
@@ -214,8 +237,14 @@ namespace SandboxTest.Container
 
                 foreach (var ipAddress in candidateIpAddresses)
                 {
-                    candidateTasks.Add(TryLocalIpAddress(cancellationTokenSource, ipAddress));
+                    candidateTasks.Add(TryContainerLocalIpAddress(cancellationTokenSource, ipAddress));
                 }
+                await Task.WhenAll(candidateTasks);
+                if (_hostSocketListening == null)
+                {
+                    throw new InvalidOperationException("Could not find listening ip and socket in host");
+                }
+                _socket = await _hostSocketListening.AcceptAsync();
             }
             else
             {
@@ -223,14 +252,19 @@ namespace SandboxTest.Container
 
                 foreach (var ipAddress in candidateIpAddresses)
                 {
-                    candidateTasks.Add(TryContainerIpAddress(cancellationTokenSource, ipAddress));
+                    candidateTasks.Add(TryExternalContainerIpAddress(cancellationTokenSource, ipAddress));
                 }
+                await Task.WhenAll(candidateTasks);
+                if (_hostIpEndpoint == null)
+                {
+                    throw new InvalidOperationException("Could not find host ip endpoint outside host");
+                }
+                _socket = new Socket(_hostIpEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                await _socket.ConnectAsync(_hostIpEndpoint);
             }
-
-            await Task.WhenAll(candidateTasks);
         }
 
-        private async Task TryLocalIpAddress(CancellationTokenSource cancellationTokenSource, IPAddress ipAddress)
+        private async Task TryContainerLocalIpAddress(CancellationTokenSource cancellationTokenSource, IPAddress ipAddress)
         {
             while (!cancellationTokenSource.IsCancellationRequested)
             {
@@ -244,7 +278,7 @@ namespace SandboxTest.Container
                     if (await CheckHostSidePing(incomingSocket))
                     {
                         cancellationTokenSource.Cancel();
-                        _hostSocket = socket;
+                        _hostSocketListening = socket;
                         break;
                     }
                     await Task.Delay(BackOffMiliseconds);
@@ -256,7 +290,7 @@ namespace SandboxTest.Container
             }
         }
 
-        private async Task TryContainerIpAddress(CancellationTokenSource cancellationTokenSource, IPAddress ipAddress)
+        private async Task TryExternalContainerIpAddress(CancellationTokenSource cancellationTokenSource, IPAddress ipAddress)
         {
             var ipEndpoint = new IPEndPoint(ipAddress, _port);
 
@@ -372,7 +406,7 @@ namespace SandboxTest.Container
                     }
                 }
             }
-            while (totalReceived < buffer.Length && receivedMessageSeparatorStart == false && received > 0);
+            while (totalReceived < buffer.Length && receivedMessageSeparatorStart == false);
             totalReceived = totalReceived - MessageSeparatorEndBytes.Length - MessageSeparatorStartBytes.Length;
             for (int i = 0; totalReceived > 0 && i < totalReceived + MessageSeparatorStartBytes.Length; i++)
             {

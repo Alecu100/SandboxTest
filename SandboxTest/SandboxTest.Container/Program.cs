@@ -6,7 +6,6 @@ namespace SandboxTest.Container
     {
         static async Task<int> Main()
         {
-            await Task.Delay(45000);
             var hostedInstanceData = HostedInstanceData.ParseFromEnvironmentVariables(Environment.GetEnvironmentVariables());
             hostedInstanceData.HostedInstanceInitializerAssemblyFullName = 
                 $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}{hostedInstanceData.HostedInstanceInitializerAssemblyFullName.Substring(hostedInstanceData.MainPath!.Length).Trim('\\', '/')}";

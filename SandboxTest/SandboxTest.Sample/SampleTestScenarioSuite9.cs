@@ -10,9 +10,7 @@ using FluentAssertions;
 using SandboxTest.Application;
 using SandboxTest.WebServer;
 using SandboxTest.Utils;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Routing;
 
 namespace SandboxTest.Sample
 {
@@ -30,7 +28,7 @@ namespace SandboxTest.Sample
             .UseWebApplicationRunner(() =>
             {
                 var builder = WebApplication.CreateBuilder();
-                builder.ConfigureWebApplicationBuilder();
+                builder.Services.AddRazorPages().AddApplicationPart(typeof(Program).Assembly);
                 return Task.FromResult(builder);
             }, "http://0.0.0.0:6633")
             .ConfigureWebApplicationRunner(configureRunFunc: webApp =>
@@ -49,7 +47,7 @@ namespace SandboxTest.Sample
         {
             var firstStep = ApplicationInstance92.AddStep().UseController<HttpClientController>(async (controller, ctx) =>
             {
-                await Task.Delay(600000);
+                await Task.Delay(4000);
             });
             var secondStep = ApplicationInstance92.AddStep(firstStep).UseController<HttpClientController>(async (controller, ctx) =>
             {
